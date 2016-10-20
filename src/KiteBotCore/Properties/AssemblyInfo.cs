@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("KiteBotCoreConversion")]
+[assembly: AssemblyProduct("KiteBotCoreCore")]
 [assembly: AssemblyTrademark("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible
@@ -16,4 +16,4 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("5dcc74d7-9ebd-40be-a2e7-a2937ed0dc5a")]
+[assembly: Guid("704bd01f-7437-4329-8b28-621394768c10")]

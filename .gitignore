@@ -243,3 +243,9 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
+/src/KiteBotCore/Content/Whois.json
+/src/KiteBotCore/Content/settings.json
+/src/KiteBotCore/Content/ReminderList.json
+/src/KiteBotCore/Content/messages.zip
+/src/KiteBotCore/Content/LastMessage.json
+/src/KiteBotCore/Content/.messages.zip

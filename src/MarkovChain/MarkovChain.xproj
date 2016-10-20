@@ -7,8 +7,8 @@
 
   <Import Project="$(VSToolsPath)\DotNet\Microsoft.DotNet.Props" Condition="'$(VSToolsPath)' != ''" />
   <PropertyGroup Label="Globals">
-    <ProjectGuid>5dcc74d7-9ebd-40be-a2e7-a2937ed0dc5a</ProjectGuid>
-    <RootNamespace>KiteBotCoreConversion</RootNamespace>
+    <ProjectGuid>0129d444-d7e2-4e7d-9486-9df0eaae5047</ProjectGuid>
+    <RootNamespace>MarkovChain</RootNamespace>
     <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)'=='' ">.\obj</BaseIntermediateOutputPath>
     <OutputPath Condition="'$(OutputPath)'=='' ">.\bin\</OutputPath>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
