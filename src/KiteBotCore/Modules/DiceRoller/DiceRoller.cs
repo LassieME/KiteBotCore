@@ -8,7 +8,7 @@ namespace KiteBotCore.Modules.DiceRoller
 {
 	public class DiceRoller : ModuleBase
     {
-        public CryptoRandom Random = new CryptoRandom();
+        public static CryptoRandom Random = new CryptoRandom();
 
         [Command("roll")]
         [Alias("rolldice")]

@@ -29,7 +29,7 @@ namespace KiteBotCore.Modules
             else
             {
                 AddToList(Context.User.Id);
-                await ReplyAsync("You are now subscribed, to unsubscribe use \"~unsubscribe\". You have to stay in the GB server to continue to get messages.");
+                await ReplyAsync("You are now subscribed, to unsubscribe use \"~unsubscribe\". You have to stay in the server to continue to get messages.");
             }
         }
         [Command("unsubscribe")]

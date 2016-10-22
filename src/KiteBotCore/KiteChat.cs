@@ -7,9 +7,7 @@ using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
-using Discord.Commands;
 using Discord.WebSocket;
-using KiteBotCore.Modules;
 
 namespace KiteBotCore
 {
@@ -40,6 +38,7 @@ namespace KiteBotCore
             StartMarkovChain = markovbool;
             _greetings = arrayOfGreetings;
             RandomSeed = randomSeed;
+            LoadBekGreetings().Wait();
 
             if (streamRefresh > 3000) StreamChecker = new LivestreamChecker(gBapi, streamRefresh);
             if (videoRefresh > 3000) GbVideoChecker = new GiantBombVideoChecker(gBapi, videoRefresh);
@@ -48,9 +47,8 @@ namespace KiteBotCore
 
         public async Task<bool> InitializeMarkovChain()
         {
-            var bek = LoadBekGreetings();
             if (StartMarkovChain) {await MultiDeepMarkovChains.Initialize();}
-            return await bek;
+            return true;
         }
 
         public async Task AsyncParseChat(SocketMessage msg, IDiscordClient client)
@@ -93,11 +91,6 @@ namespace KiteBotCore
                              msg.Content.ToLower().Contains("hello"))
                     {
                         await msg.Channel.SendMessageAsync(ParseGreeting(msg.Author.Username));
-                    }
-                    else
-                    {
-                        await
-                            msg.Channel.SendMessageAsync("KiteBot ver. 2.0.3 \"Now with less...\"");
                     }
                 }
             }
@@ -149,7 +142,7 @@ namespace KiteBotCore
 	        }
 
 	        //return a random response from the context provided, replacing the string "USER" with the appropriate username
-	        return (possibleResponses[RandomSeed.Next(0, possibleResponses.Count)].Replace("USER", userName));
+	        return possibleResponses[RandomSeed.Next(0, possibleResponses.Count)].Replace("USER", userName);
         }
 
         //grabs random greetings for user bekenel from a reddit profile

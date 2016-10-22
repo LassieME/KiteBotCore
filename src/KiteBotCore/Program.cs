@@ -83,7 +83,7 @@ namespace KiteBotCore
                 return Task.CompletedTask;
             };
 
-            Client.UserUpdated += async (before, after) =>
+            Client.GuildMemberUpdated += async (before, after) =>
             {
                 var channel = (ITextChannel)Client.GetChannel(85842104034541568);
                 if (!before.Username.Equals(after.Username))
@@ -122,6 +122,8 @@ namespace KiteBotCore
 
             var map = new DependencyMap();
             map.Add(Client);
+            map.Add(Settings);
+            map.Add(_kiteChat);
 
             _handler = new CommandHandler();
             await _handler.Install(map);

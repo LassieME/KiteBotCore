@@ -8,8 +8,7 @@ namespace KiteBotCore.Modules
     public class Food : ModuleBase
     {
         public static Random RandomSeed = new Random();
-        public static string ChatDirectory = Directory.GetCurrentDirectory();
-        public static string MealFileLocation = ChatDirectory + "/Content/Meals.txt";
+        public static string MealFileLocation = Directory.GetCurrentDirectory() + "/Content/Meals.txt";
         private static readonly string[] MealResponses = File.ReadAllLines(MealFileLocation);
 
         [Command("dinner")]

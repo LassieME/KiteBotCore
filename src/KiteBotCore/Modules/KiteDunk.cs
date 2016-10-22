@@ -10,25 +10,33 @@ namespace KiteBotCore.Modules
     public class KiteDunk : ModuleBase
 	{
 		private static string[,] _updatedKiteDunks;
-	    private static readonly Random _random;
+	    private static readonly Random Random = new Random();
 		private const string GoogleSpreadsheetApiUrl = "http://spreadsheets.google.com/feeds/list/11024r_0u5Mu-dLFd-R9lt8VzOYXWgKX1I5JamHJd8S4/od6/public/values?hl=en_US&&alt=json";
 		// ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
 		private static readonly Timer KiteDunkTimer;
+	    private static bool isReady = false;
 
         static KiteDunk()
         {
-	        _random = new Random();
-            KiteDunkTimer = new Timer(async s => await UpdateKiteDunks(),null, 0, 86400000);
+            KiteDunkTimer = new Timer(async s => await UpdateKiteDunks(),null, 86400000, 86400000);//a day
         }
 
         // ~say hello -> hello
-        [Command("KiteDunk"), Summary("Posts a hot Kite Dunk"), Alias("dunk")]
+        [Command("kitedunk"), Summary("Posts a hot Kite Dunk"), Alias("dunk"),RequireServer(Server.KiteCo)]
         public async Task KiteDunkCommand()
         {
-            await ReplyAsync(GetUpdatedKiteDunk());
+            if (isReady)
+            {
+                await ReplyAsync(GetUpdatedKiteDunk());
+            }
+            else
+            {
+                await UpdateKiteDunks();
+                await ReplyAsync(GetUpdatedKiteDunk());
+            }
         }
-
-        [Command("KiteDunkAll"), Summary("Posts a hot Kite Dunk"), RequireOwner]
+        //Will currently throw an error the first time its run
+        [Command("KiteDunkAll"), Summary("Posts a hot Kite Dunk"), RequireContext(ContextType.DM),RequireServer(Server.KiteCo)]
         public async Task KiteDunkAllCommand()
         {
             var stringBuilder = new System.Text.StringBuilder(2000);
@@ -50,13 +58,13 @@ namespace KiteBotCore.Modules
 
         public string GetUpdatedKiteDunk()
 		{
-			var i = _random.Next(_updatedKiteDunks.GetLength(0));
+			var i = Random.Next(_updatedKiteDunks.GetLength(0));
 			return "\"" + _updatedKiteDunks[i, 1] + "\" - " + _updatedKiteDunks[i, 0];
 		}
 
-        public static async Task UpdateKiteDunks()
-        {
-            try
+	    public static async Task UpdateKiteDunks()
+	    {
+	        try
             {
                 string response;
                 using (var client = new HttpClient())
@@ -79,7 +87,7 @@ namespace KiteBotCore.Modules
             }
             catch (Exception e)
             {
-                Console.WriteLine("Update of KiteDunks failed, retrying... "+ e.Message);
+                Console.WriteLine("Update of KiteDunks failed, retrying... " + e.Message);
                 await Task.Delay(5000);
                 await UpdateKiteDunks();
             }

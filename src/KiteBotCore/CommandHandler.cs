@@ -4,7 +4,7 @@ using System.Reflection;
 using Discord.Commands;
 using Discord.WebSocket;
 
-namespace KiteBotCore.Modules
+namespace KiteBotCore
 {
     public class CommandHandler
     {
@@ -21,10 +21,7 @@ namespace KiteBotCore.Modules
             _map = map;
 
             await _commands.AddModules(Assembly.GetEntryAssembly());
-            foreach (var x in _commands.Commands)
-            {
-                Console.WriteLine(x.Aliases[0]);
-            }
+            
             _client.MessageReceived += HandleCommand;
         }
 

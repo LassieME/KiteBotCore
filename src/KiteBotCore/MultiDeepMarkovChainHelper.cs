@@ -28,7 +28,6 @@ namespace KiteBotCore
         public static string JsonLastMessageLocation => RootDirectory + "/Content/LastMessage.json";
         public static string JsonMessageFileLocation => RootDirectory + "/Content/messages.zip";
 
-
         public MultiTextMarkovChainHelper(int depth) : this(Program.Client, depth)
         {
         }
@@ -235,11 +234,5 @@ namespace KiteBotCore
                 }
             }
         }
-    }
-
-    struct JsonLastMessage
-    {
-        public ulong MessageId { get; set; }
-        public ulong ChannelId { get; set; }
     }
 }

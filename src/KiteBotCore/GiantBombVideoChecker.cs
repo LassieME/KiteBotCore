@@ -43,6 +43,7 @@ namespace KiteBotCore
 		{
             try
             {
+                Console.WriteLine("Videochecker");
                 await RefreshVideosApi();
             }
             catch (Exception ex)

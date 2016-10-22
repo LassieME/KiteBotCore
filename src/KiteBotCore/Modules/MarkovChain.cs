@@ -8,6 +8,7 @@ namespace KiteBotCore.Modules
         [Command("testMarkov")]
         [Alias("tm")]
         [Summary("creates a Markov Chain string based on user messages")]
+        [RequireServer(Server.KiteCo)]
         public async Task MarkovChainCommand()
         {
             await ReplyAsync(KiteChat.MultiDeepMarkovChains.GetSequence());

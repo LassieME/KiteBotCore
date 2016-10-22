@@ -5,7 +5,7 @@ It's always time for pizza, USER. Use /pizza to see whats up.
 Why don't you cook something USER? http://www.whatthefuckshouldimakefordinner.com/
 USER I'm thinkin' Pho?
 USER get yourself some Chinese food!
-USER Howabout some Thai food?
+USER Howbout some Thai food?
 USER let's go get some Mexican food.
 I dunno USER, why not grab some Sushi?
 https://www.youtube.com/watch?v=xnjcVvO40bg

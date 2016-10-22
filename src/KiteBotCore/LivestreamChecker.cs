@@ -54,7 +54,8 @@ namespace KiteBotCore
         {
             try
             {
-                 await RefreshChatsApi(true);
+                Console.WriteLine("Livestreamchecker");
+                await RefreshChatsApi(true);
             }
             catch (Exception ex)
             {
@@ -122,7 +123,7 @@ namespace KiteBotCore
                     });
                     if (postMessage) await channel.SendMessageAsync(e.Title + ": " + e.Deck +
                                              " is LIVE at <http://www.giantbomb.com/chat/> NOW, check it out!" +
-                                             Environment.NewLine + e.Image);
+                                             Environment.NewLine + e.Image.ScreenUrl);
                 }
                 else
                 {
@@ -130,7 +131,7 @@ namespace KiteBotCore
                     ITextChannel channel = (ITextChannel)Client.GetChannel(channelId);
                     if (postMessage) await channel.SendMessageAsync(e.Title + ": " + e.Deck +
                                              " is LIVE at <http://www.giantbomb.com/chat/> NOW, check it out!" +
-                                             Environment.NewLine + e.Image);
+                                             Environment.NewLine + e.Image.ScreenUrl);
                 }
             }
             else

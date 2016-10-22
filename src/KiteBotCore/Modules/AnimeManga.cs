@@ -16,14 +16,32 @@ namespace KiteBotCore.Modules
         [Summary("Finds a anime from the anilist database")]
         public async Task AnimeCommand([Remainder] string animeTitle)
         {
-            await ReplyAsync((await SearchHelper.GetAnimeData(animeTitle)).ToString());
+            string search;
+            try
+            {
+                search = (await SearchHelper.GetAnimeData(animeTitle))[0].ToString();
+            }
+            catch (JsonSerializationException)
+            {
+                search = "Can't find any anime with that name on anilist.";
+            }
+            await ReplyAsync(search);
         }
 
         [Command("manga")]
         [Summary("Finds a manga from the anilist database")]
         public async Task MangaCommand([Remainder] string mangaTitle)
         {
-            await ReplyAsync((await SearchHelper.GetMangaData(mangaTitle)).ToString());
+            string search;
+            try
+            {
+                search = (await SearchHelper.GetMangaData(mangaTitle))[0].ToString();
+            }
+            catch (JsonSerializationException)
+            {
+                search = "Can't find any manga with that name on anilist.";
+            }
+            await ReplyAsync(search);
         }
 
         public static class SearchHelper
@@ -73,7 +91,7 @@ namespace KiteBotCore.Modules
                 }
             }
 
-            public static async Task<AnimeResult> GetAnimeData(string query)
+            internal static async Task<List<AnimeSearchResult>> GetAnimeData(string query)
             {
                 if (string.IsNullOrWhiteSpace(query))
                     throw new ArgumentNullException(nameof(query));
@@ -81,19 +99,19 @@ namespace KiteBotCore.Modules
                 await RefreshAnilistToken();
 
                 var cl = new HttpClient();
-                cl.DefaultRequestHeaders.Add("access_token", Token);
+                //cl.DefaultRequestHeaders.Add("access_token", Token);
 
-                var rq = "http://anilist.co/api/anime/search/" + Uri.EscapeUriString(query);
+                var rq = "http://anilist.co/api/anime/search/" + Uri.EscapeUriString(query) + "?access_token=" + Token;
                 var smallContent = await cl.GetStringAsync(rq);
-                var smallObj = JArray.Parse(smallContent)[0];
 
-                rq = "http://anilist.co/anime/" + smallObj["id"];
-                var content = await cl.GetStringAsync(rq);
+                return JsonConvert.DeserializeObject<List<AnimeSearchResult>>(smallContent);
 
-                return await Task.Run(() => JsonConvert.DeserializeObject<AnimeResult>(content));
+                //var smallObj = JArray.Parse(smallContent)[0];
+                //rq = "http://anilist.co/anime/" + smallObj["id"];
+                //var content = await cl.GetStringAsync(rq);
             }
 
-            public static async Task<MangaResult> GetMangaData(string query)
+            internal static async Task<List<MangaSearchResult>> GetMangaData(string query)
             {
                 if (string.IsNullOrWhiteSpace(query))
                     throw new ArgumentNullException(nameof(query));
@@ -101,16 +119,16 @@ namespace KiteBotCore.Modules
                 await RefreshAnilistToken();
 
                 var cl = new HttpClient();
-                cl.DefaultRequestHeaders.Add("access_token", Token);
+                //cl.DefaultRequestHeaders.Add("access_token", Token);
 
-                var rq = "http://anilist.co/api/manga/search/" + Uri.EscapeUriString(query);
+                var rq = "http://anilist.co/api/manga/search/" + Uri.EscapeUriString(query) + "?access_token=" + Token;
                 var smallContent = await cl.GetStringAsync(rq);
-                var smallObj = JArray.Parse(smallContent)[0];
 
-                rq = "http://anilist.co/manga/" + smallObj["id"];
-                var content = await cl.GetStringAsync(rq);
+                return JsonConvert.DeserializeObject<List<MangaSearchResult>>(smallContent);
 
-                return await Task.Run(() => JsonConvert.DeserializeObject<MangaResult>(content));
+                //var smallObj = JArray.Parse(smallContent)[0];
+                //rq = "http://anilist.co/manga/" + smallObj["id"];
+                //var content = await cl.GetStringAsync(rq);
             }
 
             private static async Task RefreshAnilistToken()

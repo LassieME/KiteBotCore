@@ -41,6 +41,7 @@ namespace KiteBotCore.Modules
 
         [Command("raecounter")]
         [Summary("Tells you how many times Rae has ghosttyped.")]
+        [RequireServer(Server.KiteCo)]
         public async Task RaeCounterCommand([Remainder] string animeTitle)
         {
             await ReplyAsync($"Rae has ghost-typed {RaeCount} times.");
