@@ -129,6 +129,7 @@ namespace KiteBotCore.Modules
                 $"- Author: {application.Owner.Username}#{application.Owner.DiscriminatorValue} (ID {application.Owner.Id})\n" +
                 $"- Library: Discord.Net ({DiscordConfig.Version})\n" +
                 $"- Runtime: {RuntimeInformation.FrameworkDescription} {RuntimeInformation.OSArchitecture}\n" +
+                $"- OS: {RuntimeInformation.OSDescription}\n" +
                 $"- Uptime: {GetUptime()}\n\n" +
 
                 $"{Format.Bold("Stats")}\n" +

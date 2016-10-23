@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -12,13 +13,15 @@ namespace KiteBotCore.Modules
     public class Game : ModuleBase
     {
         private static string _apiCallUrl;
+        private readonly IDependencyMap _map;
 
         public Game(IDependencyMap map)
         {
+            _map = map;
             BotSettings botSettings;
-            if (map.TryGet(out botSettings))
+            if (_map.TryGet(out botSettings))
             {
-                _apiCallUrl = $"http://www.giantbomb.com/api/search/?api_key={botSettings.GiantBombApiKey}&field_list=deck,image,name,original_release_date,platforms,site_detail_url&format=json&query=\"";
+                _apiCallUrl = $"http://www.giantbomb.com/api/search/?api_key={botSettings.GiantBombApiKey}&resources=game&field_list=deck,image,name,original_release_date,platforms,site_detail_url&format=json&query=\"";
             }
         }
 
@@ -29,7 +32,36 @@ namespace KiteBotCore.Modules
             if (!string.IsNullOrWhiteSpace(gameTitle))
             {
                 var s = await GetGamesEndpoint(gameTitle, 0);
-                await ReplyAsync(s.Results.FirstOrDefault()?.ToString());
+                
+                if (s.Results.Length == 1)
+                {
+                    await ReplyAsync(s.Results.FirstOrDefault()?.ToString());
+                }
+                else if (s.Results.Length > 1)
+                {
+                    var dict = new Dictionary<string, string>();
+
+                    int i = 1;
+                    string reply = "Which of these games did you mean?" + Environment.NewLine;
+                    foreach (var result in s.Results.Take(10))
+                    {
+                        if (result.Name != null)
+                        {
+                            dict.Add(i.ToString(), result.ToString());
+                            reply += $"{i++}. {result.Name} {Environment.NewLine}";
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    var messageToEdit = await Context.Channel.SendMessageAsync(reply + "Just type the number you want, this command will self-destruct in 2 minutes if no action is taken.");
+                    FollowUpService.AddNewFollowUp(new FollowUp(_map, dict, Context.User.Id, Context.Channel.Id,messageToEdit));
+                }
+                else
+                {
+                    await ReplyAsync("Giantbomb doesn\'t have any games that match that name.");
+                }
             }
             else
             {

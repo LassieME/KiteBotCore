@@ -11,9 +11,11 @@ namespace KiteBotCore
         private CommandService _commands;
         private DiscordSocketClient _client;
         private IDependencyMap _map;
+        private char _prefix;
 
-        public async Task Install(IDependencyMap map)
+        public async Task Install(IDependencyMap map, char prefix)
         {
+            _prefix = prefix;
             // Create Command Service, inject it into Dependency Map
             _client = map.Get<DiscordSocketClient>();
             _commands = new CommandService();
@@ -34,7 +36,7 @@ namespace KiteBotCore
             // Mark where the prefix ends and the command begins
             int argPos = 0;
             // Determine if the message has a valid prefix, adjust argPos 
-            if (!(message.HasMentionPrefix(_client.CurrentUser, ref argPos) || message.HasCharPrefix('!', ref argPos))) return;
+            if (!(message.HasMentionPrefix(_client.CurrentUser, ref argPos) || message.HasCharPrefix(_prefix, ref argPos))) return;
 
             // Create a Command Context
             try

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Linq;
+using Newtonsoft.Json;
 
 namespace KiteBotCore.Json.GiantBomb.Search
 {
@@ -236,13 +237,28 @@ namespace KiteBotCore.Json.GiantBomb.Search
         [JsonProperty("youtube_id")]
         public object YoutubeId { get; set; }
 
-        public override string ToString() =>
-                "`Title:` **" + Name +
-                "**\n`Deck:` " + Deck +
-                "\n`Release Date:` " + OriginalReleaseDate.Replace(" 00:00:00","") +
-                "\n`Platforms:` " + Platforms +
-                "\n`Link:` " + SiteDetailUrl +
-                "\n`img:` " + Image.SmallUrl;
+        public override string ToString()
+        {
+            string s = "";
+            s += Name != null ? "`Title:` **" + Name : "";
+            s += Deck != null ? "**\n`Deck:` " + Deck : "";
+            s += OriginalReleaseDate != null ? "\n`Release Date:` " + OriginalReleaseDate.Replace(" 00:00:00", "") : "";
+            s += Platforms != null ? "\n`Platforms:` " + string.Join(", ", Platforms?.Select(x => x.Name)) : "";
+            s += SiteDetailUrl != null ? "\n`Link:` " + SiteDetailUrl : "";
+            s += Image?.SmallUrl != null ? "\n`img:` " + Image?.SmallUrl : "";
+            return s;
+        }
+
+        /*public override string ToString()
+        {
+            return $@"
+{(Name != null ? "`Title:` **" + Name:"")}
+{(Deck != null ? " * *\n`Deck:` " + Deck:"")}
+{(OriginalReleaseDate != null ? "\n`Release Date:` " + OriginalReleaseDate.Replace(" 00:00:00", "") : "")}
+{(Platforms != null ? "\n`Platforms:` " + string.Join(", ", Platforms?.Select(x => x.Name)) : "")}
+{(SiteDetailUrl != null ? "\n`Link:` " + SiteDetailUrl : "")}
+{(Image?.SmallUrl != null ? "\n`img:` " + Image?.SmallUrl : "")}";
+        }*/
     }
 
     internal class Search
