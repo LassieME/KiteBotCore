@@ -47,14 +47,13 @@ namespace KiteBotCore
 
         public async Task<bool> InitializeMarkovChain()
         {
-            if (StartMarkovChain) {await MultiDeepMarkovChains.Initialize();}
+            if (StartMarkovChain) await Task.Run(() => MultiDeepMarkovChains.Initialize()).ConfigureAwait(false);
             return true;
         }
 
         public async Task AsyncParseChat(SocketMessage msg, IDiscordClient client)
         {
-            Console.WriteLine("(" + msg.Author.Username + "/" + msg.Author.Id + ") - " + msg.Content);
-
+            //Console.WriteLine("(" + msg.Author.Username + "/" + msg.Author.Id + ") - " + msg.Content);
             //add all messages to the Markov Chain list
             if (msg.Author.Id == client.CurrentUser.Id)
             {

@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Discord;
 using KiteBotCore.Json.GiantBomb.Promos;
 using Newtonsoft.Json;
+using Serilog;
+
 
 namespace KiteBotCore
 {
@@ -43,7 +45,7 @@ namespace KiteBotCore
 		{
             try
             {
-                Console.WriteLine("Videochecker");
+                Log.Debug("Running Videochecker");
                 await RefreshVideosApi();
             }
             catch (Exception ex)

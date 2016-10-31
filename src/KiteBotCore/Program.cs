@@ -8,6 +8,7 @@ using Discord.WebSocket;
 using KiteBotCore.Json;
 using KiteBotCore.Modules;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace KiteBotCore
 {
@@ -27,16 +28,22 @@ namespace KiteBotCore
 
         public static async Task AsyncMain(string[] args)
         {
+            Log.Logger = new LoggerConfiguration()
+                .WriteTo.LiterateConsole()
+                .MinimumLevel.Verbose()
+                .CreateLogger();
+
             Client = new DiscordSocketClient(new DiscordSocketConfig
             {
-                LogLevel = LogSeverity.Info,
-                MessageCacheSize = 0
+                LogLevel = LogSeverity.Verbose,                
+                MessageCacheSize = 0                
             });
-
+            
             Settings = File.Exists(SettingsPath) ?
                 JsonConvert.DeserializeObject<BotSettings>(File.ReadAllText(SettingsPath))
                 : new BotSettings
                 {
+                    CommandPrefix = '!',
                     DiscordEmail = "email",
                     DiscordPassword = "password",
                     DiscordToken = "Token",
@@ -54,8 +61,12 @@ namespace KiteBotCore
                 Settings.GiantBombVideoRefreshRate,
                 Settings.MarkovChainDepth);
 
+            Client.Log += (e) => LogDiscordMessage(e);
+
+
             Client.MessageReceived += async msg =>
             {
+                Log.Verbose("MESSAGE {Channel}{tab}{User}: {Content}",  msg.Channel.Name, "\t", msg.Author.Username, msg.ToString());
                 try
                 {
                     await _kiteChat.AsyncParseChat(msg, Client);
@@ -73,13 +84,13 @@ namespace KiteBotCore
                 if (Client.Guilds.Any())
                 {
                     var markovChainDone = await _kiteChat.InitializeMarkovChain();
-                    Console.WriteLine(markovChainDone);
+                    Log.Information("Ready {Done}",markovChainDone);
                 }
             };
 
             Client.JoinedGuild += server =>
             {
-                Console.WriteLine("Connected to " + server.Name);
+                Log.Information("Connected to {Name}", server.Name);
                 return Task.CompletedTask;
             };
 
@@ -116,6 +127,7 @@ namespace KiteBotCore
                     Console.WriteLine(ex + "\r\n" + ex.Message);
                 }
             };
+
             Console.WriteLine("LoginAsync");
             await Client.LoginAsync(TokenType.Bot, Settings.DiscordToken);
             await Client.ConnectAsync();
@@ -126,9 +138,35 @@ namespace KiteBotCore
             map.Add(_kiteChat);
 
             _handler = new CommandHandler();
-            await _handler.Install(map);
+            await _handler.Install( map, Settings.CommandPrefix);
 
             await Task.Delay(-1);
         }
+
+        private static Task LogDiscordMessage(LogMessage msg)
+        {
+            switch ((int)msg.Severity)
+            {
+                case 0:
+                    Log.Debug("{Source} {Message} {Exception}",msg.Source, msg.Message, msg.Exception?.ToString());
+                    break;
+                case 1:
+                    Log.Error("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString());
+                    break;
+                case 2:
+                    Log.Warning("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString());
+                    break;
+                case 3:
+                    Log.Information("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString());
+                    break;
+                case 4:
+                    Log.Debug("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString());
+                    break;
+                case 5: //Verbose and Debug are switched between Serilog and Discord.Net
+                    Log.Verbose("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString());
+                    break;                
+            }
+            return Task.CompletedTask;
+        }        
     }
 }

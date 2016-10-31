@@ -102,9 +102,9 @@ namespace KiteBotCore
                 {
                     try
                     {
-                        List<IMessage> list = new List<IMessage>(await GetMessagesFromChannel(85842104034541568, 1000));
-                        list.AddRange(await GetMessagesFromChannel(96786127238725632, 500));
-                        list.AddRange(await GetMessagesFromChannel(94122326802571264, 500));
+                        List<IMessage> list = new List<IMessage>(await GetMessagesFromChannel(85842104034541568, 20000));
+                        list.AddRange(await GetMessagesFromChannel(96786127238725632, 2500));
+                        list.AddRange(await GetMessagesFromChannel(94122326802571264, 2500));
                         foreach (IMessage message in list)
                         {
                             if (!string.IsNullOrWhiteSpace(message?.Content))
@@ -126,7 +126,7 @@ namespace KiteBotCore
             return _isInitialized;
         }
 
-        public void Feed(SocketMessage message)
+        public void Feed(IMessage message)
         {
             FeedMarkovChain(message);
         }

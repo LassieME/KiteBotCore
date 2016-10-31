@@ -21,14 +21,32 @@ namespace KiteBotCore.Modules
             _map = map;
         }
 
+        [Command("save")]
+        [Summary("saves markovchainmessages")]
+        [RequireOwner]
+        public async Task SaveCommand()
+        {
+            var message = await ReplyAsync("OK");
+            var saveTask = KiteChat.MultiDeepMarkovChains.Save();
+            await saveTask.ContinueWith(async (e) =>
+            {
+                if (e.IsCompleted) await message.ModifyAsync(x => x.Content += ", Saved.");
+            });
+        }
+
         [Command("saveexit")]
         [Alias("se")]
         [Summary("saves and exits")]
         [RequireOwner]
         public async Task SaveExitCommand()
         {
-            await ReplyAsync("OK");
-            Environment.Exit(1);
+            var message = await ReplyAsync("OK");
+            var saveTask = KiteChat.MultiDeepMarkovChains.Save();
+            await saveTask.ContinueWith(async (e) =>
+            {
+                if (e.IsCompleted) await message.ModifyAsync(x => x.Content += ", Saved.");
+            });            
+            Environment.Exit(0);
         }
 
         [Command("update")]

@@ -4,12 +4,14 @@ namespace KiteBotCore.Json
 {
     public class BotSettings
     {
+        [JsonProperty("CommandPrefix")]
+        public char CommandPrefix { get; set; }
 
         [JsonProperty("DiscordEmail")]
-        public object DiscordEmail { get; set; }
+        public string DiscordEmail { get; set; }
 
         [JsonProperty("DiscordPassword")]
-        public object DiscordPassword { get; set; }
+        public string DiscordPassword { get; set; }
 
         [JsonProperty("DiscordToken")]
         public string DiscordToken { get; set; }
@@ -33,5 +35,4 @@ namespace KiteBotCore.Json
         public int GiantBombLiveStreamRefreshRate { get; set; }
         
     }
-
 }

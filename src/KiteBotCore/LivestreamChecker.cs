@@ -10,6 +10,7 @@ using Discord.WebSocket;
 using KiteBotCore.Json.GiantBomb.Chats;
 using KiteBotCore.Modules;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace KiteBotCore
 {
@@ -54,7 +55,7 @@ namespace KiteBotCore
         {
             try
             {
-                Console.WriteLine("Livestreamchecker");
+                Log.Debug("Running Livestreamchecker");
                 await RefreshChatsApi(true);
             }
             catch (Exception ex)
