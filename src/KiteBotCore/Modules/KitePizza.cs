@@ -10,7 +10,7 @@ namespace KiteBotCore.Modules
         readonly Random _randomSeed = new Random();
 
         [Command("pizza")]
-        [Summary("Makes a pizza suggestion. use -opt-out to avoid getting japanese pizza if you're Matt")]
+        [Summary("Makes a pizza suggestion.")]
         public async Task Pizza(string optional = null)
         {
             List<string> pizzaToppings = new List<string>();

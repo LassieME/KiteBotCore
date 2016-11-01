@@ -13,6 +13,7 @@ namespace KiteBotCore.Modules
         [Command("whois")]
         [Summary("lists nicknames and usernames the mentioned person has had before")]
         [RequirePermission(GuildPermission.Administrator)]
+        [RequireServer(Server.KiteCo)]
         public async Task GetWhoIs()
         {
             var userMentioned = Context.Message.MentionedUserIds.FirstOrDefault();
