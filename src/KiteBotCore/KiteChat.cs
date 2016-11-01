@@ -42,7 +42,7 @@ namespace KiteBotCore
 
             if (streamRefresh > 3000) StreamChecker = new LivestreamChecker(gBapi, streamRefresh);
             if (videoRefresh > 3000) GbVideoChecker = new GiantBombVideoChecker(gBapi, videoRefresh);
-            MultiDeepMarkovChains = new MultiTextMarkovChainHelper(depth);
+            if (StartMarkovChain && depth > 0)MultiDeepMarkovChains = new MultiTextMarkovChainHelper(depth);
         }
 
         public async Task<bool> InitializeMarkovChain()
@@ -61,7 +61,7 @@ namespace KiteBotCore
             }
             if (msg.Author.Id != client.CurrentUser.Id)
             {
-                MultiDeepMarkovChains.Feed(msg);
+                if(StartMarkovChain)MultiDeepMarkovChains.Feed(msg);
 
                 if (msg.Content.Contains("Mistake") && msg.Channel.Id == 96786127238725632)
                 {

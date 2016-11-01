@@ -31,19 +31,19 @@ namespace KiteBotCore.Modules
         {
             if (!string.IsNullOrWhiteSpace(gameTitle))
             {
-                var s = await GetGamesEndpoint(gameTitle, 0);
+                var search = await GetGamesEndpoint(gameTitle, 0);
                 
-                if (s.Results.Length == 1)
+                if (search.Results.Length == 1)
                 {
-                    await ReplyAsync(s.Results.FirstOrDefault()?.ToString());
+                    await ReplyAsync(search.Results.FirstOrDefault()?.ToString());
                 }
-                else if (s.Results.Length > 1)
+                else if (search.Results.Length > 1)
                 {
                     var dict = new Dictionary<string, string>();
 
                     int i = 1;
                     string reply = "Which of these games did you mean?" + Environment.NewLine;
-                    foreach (var result in s.Results.Take(10))
+                    foreach (var result in search.Results.Take(10))
                     {
                         if (result.Name != null)
                         {
@@ -55,7 +55,7 @@ namespace KiteBotCore.Modules
                             break;
                         }
                     }
-                    var messageToEdit = await Context.Channel.SendMessageAsync(reply + "Just type the number you want, this command will self-destruct in 2 minutes if no action is taken.");
+                    var messageToEdit = await ReplyAsync(reply + "Just type the number you want, this command will self-destruct in 2 minutes if no action is taken.");
                     FollowUpService.AddNewFollowUp(new FollowUp(_map, dict, Context.User.Id, Context.Channel.Id,messageToEdit));
                 }
                 else

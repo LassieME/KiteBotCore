@@ -12,36 +12,97 @@ namespace KiteBotCore.Modules
 {
     public class AnimeManga : ModuleBase
     {
+        private readonly IDependencyMap _map;
+
+        public AnimeManga(IDependencyMap map)
+        {
+            _map = map;
+        }
+
         [Command("anime")]
         [Summary("Finds a anime from the anilist database")]
         public async Task AnimeCommand([Remainder] string animeTitle)
         {
-            string search;
+            string output;
             try
             {
-                search = (await SearchHelper.GetAnimeData(animeTitle))[0].ToString();
+                var animedata = await SearchHelper.GetAnimeData(animeTitle);
+                if (animedata.Count == 1)
+                {
+                    output = (await SearchHelper.GetAnimeData(animeTitle))[0].ToString();
+                }
+                else
+                {
+                    var dict = new Dictionary<string, string>();
+
+                    int i = 1;
+                    output = "Which of these anime did you mean?" + Environment.NewLine;
+                    foreach (var result in animedata.GetRange(0,10))
+                    {
+                        if (result.TitleEnglish != null && result.TitleJapanese != null)
+                        {
+                            var name = result.TitleEnglish ?? result.TitleJapanese;
+                            dict.Add(i.ToString(), result.ToString());
+                            output += $"{i++}. {name} {Environment.NewLine}";
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    var messageToEdit = await ReplyAsync(output + "Just type the number you want, this command will self-destruct in 2 minutes if no action is taken.");
+                    FollowUpService.AddNewFollowUp(new FollowUp(_map, dict, Context.User.Id, Context.Channel.Id, messageToEdit));
+                    return;
+                }
             }
             catch (JsonSerializationException)
             {
-                search = "Can't find any anime with that name on anilist.";
+                output = "Can't find any anime with that name on anilist.";
             }
-            await ReplyAsync(search);
+            await ReplyAsync(output);
         }
 
         [Command("manga")]
         [Summary("Finds a manga from the anilist database")]
         public async Task MangaCommand([Remainder] string mangaTitle)
         {
-            string search;
+            string output;
             try
             {
-                search = (await SearchHelper.GetMangaData(mangaTitle))[0].ToString();
+                var mangaData = await SearchHelper.GetMangaData(mangaTitle);
+                if (mangaData.Count == 1)
+                {
+                    output = (await SearchHelper.GetAnimeData(mangaTitle))[0].ToString();
+                }
+                else
+                {
+                    var dict = new Dictionary<string, string>();
+
+                    int i = 1;
+                    output = "Which of these manga did you mean?" + Environment.NewLine;
+                    foreach (var result in mangaData.GetRange(0, 10))
+                    {
+                        if (result.TitleEnglish != null && result.TitleJapanese != null)
+                        {
+                            var name = result.TitleEnglish ?? result.TitleJapanese;
+                            dict.Add(i.ToString(), result.ToString());
+                            output += $"{i++}. {name} {Environment.NewLine}";
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    var messageToEdit = await ReplyAsync(output + "Just type the number you want, this command will self-destruct in 2 minutes if no action is taken.");
+                    FollowUpService.AddNewFollowUp(new FollowUp(_map, dict, Context.User.Id, Context.Channel.Id, messageToEdit));
+                    return;
+                }
             }
             catch (JsonSerializationException)
             {
-                search = "Can't find any manga with that name on anilist.";
+                output = "Can't find any manga with that name on anilist.";
             }
-            await ReplyAsync(search);
+            await ReplyAsync(output);
         }
 
         public static class SearchHelper
@@ -98,17 +159,14 @@ namespace KiteBotCore.Modules
 
                 await RefreshAnilistToken();
 
-                var cl = new HttpClient();
-                //cl.DefaultRequestHeaders.Add("access_token", Token);
+                using (var cl = new HttpClient())
+                {
+                    var rq = "http://anilist.co/api/anime/search/" + Uri.EscapeUriString(query) + "?access_token=" +
+                             Token;
+                    var smallContent = await cl.GetStringAsync(rq);
 
-                var rq = "http://anilist.co/api/anime/search/" + Uri.EscapeUriString(query) + "?access_token=" + Token;
-                var smallContent = await cl.GetStringAsync(rq);
-
-                return JsonConvert.DeserializeObject<List<AnimeSearchResult>>(smallContent);
-
-                //var smallObj = JArray.Parse(smallContent)[0];
-                //rq = "http://anilist.co/anime/" + smallObj["id"];
-                //var content = await cl.GetStringAsync(rq);
+                    return JsonConvert.DeserializeObject<List<AnimeSearchResult>>(smallContent);
+                }
             }
 
             internal static async Task<List<MangaSearchResult>> GetMangaData(string query)
@@ -118,17 +176,13 @@ namespace KiteBotCore.Modules
 
                 await RefreshAnilistToken();
 
-                var cl = new HttpClient();
-                //cl.DefaultRequestHeaders.Add("access_token", Token);
+                using (var cl = new HttpClient())
+                {
+                    var rq = "http://anilist.co/api/manga/search/" + Uri.EscapeUriString(query) + "?access_token=" + Token;
+                    var smallContent = await cl.GetStringAsync(rq);
 
-                var rq = "http://anilist.co/api/manga/search/" + Uri.EscapeUriString(query) + "?access_token=" + Token;
-                var smallContent = await cl.GetStringAsync(rq);
-
-                return JsonConvert.DeserializeObject<List<MangaSearchResult>>(smallContent);
-
-                //var smallObj = JArray.Parse(smallContent)[0];
-                //rq = "http://anilist.co/manga/" + smallObj["id"];
-                //var content = await cl.GetStringAsync(rq);
+                    return JsonConvert.DeserializeObject<List<MangaSearchResult>>(smallContent);
+                }
             }
 
             private static async Task RefreshAnilistToken()

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
@@ -101,9 +102,19 @@ namespace KiteBotCore.Modules
         [Alias("echo")]
         [Summary("Echos the provided input")]
         [RequireOwner]
-        public async Task Say([Remainder] string input)
+        public async Task SayCommand([Remainder] string input)
         {
             await ReplyAsync(input);
+        }
+
+        [Command("setgame")]
+        [Alias("playing")]
+        [Summary("Sets a game in discord")]
+        [RequireOwner]
+        public async Task PlayingCommand([Remainder] string input)
+        {
+            var client = _map.Get<DiscordSocketClient>();
+            await client.SetGame(input);
         }
 
         [Command("help")]
@@ -124,7 +135,6 @@ namespace KiteBotCore.Modules
                 output += "Couldn't find a command with that name, givng you the commandlist instead:" +
                           Environment.NewLine;
             }
-            output += "These are the commands you can use: " + Environment.NewLine;
             foreach (CommandInfo cmdInfo in _handler.Commands)
             {
                 if ((await cmdInfo.CheckPreconditions(Context, _map)).IsSuccess)
@@ -134,7 +144,7 @@ namespace KiteBotCore.Modules
                 }
             }
             output += "." + Environment.NewLine;
-            await ReplyAsync(output + "Run help <command> for more information.");
+            await ReplyAsync("These are the commands you can use: " + Environment.NewLine + output + "Run help <command> for more information.");
         }
 
         [Command("info")]

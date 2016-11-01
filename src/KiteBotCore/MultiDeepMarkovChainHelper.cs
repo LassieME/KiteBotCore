@@ -16,13 +16,13 @@ namespace KiteBotCore
 {
     public class MultiTextMarkovChainHelper
     {
-        public static int Depth;
-        private static Timer _timer;
-        private static IMarkovChain _markovChain;
-        private static IDiscordClient _client;
-        private static bool _isInitialized;
-        private static List<MarkovMessage> _jsonList = new List<MarkovMessage>();
-        private static JsonLastMessage _lastMessage;
+        public int Depth;
+        private Timer _timer;
+        private readonly IMarkovChain _markovChain;
+        private readonly IDiscordClient _client;
+        private bool _isInitialized;
+        private List<MarkovMessage> _jsonList = new List<MarkovMessage>();
+        private JsonLastMessage _lastMessage;
 
         public static string RootDirectory = Directory.GetCurrentDirectory();
         public static string JsonLastMessageLocation => RootDirectory + "/Content/LastMessage.json";
@@ -102,9 +102,10 @@ namespace KiteBotCore
                 {
                     try
                     {
-                        List<IMessage> list = new List<IMessage>(await GetMessagesFromChannel(85842104034541568, 20000));
-                        list.AddRange(await GetMessagesFromChannel(96786127238725632, 2500));
-                        list.AddRange(await GetMessagesFromChannel(94122326802571264, 2500));
+                        var guild = (await _client.GetGuildsAsync()).ToArray();
+                        List<IMessage> list = new List<IMessage>(await GetMessagesFromChannel(guild.FirstOrDefault().Id, 20000));
+                        //list.AddRange(await GetMessagesFromChannel(96786127238725632, 2500));
+                        //list.AddRange(await GetMessagesFromChannel(94122326802571264, 2500));
                         foreach (IMessage message in list)
                         {
                             if (!string.IsNullOrWhiteSpace(message?.Content))
