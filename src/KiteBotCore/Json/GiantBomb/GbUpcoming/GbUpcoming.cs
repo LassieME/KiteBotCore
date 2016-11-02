@@ -40,6 +40,11 @@ namespace KiteBotCore.Json.GiantBomb.GbUpcoming
 
         [JsonProperty("premium")]
         public bool Premium { get; set; }
+
+        public override string ToString() => 
+            Premium ? 
+            $"Upcoming Premium {Type} on {Date} PST: \n{Title}" : 
+            $"Upcoming {Type} on {Date} PST: \n{Title}";
     }
 
 }

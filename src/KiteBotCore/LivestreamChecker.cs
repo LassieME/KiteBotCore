@@ -33,7 +33,7 @@ namespace KiteBotCore
             {
                 ApiCallUrl = $"http://www.giantbomb.com/api/chats/?api_key={gBapi}&format=json";
                 RefreshRate = streamRefresh;
-                _chatTimer = new Timer( RefreshChatsApi, null, RefreshRate, streamRefresh);
+                _chatTimer = new Timer( RefreshChatsApi, null, 60000, RefreshRate);
             }
         }
 
@@ -81,15 +81,14 @@ namespace KiteBotCore
 
                         if (_wasStreamRunning == false && numberOfResults != 0 && stream != null)
                         {
-                            _wasStreamRunning = true;
                             await Subscribe.PostLivestream(stream);
-
                             await UpdateTask(stream, postMessage);
+                            _wasStreamRunning = true;
                         }
                         else if (_wasStreamRunning && (numberOfResults == 0 || stream == null))
                         {
-                            _wasStreamRunning = false;
                             await UpdateTask(stream, postMessage);
+                            _wasStreamRunning = false;
                         }
 
                     }
@@ -146,20 +145,17 @@ namespace KiteBotCore
                     await channel.ModifyAsync(p =>
                     {
                         p.Name = "livestream";
-                        p.Topic = "Chat for live broadcasts.\nUpcoming livestream: " +
-                                  $"{(nextLiveStream != null ? nextLiveStream.Title + " on " + nextLiveStream.Date + " PST." + Environment.NewLine : "No upcoming livestream.")}";
+                        p.Topic = $"Chat for live broadcasts.\nUpcoming livestream: {(nextLiveStream != null ? nextLiveStream.Title + " on " + nextLiveStream.Date + " PST." + Environment.NewLine : "No upcoming livestream.")}";
                     });
-                    if (postMessage) await channel.SendMessageAsync(e.Title + ": " + e.Deck +
-                                             " is LIVE at <http://www.giantbomb.com/chat/> NOW, check it out!" +
-                                             Environment.NewLine + e.Image);
+                    if (postMessage) await channel.SendMessageAsync("Show is over folks, if you need more Giant Bomb videos, check this out: " +
+                                        KiteChat.GetResponseUriFromRandomQlCrew());
                 }
                 else
                 {
                     ulong channelId = 85842104034541568;
                     ITextChannel channel = (ITextChannel)Client.GetChannel(channelId);
-                    if (postMessage) await channel.SendMessageAsync(e.Title + ": " + e.Deck +
-                                             " is LIVE at <http://www.giantbomb.com/chat/> NOW, check it out!" +
-                                             Environment.NewLine + e.Image);
+                    if (postMessage) await channel.SendMessageAsync("Show is over folks, if you need more Giant Bomb videos, check this out: " +
+                                        KiteChat.GetResponseUriFromRandomQlCrew());
                 }
             }
         }

@@ -133,11 +133,13 @@ namespace KiteBotCore
             await Client.ConnectAsync();
 
             var map = new DependencyMap();
+            _handler = new CommandHandler();
             map.Add(Client);
             map.Add(Settings);
             map.Add(_kiteChat);
+            map.Add(_handler);
 
-            _handler = new CommandHandler();
+            
             await _handler.Install( map, Settings.CommandPrefix);
 
             await Task.Delay(-1);

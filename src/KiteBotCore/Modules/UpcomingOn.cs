@@ -28,7 +28,7 @@ namespace KiteBotCore.Modules
             using (HttpClient client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Add("User-Agent",
-                    $"KiteBotCore 1.1 GB Discord Bot that looks for upcoming content, livestreams etc.");
+                    "KiteBotCore 1.1 GB Discord Bot looking for upcoming content");
                 GbUpcoming json = JsonConvert.DeserializeObject<GbUpcoming>(await client.GetStringAsync(UpcomingUrl));
                 return json;
             }

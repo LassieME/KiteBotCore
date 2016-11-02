@@ -1,7 +1,8 @@
 {
   "version": "1.0.0-*",
   "buildOptions": {
-    "emitEntryPoint": true
+    "emitEntryPoint": true,
+    "allowUnsafe": true
   },
 
   "dependencies": {
@@ -12,9 +13,14 @@
       "type": "platform",
       "version": "1.0.1"
     },
+    "NETStandard.Library": "1.6.0",
+    "Microsoft.CodeAnalysis.CSharp.Scripting": "1.1.1",
     "Serilog": "2.3.0",
     "Serilog.Sinks.Literate": "2.0.0",
-    "System.Net.WebSockets.Client": "4.4.0-beta-24629-01"
+    "System.Net.WebSockets.Client": "4.4.0-beta-24629-01",
+    "System.Runtime.Loader": "4.0.0",
+    "System.Dynamic.Runtime": "4.0.11",
+    "System.Threading.Tasks.Parallel": "4.0.1"
   },
 
   "frameworks": {
