@@ -12,7 +12,7 @@ namespace KiteBotCore.Modules.DiceRoller
 
         [Command("roll")]
         [Alias("rolldice")]
-        [Summary("rolls some dice, or spesific dice")]
+        [Summary("rolls some dice, or specific dice")]
         public async Task DiceRoll([Remainder]string text)
         {
             Regex diceroll = new Regex(@"(?<dice>[0-9]+)d(?<sides>[0-9]+)(\+(?<constant>[0-9]+))?|d?(?<single>[0-9]+)");//roll 2d20+20
