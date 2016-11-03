@@ -37,9 +37,9 @@ namespace KiteBotCore.Modules
 
                     int i = 1;
                     output = "Which of these anime did you mean?" + Environment.NewLine;
-                    foreach (var result in animedata.GetRange(0,10))
+                    foreach (var result in animedata)
                     {
-                        if (result.TitleEnglish != null && result.TitleJapanese != null)
+                        if (i < 11 && result.TitleEnglish != null && result.TitleJapanese != null)
                         {
                             var name = result.TitleEnglish ?? result.TitleJapanese;
                             dict.Add(i.ToString(), result.ToString());
@@ -80,9 +80,9 @@ namespace KiteBotCore.Modules
 
                     int i = 1;
                     output = "Which of these manga did you mean?" + Environment.NewLine;
-                    foreach (var result in mangaData.GetRange(0, 10))
+                    foreach (var result in mangaData)
                     {
-                        if (result.TitleEnglish != null && result.TitleJapanese != null)
+                        if (i < 11 && result.TitleEnglish != null && result.TitleJapanese != null)
                         {
                             var name = result.TitleEnglish ?? result.TitleJapanese;
                             dict.Add(i.ToString(), result.ToString());

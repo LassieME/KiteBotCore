@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
@@ -155,6 +154,7 @@ namespace KiteBotCore.Modules
             await ReplyAsync(
                 $"{Format.Bold("Info")}\n" +
                 $"- Author: {application.Owner.Username}#{application.Owner.DiscriminatorValue} (ID {application.Owner.Id})\n" +
+                $"- Source Code: <https://github.com/LassieME/KiteBotCore>\n" +
                 $"- Library: Discord.Net ({DiscordConfig.Version})\n" +
                 $"- Runtime: {RuntimeInformation.FrameworkDescription} {RuntimeInformation.OSArchitecture}\n" +
                 $"- OS: {RuntimeInformation.OSDescription}\n" +
