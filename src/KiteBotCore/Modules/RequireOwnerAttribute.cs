@@ -9,7 +9,7 @@ namespace KiteBotCore.Modules
     // Inherit from PreconditionAttribute
     public class RequireOwnerAttribute : PreconditionAttribute
     {
-        public static ulong OwnerId = Program.Settings.OwnerId;
+        public static ulong OwnerId;
 
         // Override the CheckPermissions method
         public override Task<PreconditionResult> CheckPermissions(CommandContext context, CommandInfo executingCommand, IDependencyMap map)

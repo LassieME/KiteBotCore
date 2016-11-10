@@ -22,7 +22,7 @@ namespace KiteBotCore.Modules
         }
 
         [Command("save")]
-        [Summary("saves markovchainmessages")]
+        [Summary("saves markov chain messages")]
         [RequireOwner]
         public async Task SaveCommand()
         {
@@ -117,7 +117,7 @@ namespace KiteBotCore.Modules
         }
 
         [Command("help")]
-        [Summary("Lists availible commands")]
+        [Summary("Lists available commands")]
         public async Task Help(string optional = null)
         {
             string output = "";

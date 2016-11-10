@@ -21,6 +21,8 @@ namespace KiteBotCore.Json.GiantBomb.GbUpcoming
 
         [JsonProperty("image")]
         public string Image { get; set; }
+
+        public override string ToString() => Title != null ? $"Live NOW on Giantbomb.com: {Title} \r\n{Image}" : "No Livestream right now.";
     }
 
     internal class Upcoming

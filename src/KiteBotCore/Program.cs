@@ -15,13 +15,12 @@ namespace KiteBotCore
     public class Program
     {
         public static DiscordSocketClient Client;
-        public static CommandService CommandService = new CommandService();
-        public static BotSettings Settings;
-        public static string ContentDirectory = Directory.GetCurrentDirectory();
 
         private static KiteChat _kiteChat;
-        private static string SettingsPath => ContentDirectory + "/Content/settings.json";
+        private static BotSettings _settings;
         private static CommandHandler _handler;
+        private static CommandService _commandService = new CommandService();
+        private static string SettingsPath => Directory.GetCurrentDirectory() + "/Content/settings.json";
 
         // ReSharper disable once UnusedMember.Local
         private static void Main(string[] args) => AsyncMain(args).GetAwaiter().GetResult();
@@ -39,7 +38,7 @@ namespace KiteBotCore
                 MessageCacheSize = 0                
             });
             
-            Settings = File.Exists(SettingsPath) ?
+            _settings = File.Exists(SettingsPath) ?
                 JsonConvert.DeserializeObject<BotSettings>(File.ReadAllText(SettingsPath))
                 : new BotSettings
                 {
@@ -55,13 +54,13 @@ namespace KiteBotCore
                     GiantBombVideoRefreshRate = 60000
                 };
 
-            _kiteChat = new KiteChat(Settings.MarkovChainStart,
-                Settings.GiantBombApiKey,
-                Settings.GiantBombLiveStreamRefreshRate,
-                Settings.GiantBombVideoRefreshRate,
-                Settings.MarkovChainDepth);
+            _kiteChat = new KiteChat(_settings.MarkovChainStart,
+                _settings.GiantBombApiKey,
+                _settings.GiantBombLiveStreamRefreshRate,
+                _settings.GiantBombVideoRefreshRate,
+                _settings.MarkovChainDepth);
 
-            Client.Log += (e) => LogDiscordMessage(e);
+            Client.Log += LogDiscordMessage;
 
 
             Client.MessageReceived += async msg =>
@@ -129,18 +128,18 @@ namespace KiteBotCore
             };
 
             Console.WriteLine("LoginAsync");
-            await Client.LoginAsync(TokenType.Bot, Settings.DiscordToken);
+            await Client.LoginAsync(TokenType.Bot, _settings.DiscordToken);
             await Client.ConnectAsync();
 
             var map = new DependencyMap();
             _handler = new CommandHandler();
             map.Add(Client);
-            map.Add(Settings);
+            map.Add(_settings);
             map.Add(_kiteChat);
             map.Add(_handler);
 
             
-            await _handler.Install( map, Settings.CommandPrefix);
+            await _handler.Install( map, _settings.CommandPrefix);
 
             await Task.Delay(-1);
         }
