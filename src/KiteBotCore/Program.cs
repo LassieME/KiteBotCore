@@ -46,7 +46,7 @@ namespace KiteBotCore
                     DiscordEmail = "email",
                     DiscordPassword = "password",
                     DiscordToken = "Token",
-                    GiantBombApiKey = "GBAPIKey",
+                    GiantBombApiKey = "GbAPIKey",
                     OwnerId = 0,
                     MarkovChainStart = false,
                     MarkovChainDepth = 2,
@@ -149,7 +149,7 @@ namespace KiteBotCore
             switch ((int)msg.Severity)
             {
                 case 0:
-                    Log.Debug("{Source} {Message} {Exception}",msg.Source, msg.Message, msg.Exception?.ToString());
+                    Log.Fatal("{Source} {Message} {Exception}",msg.Source, msg.Message, msg.Exception?.ToString());
                     break;
                 case 1:
                     Log.Error("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString());

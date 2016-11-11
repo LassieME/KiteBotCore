@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
+using KiteBotCore.Modules;
 
 namespace KiteBotCore
 {
@@ -40,6 +41,7 @@ namespace KiteBotCore
             RandomSeed = randomSeed;
             LoadBekGreetings().Wait();
 
+            ReminderService.Init();
             if (streamRefresh > 3000) StreamChecker = new LivestreamChecker(gBapi, streamRefresh);
             if (videoRefresh > 3000) GbVideoChecker = new GiantBombVideoChecker(gBapi, videoRefresh);
             if (StartMarkovChain && depth > 0)MultiDeepMarkovChains = new MultiTextMarkovChainHelper(depth);

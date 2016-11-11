@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Reflection;
 using Discord.Commands;
 using Discord.WebSocket;
+using Serilog;
 
 namespace KiteBotCore
 {
@@ -46,9 +47,10 @@ namespace KiteBotCore
                 // Execute the Command, store the result
                 var result = await _commands.Execute(context, argPos, _map);
 
-                // If the command failed, notify the user
-                if (!result.IsSuccess)
+                // If the command failed, notify the user unless no command was found
+                if (!result.IsSuccess && result.Error != CommandError.UnknownCommand)
                     await message.Channel.SendMessageAsync($"**Error:** {result.ErrorReason}");
+                Log.Debug($"**Error:** {result.ErrorReason}");
             }
             catch (Exception ex)
             {

@@ -17,7 +17,7 @@ namespace KiteBotCore.Modules
 
         [Command("reminder")]
         [Alias("remindme")]
-        [Summary("Adds an event that will DM you at a spesified day/hour/minute/second in the future")]
+        [Summary("Adds an event that will DM you at a specified day/hour/minute/second in the future")]
         public async Task AddReminderEventCommand([Remainder] string message)
         {
             Match matches = Regex.Match(message);
@@ -113,8 +113,8 @@ namespace KiteBotCore.Modules
         internal static void SetTimer(DateTime newTimer)
         {
             TimeSpan interval = newTimer - DateTime.Now;
-            ReminderTimer.Dispose();
-            ReminderTimer = new Timer(CheckReminders, null, interval, TimeSpan.MaxValue);
+            ReminderTimer?.Dispose();
+            ReminderTimer = new Timer(CheckReminders, null, interval, TimeSpan.FromMinutes(1));
             
         }
 
@@ -128,7 +128,7 @@ namespace KiteBotCore.Modules
                 {
                     var channel = await Program.Client.GetUser(reminder.UserId).CreateDMChannelAsync();
 
-                    await channel.SendMessageAsync($"Reminder: {reminder.Reason}", false);
+                    await channel.SendMessageAsync($"Reminder: {reminder.Reason}");
 
                     deleteBuffer.Add(reminder);
                     if (ReminderList.Count == 0)
@@ -176,6 +176,11 @@ namespace KiteBotCore.Modules
             public DateTime RequestedTime { get; set; }
             public ulong UserId { get; set; }
             public string Reason { get; set; }
+        }
+
+        public static bool Init()
+        {
+            return true;
         }
     }
     public static class LinkedListExtensions

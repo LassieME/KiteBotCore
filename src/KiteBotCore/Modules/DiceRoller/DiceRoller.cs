@@ -12,7 +12,7 @@ namespace KiteBotCore.Modules.DiceRoller
 
         [Command("roll")]
         [Alias("rolldice")]
-        [Summary("rolls some dice, or specific dice")]
+        [Summary("rolls some dice, use 2d10 format")]
         public async Task DiceRoll([Remainder]string text)
         {
             Regex diceroll = new Regex(@"(?<dice>[0-9]+)d(?<sides>[0-9]+)(\+(?<constant>[0-9]+))?|d?(?<single>[0-9]+)");//roll 2d20+20
@@ -65,7 +65,7 @@ namespace KiteBotCore.Modules.DiceRoller
                 }
                 else
                 {
-                    await ReplyAsync("use the format 5d6, d6 or simply spesify a positive integer");
+                    await ReplyAsync("use the format 5d6, d6 or simply specify a positive integer");
                 }
 
             }
