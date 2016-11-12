@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -11,18 +12,21 @@ using Discord.WebSocket;
 using KiteBotCore.Json;
 using MarkovChain;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace KiteBotCore
 {
     public class MultiTextMarkovChainHelper
     {
         public int Depth;
+        // ReSharper disable once NotAccessedField.Local
         private Timer _timer;
         private readonly IMarkovChain _markovChain;
         private readonly IDiscordClient _client;
         private bool _isInitialized;
-        private List<MarkovMessage> _jsonList = new List<MarkovMessage>();
         private JsonLastMessage _lastMessage;
+        private readonly MarkovChainMContext _db;
+        //private List<MarkovMessage> _jsonList = new List<MarkovMessage>();
 
         public static string RootDirectory = Directory.GetCurrentDirectory();
         public static string JsonLastMessageLocation => RootDirectory + "/Content/LastMessage.json";
@@ -34,7 +38,7 @@ namespace KiteBotCore
 
         public MultiTextMarkovChainHelper(IDiscordClient client, int depth)
         {
-            Console.WriteLine("MultiTextMarkovChainHelper");
+            _db = new MarkovChainMContext();
             _client = client;
             Depth = depth;
             switch (depth)
@@ -56,7 +60,7 @@ namespace KiteBotCore
                     }
                     break;
             }
-            _timer = new Timer(async e => await Save(), null, 3600000, 3600000);
+            _timer = new Timer(async e => await Save(), null, 600000, 600000);
         }
 
         public async Task<bool> Initialize()
@@ -64,38 +68,26 @@ namespace KiteBotCore
             Console.WriteLine("Initialize");
             if (!_isInitialized)
             {
-                if (File.Exists(path: JsonMessageFileLocation))
+                if (File.Exists(JsonLastMessageLocation))
                 {
                     try
                     {
-                        _jsonList = JsonConvert.DeserializeObject<List<MarkovMessage>>(Open());
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex + ex.Message);
-                    }
-
-                    foreach (MarkovMessage message in _jsonList)
-                    {
-                        _markovChain.feed(message.M);//Any messages here have already been thru all the if checks, so we dont need to run through all of those again.
-                    }
-                    _isInitialized = true;
-                    if (File.Exists(JsonLastMessageLocation))
-                    {
-                        try
+                        foreach (MarkovMessage message in _db.Messages)
                         {
-                            string s = File.ReadAllText(JsonLastMessageLocation);
-                            _lastMessage = JsonConvert.DeserializeObject<JsonLastMessage>(s);
-                            List<IMessage> list = new List<IMessage>(await DownloadMessagesAfterId(_lastMessage.MessageId, _lastMessage.ChannelId));
-                            foreach (IMessage message in list)
-                            {
-                                FeedMarkovChain(message);
-                            }
+                            FeedMarkovChain(message);
                         }
-                        catch (Exception)
+                        string s = File.ReadAllText(JsonLastMessageLocation);
+                        _lastMessage = JsonConvert.DeserializeObject<JsonLastMessage>(s);
+                        List<IMessage> list = new List<IMessage>(await DownloadMessagesAfterId(_lastMessage.MessageId, _lastMessage.ChannelId));
+                        foreach (IMessage message in list)
                         {
-                            Console.WriteLine("fucking Last Message JSON is killing me");
+                            FeedMarkovChain(message);
                         }
+                        await Save();
+                    }
+                    catch (Exception)
+                    {
+                        Console.WriteLine("fucking Last Message JSON is killing me");
                     }
                 }
                 else
@@ -103,19 +95,15 @@ namespace KiteBotCore
                     try
                     {
                         var guild = (await _client.GetGuildsAsync()).ToArray();
-                        List<IMessage> list = new List<IMessage>(await GetMessagesFromChannel(guild.FirstOrDefault().Id, 20000));
-                        //list.AddRange(await GetMessagesFromChannel(96786127238725632, 2500));
-                        //list.AddRange(await GetMessagesFromChannel(94122326802571264, 2500));
+                        List<IMessage> list = new List<IMessage>(await GetMessagesFromChannel(guild.FirstOrDefault().Id, 1000));
                         foreach (IMessage message in list)
                         {
                             if (!string.IsNullOrWhiteSpace(message?.Content))
                             {
                                 FeedMarkovChain(message);
-                                var json = new MarkovMessage { M = message.Content };
-                                _jsonList.Add(json);
                             }
                         }
-
+                        await Save();
                     }
                     catch (Exception ex)
                     {
@@ -153,15 +141,38 @@ namespace KiteBotCore
         {
             if (!message.Author.IsBot)
             {
-                if (!string.IsNullOrWhiteSpace(message.Content) && !message.Content.Contains("http") && !message.Content.ToLower().Contains("testmarkov") && !message.Content.ToLower().Contains("getdunked") && message.MentionedUserIds.FirstOrDefault() != _client.CurrentUser.Id)//TODO: add back in is mentioning me check
+                if (!string.IsNullOrWhiteSpace(message.Content) && !message.Content.Contains("http") && !message.Content.ToLower().Contains("testmarkov") && !message.Content.ToLower().Contains("getdunked") && message.MentionedUserIds.FirstOrDefault() != _client.CurrentUser.Id)
                 {
                     if (message.Content.Contains("."))
                     {
-                        _markovChain.feed(message.Content); 
+                        _markovChain.feed(message.Content);
                     }
                     _markovChain.feed(message.Content + ".");
-                    _jsonList.Add(new MarkovMessage() { M = message.Content});
+                    var json = new MarkovMessage { M = message.Content, Id = message.Id };
+                    //_jsonList.Add(json);
+                    try
+                    {
+                        //if(!_db.Messages.Any(x => x.Id == json.Id))
+                        _db.Messages.Add(json);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        Log.Verbose("An Identical MessageID is already in the database :" + ex.Message);
+                    }
                 }
+            }
+        }
+
+        private void FeedMarkovChain(MarkovMessage message)
+        {
+            if (!string.IsNullOrWhiteSpace(message.M) && !message.M.Contains("http") && !message.M.ToLower().Contains("testmarkov") && !message.M.ToLower().Contains("tm") && !message.M.ToLower().Contains("getdunked") && !message.M.Contains(Program.Client.CurrentUser.Id.ToString()))
+            {
+                if (message.M.Contains("."))
+                {
+                    _markovChain.feed(message.M);
+                }
+                _markovChain.feed(message.M + ".");
+                var json = new MarkovMessage { M = message.M, Id = message.Id };
             }
         }
 
@@ -177,7 +188,7 @@ namespace KiteBotCore
         private async Task<IEnumerable<IMessage>> DownloadMessagesAfterId(ulong id, ulong channelId)
         {
             Console.WriteLine("DownloadMessagesAfterId");
-            SocketTextChannel channel = (SocketTextChannel) await _client.GetChannelAsync(channelId);
+            SocketTextChannel channel = (SocketTextChannel)await _client.GetChannelAsync(channelId);
             var latestMessages = await channel.GetMessagesAsync(id, Direction.After, 10000).Flatten();
             var enumerable = latestMessages as IMessage[] ?? latestMessages.ToArray();
             return enumerable;
@@ -188,15 +199,16 @@ namespace KiteBotCore
             Console.WriteLine("Save");
             if (_isInitialized)
             {
-                var text = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(_jsonList, Formatting.None));
-                using (var fileStream = File.Open(JsonMessageFileLocation, FileMode.OpenOrCreate))
-                {
-                    using (var stream = new GZipStream(fileStream, CompressionLevel.Optimal))
-                    {
-                        stream.Write(text, 0, text.Length);     // Write to the `stream` here and the result will be compressed
-                    }
-                }
-                var message = await ((SocketTextChannel)await _client.GetChannelAsync(85842104034541568)).GetMessagesAsync(1,RequestOptions.Default).Flatten();
+                var saveAsync = _db.SaveChangesAsync();
+                //var text = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(_jsonList, Formatting.None));
+                //using (var fileStream = File.Open(JsonMessageFileLocation, FileMode.OpenOrCreate))
+                //{
+                //    using (var stream = new GZipStream(fileStream, CompressionLevel.Optimal))
+                //    {
+                //        stream.Write(text, 0, text.Length);     // Write to the `stream` here and the result will be compressed
+                //    }
+                //}
+                var message = await ((SocketTextChannel)await _client.GetChannelAsync(85842104034541568)).GetMessagesAsync(1, RequestOptions.Default).Flatten();
                 var x = new JsonLastMessage
                 {
                     MessageId = message.First().Id,
@@ -205,6 +217,15 @@ namespace KiteBotCore
 
                 var lastmessageJson = JsonConvert.SerializeObject(x, Formatting.Indented);
                 File.WriteAllText(JsonLastMessageLocation, lastmessageJson);
+                try
+                {
+                    await saveAsync;
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex + ex.Message);
+                }
+
             }
         }
 
@@ -234,6 +255,11 @@ namespace KiteBotCore
                     return Encoding.Unicode.GetString(memory.ToArray());
                 }
             }
+        }
+
+        public ImmutableList<MarkovMessage> GetFullDatabase()
+        {
+            return _db.Messages.ToImmutableList();
         }
     }
 }

@@ -1,18 +1,30 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Discord.Commands;
 using System.Linq;
+using KiteBotCore.Json;
 
 namespace KiteBotCore.Modules
 {
-    public class MarkovChain : ModuleBase
+    public class MarkovChain : CleansingModuleBase
     {
         [Command("testMarkov")]
         [Alias("tm")]
         [Summary("creates a Markov Chain string based on user messages")]
         [RequireServer(Server.KiteCo)]
-        public async Task MarkovChainCommand()
+        public async Task MarkovChainCommand(string haiku = null)
         {
-            await ReplyAsync(KiteChat.MultiDeepMarkovChains.GetSequence());
+            if (haiku == "haiku")
+            {
+                await ReplyAsync(KiteChat.MultiDeepMarkovChains.GetSequence() + "\n" +
+                                 KiteChat.MultiDeepMarkovChains.GetSequence() + "\n" +
+                                 KiteChat.MultiDeepMarkovChains.GetSequence() + "\n");
+            }
+            else
+            {
+                await ReplyAsync(KiteChat.MultiDeepMarkovChains.GetSequence());
+            }
         }
 
         [Command("feed", RunMode = RunMode.Mixed)]
@@ -22,14 +34,17 @@ namespace KiteBotCore.Modules
         {
             var messages = Context.Channel.GetMessagesAsync(amount);
             int i = 0;
-            await messages.ForEachAsync( m =>
+            ImmutableList<MarkovMessage> list = KiteChat.MultiDeepMarkovChains.GetFullDatabase();//
+            await messages.ForEachAsync( collection =>
             {
                 i++;
-                foreach (var msg in m)
+                foreach (var msg in collection)
                 {
-                    KiteChat.MultiDeepMarkovChains.Feed(msg);
+                    if(!(list.Any(x => x.Id == msg.Id)))
+                        KiteChat.MultiDeepMarkovChains.Feed(msg);
                 }                
             });
+            await KiteChat.MultiDeepMarkovChains.Save();
             await ReplyAsync($"{i*100} messages downloaded.");
         }
     }
