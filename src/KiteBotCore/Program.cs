@@ -29,7 +29,7 @@ namespace KiteBotCore
         {
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.LiterateConsole()
-                .MinimumLevel.Verbose()
+                .MinimumLevel.Debug()
                 .CreateLogger();
 
             Client = new DiscordSocketClient(new DiscordSocketConfig
@@ -63,19 +63,20 @@ namespace KiteBotCore
             Client.Log += LogDiscordMessage;
 
 
-            Client.MessageReceived += async msg =>
+            Client.MessageReceived += msg =>
             {
                 Log.Verbose("MESSAGE {Channel}{tab}{User}: {Content}",  msg.Channel.Name, "\t", msg.Author.Username, msg.ToString());
-                try
-                {
-                    await _kiteChat.AsyncParseChat(msg, Client);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                    Console.WriteLine(ex);
-                    Environment.Exit(-1);
-                }
+                //try
+                //{
+                //    await _kiteChat.AsyncParseChat(msg, Client);
+                //}
+                //catch (Exception ex)
+                //{
+                //    Console.WriteLine(ex.Message);
+                //    Console.WriteLine(ex);
+                //    Environment.Exit(-1);
+                //}
+                return Task.CompletedTask;
             };
 
             Client.GuildAvailable += async server =>

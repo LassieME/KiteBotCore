@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Reflection;
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Serilog;
@@ -37,24 +38,29 @@ namespace KiteBotCore
             // Mark where the prefix ends and the command begins
             int argPos = 0;
             // Determine if the message has a valid prefix, adjust argPos 
-            if (!(message.HasMentionPrefix(_client.CurrentUser, ref argPos) || message.HasCharPrefix(_prefix, ref argPos))) return;
-
-            // Create a Command Context
-            try
+            if (message.HasMentionPrefix(_client.CurrentUser, ref argPos) || message.HasCharPrefix(_prefix, ref argPos))
             {
-                var context = new CommandContext(_client, message);
+                // Create a Command Context
+                try
+                {
+                    var context = new CommandContext(_client, message);
 
-                // Execute the Command, store the result
-                var result = await _commands.Execute(context, argPos, _map);
+                    // Execute the Command, store the result
+                    var result = await _commands.Execute(context, argPos, _map);
 
-                // If the command failed, notify the user unless no command was found
-                if (!result.IsSuccess && result.Error != CommandError.UnknownCommand)
-                    await message.Channel.SendMessageAsync($"**Error:** {result.ErrorReason}");
-                Log.Debug($"**Error:** {result.ErrorReason}");
+                    // If the command failed, notify the user unless no command was found
+                    if (!result.IsSuccess && result.Error != CommandError.UnknownCommand)
+                        await message.Channel.SendMessageAsync($"**Error:** {result.ErrorReason}");
+                    Log.Debug($"**Error:** {result.ErrorReason}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex + ": " + ex.Message);
+                }
             }
-            catch (Exception ex)
+            else
             {
-                Console.WriteLine(ex + ": " + ex.Message);
+                await _map.Get<KiteChat>().AsyncParseChat(parameterMessage, _map.Get<DiscordSocketClient>());
             }
         }
     }
