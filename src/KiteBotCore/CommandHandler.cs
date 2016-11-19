@@ -24,7 +24,7 @@ namespace KiteBotCore
             map.Add(_commands);
             _map = map;
 
-            await _commands.AddModules(Assembly.GetEntryAssembly());
+            await _commands.AddModulesAsync(Assembly.GetEntryAssembly());
             
             _client.MessageReceived += HandleCommand;
         }
@@ -46,7 +46,7 @@ namespace KiteBotCore
                     var context = new CommandContext(_client, message);
 
                     // Execute the Command, store the result
-                    var result = await _commands.Execute(context, argPos, _map);
+                    var result = await _commands.ExecuteAsync(context, argPos, _map);
 
                     // If the command failed, notify the user unless no command was found
                     if (!result.IsSuccess && result.Error != CommandError.UnknownCommand)
