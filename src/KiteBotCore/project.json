@@ -7,7 +7,7 @@
 
   "dependencies": {
     "Discord.Addons.WS4NetCompatibility": "1.0.0-beta1",
-    "Discord.Net": "1.0.0-beta2-00451",
+    "Discord.Net": "1.0.0-beta2-00453",
     "MarkovChain": "1.0.0-*",
     "Microsoft.NETCore.App": {
       "type": "platform",

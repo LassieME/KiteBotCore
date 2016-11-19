@@ -40,11 +40,13 @@ namespace KiteBotCore.Modules
                 i++;
                 foreach (var msg in collection)
                 {
-                    if(!(list.Any(x => x.Id == msg.Id)))
+                    if (list.All(x => x.Id != msg.Id))
+                    {
                         KiteChat.MultiDeepMarkovChains.Feed(msg);
-                }                
+                    }
+                }
             });
-            await KiteChat.MultiDeepMarkovChains.Save();
+            await KiteChat.MultiDeepMarkovChains.SaveAsync();//TODO: Fuck with this some more http://stackoverflow.com/questions/1930982/when-should-i-call-savechanges-when-creating-1000s-of-entity-framework-object
             await ReplyAsync($"{i*100} messages downloaded.");
         }
     }

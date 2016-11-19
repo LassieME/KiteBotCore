@@ -10,7 +10,7 @@ using System.Globalization;
 
 namespace KiteBotCore.Modules
 {
-    public class Admin : ModuleBase
+    public class Admin : CleansingModuleBase
     {
         private readonly CommandService _handler;
         private readonly IDependencyMap _map;
@@ -27,7 +27,7 @@ namespace KiteBotCore.Modules
         public async Task SaveCommand()
         {
             var message = await ReplyAsync("OK");
-            var saveTask = KiteChat.MultiDeepMarkovChains.Save();
+            var saveTask = KiteChat.MultiDeepMarkovChains.SaveAsync();
             await saveTask.ContinueWith(async (e) =>
             {
                 if (e.IsCompleted) await message.ModifyAsync(x => x.Content += ", Saved.");
@@ -41,7 +41,7 @@ namespace KiteBotCore.Modules
         public async Task SaveExitCommand()
         {
             var message = await ReplyAsync("OK");
-            var saveTask = KiteChat.MultiDeepMarkovChains.Save();
+            var saveTask = KiteChat.MultiDeepMarkovChains.SaveAsync();
             await saveTask.ContinueWith(async (e) =>
             {
                 if (e.IsCompleted) await message.ModifyAsync(x => x.Content += ", Saved.");

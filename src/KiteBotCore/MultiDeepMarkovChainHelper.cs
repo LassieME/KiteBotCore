@@ -26,7 +26,7 @@ namespace KiteBotCore
         private bool _isInitialized;
         private JsonLastMessage _lastMessage;
         private readonly MarkovChainMContext _db;
-        //private List<MarkovMessage> _jsonList = new List<MarkovMessage>();
+        private static SemaphoreSlim _semaphore;
 
         public static string RootDirectory = Directory.GetCurrentDirectory();
         public static string JsonLastMessageLocation => RootDirectory + "/Content/LastMessage.json";
@@ -38,6 +38,7 @@ namespace KiteBotCore
 
         public MultiTextMarkovChainHelper(IDiscordClient client, int depth)
         {
+            _semaphore = new SemaphoreSlim(0, 1);
             _db = new MarkovChainMContext();
             _client = client;
             Depth = depth;
@@ -60,7 +61,7 @@ namespace KiteBotCore
                     }
                     break;
             }
-            _timer = new Timer(async e => await Save(), null, 600000, 600000);
+            _timer = new Timer(async e => await SaveAsync(), null, 600000, 600000);
         }
 
         public async Task<bool> Initialize()
@@ -76,6 +77,7 @@ namespace KiteBotCore
                         {
                             FeedMarkovChain(message);
                         }
+                        _semaphore.Release();
                         string s = File.ReadAllText(JsonLastMessageLocation);
                         _lastMessage = JsonConvert.DeserializeObject<JsonLastMessage>(s);
                         List<IMessage> list = new List<IMessage>(await DownloadMessagesAfterId(_lastMessage.MessageId, _lastMessage.ChannelId));
@@ -83,7 +85,6 @@ namespace KiteBotCore
                         {
                             FeedMarkovChain(message);
                         }
-                        await Save();
                     }
                     catch (Exception)
                     {
@@ -103,13 +104,13 @@ namespace KiteBotCore
                                 FeedMarkovChain(message);
                             }
                         }
-                        await Save();
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine(ex + ex.Message);
                     }
                 }
+                await SaveAsync();
                 return _isInitialized = true;
             }
             return _isInitialized;
@@ -153,11 +154,18 @@ namespace KiteBotCore
                     try
                     {
                         //if(!_db.Messages.Any(x => x.Id == json.Id))
+                        Log.Verbose("_semaphore.Wait in add()");
+                        _semaphore.Wait();
                         _db.Messages.Add(json);
                     }
                     catch (InvalidOperationException ex)
                     {
                         Log.Verbose("An Identical MessageID is already in the database :" + ex.Message);
+                    }
+                    finally
+                    {
+                        Log.Verbose("_semaphore.Release() in add()");
+                        _semaphore.Release();
                     }
                 }
             }
@@ -194,38 +202,37 @@ namespace KiteBotCore
             return enumerable;
         }
 
-        public async Task Save()
+        public async Task SaveAsync()
         {
-            Console.WriteLine("Save");
+            Console.WriteLine("SaveAsync");
             if (_isInitialized)
             {
-                var saveAsync = _db.SaveChangesAsync();
-                //var text = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(_jsonList, Formatting.None));
-                //using (var fileStream = File.Open(JsonMessageFileLocation, FileMode.OpenOrCreate))
-                //{
-                //    using (var stream = new GZipStream(fileStream, CompressionLevel.Optimal))
-                //    {
-                //        stream.Write(text, 0, text.Length);     // Write to the `stream` here and the result will be compressed
-                //    }
-                //}
-                var message = await ((SocketTextChannel)await _client.GetChannelAsync(85842104034541568)).GetMessagesAsync(1, RequestOptions.Default).Flatten();
-                var x = new JsonLastMessage
-                {
-                    MessageId = message.First().Id,
-                    ChannelId = message.First().Channel.Id
-                };
-
-                var lastmessageJson = JsonConvert.SerializeObject(x, Formatting.Indented);
-                File.WriteAllText(JsonLastMessageLocation, lastmessageJson);
                 try
                 {
-                    await saveAsync;
+                    Log.Debug("_semaphore.WaitAsync() in SaveAsync");
+                    await _semaphore.WaitAsync();
+                    await _db.SaveChangesAsync();
+
+                    var message = await ((SocketTextChannel)await _client.GetChannelAsync(85842104034541568)).GetMessagesAsync(1, RequestOptions.Default).Flatten();
+                    var x = new JsonLastMessage
+                    {
+                        MessageId = message.First().Id,
+                        ChannelId = message.First().Channel.Id
+                    };
+
+                    var lastmessageJson = JsonConvert.SerializeObject(x, Formatting.Indented);
+                    File.WriteAllText(JsonLastMessageLocation, lastmessageJson);
+
                 }
                 catch (Exception ex)
                 {
                     Log.Error(ex + ex.Message);
                 }
-
+                finally
+                {
+                    Log.Debug("_semaphore.Release() in SaveAsync()");
+                    _semaphore.Release();
+                }
             }
         }
 
