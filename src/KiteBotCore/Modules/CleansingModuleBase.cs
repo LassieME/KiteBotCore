@@ -9,11 +9,10 @@ namespace KiteBotCore.Modules
 {
     public abstract class CleansingModuleBase : ModuleBase
     {
-        protected override async Task<IUserMessage> ReplyAsync(string message, bool isTTS = false, RequestOptions options = null)
+        protected override async Task<IUserMessage> ReplyAsync(string message, bool isTTS = false, EmbedBuilder embed = null, RequestOptions options = null)
         {
-            var output = message.Replace("@​everyone", "@ everyone").Replace("@ here", "@he\x200Bre").Replace("@", "@ ");
-            //var output = message.Replace("@​everyone", "@every\x200Bone").Replace("@here", "@he\x200Bre").Replace("@", "@\x200B");
-            return await Context.Channel.SendMessageAsync(output, isTTS, options).ConfigureAwait(false);
+            var output = message.Replace("@​everyone", "@every\x200Bone").Replace("@here", "@he\x200Bre");
+            return await Context.Channel.SendMessageAsync(output, isTTS, embed, options).ConfigureAwait(false);
         }
     }
 }

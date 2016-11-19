@@ -7,6 +7,7 @@ using Discord.WebSocket;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Globalization;
+using System.Security.Cryptography.X509Certificates;
 
 namespace KiteBotCore.Modules
 {
@@ -106,6 +107,24 @@ namespace KiteBotCore.Modules
             await ReplyAsync(input);
         }
 
+        [Command("embed")]
+        [Summary("Echos the provided input")]
+        [RequireOwner]
+        public async Task EmbedCommand([Remainder] string input)
+        {
+            var embed = new EmbedBuilder();
+            embed.Title = "Test";
+            embed.Color = new Color(255,0,0);
+            embed.Description = input;
+            embed.AddField(x =>
+            {
+                x.IsInline = false;
+                x.Name = "Image";
+                x.Value = "http://static.giantbomb.com/uploads/square_avatar/13/137243/1887704-lassie_01.jpg";
+            });
+            await ReplyAsync( input, false, embed);
+        }
+
         [Command("setgame")]
         [Alias("playing")]
         [Summary("Sets a game in discord")]
@@ -136,7 +155,7 @@ namespace KiteBotCore.Modules
             }
             foreach (CommandInfo cmdInfo in _handler.Commands)
             {
-                if ((await cmdInfo.CheckPreconditions(Context, _map)).IsSuccess)
+                if ((await cmdInfo.CheckPreconditionsAsync(Context, _map)).IsSuccess)
                 {
                     if (!string.IsNullOrWhiteSpace(output)) output += ",";
                     output += "`" + cmdInfo.Aliases[0] + "`";
