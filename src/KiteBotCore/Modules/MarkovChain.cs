@@ -46,7 +46,7 @@ namespace KiteBotCore.Modules
                     }
                 }
             });
-            await KiteChat.MultiDeepMarkovChains.SaveAsync();//TODO: Fuck with this some more http://stackoverflow.com/questions/1930982/when-should-i-call-savechanges-when-creating-1000s-of-entity-framework-object
+            await KiteChat.MultiDeepMarkovChains.SaveAsync();//TODO: Stare at this some more http://stackoverflow.com/questions/1930982/when-should-i-call-savechanges-when-creating-1000s-of-entity-framework-object
             await ReplyAsync($"{i*100} messages downloaded.");
         }
     }

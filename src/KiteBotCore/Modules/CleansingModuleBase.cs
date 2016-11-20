@@ -11,7 +11,7 @@ namespace KiteBotCore.Modules
     {
         protected override async Task<IUserMessage> ReplyAsync(string message, bool isTTS = false, EmbedBuilder embed = null, RequestOptions options = null)
         {
-            var output = message.Replace("@​everyone", "@every\x200Bone").Replace("@here", "@he\x200Bre");
+            var output = message.Replace("@​everyone", "@every\x200Bone").Replace("@here", "@he\x200Bre").Replace("@","@ ");
             return await Context.Channel.SendMessageAsync(output, isTTS, embed, options).ConfigureAwait(false);
         }
     }
