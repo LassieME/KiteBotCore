@@ -63,84 +63,91 @@ namespace KiteBotCore
             Client.Log += LogDiscordMessage;
 
 
-            Client.MessageReceived += msg =>
-            {
-                Log.Verbose("MESSAGE {Channel}{tab}{User}: {Content}",  msg.Channel.Name, "\t", msg.Author.Username, msg.ToString());
-                //try
-                //{
-                //    await _kiteChat.AsyncParseChat(msg, Client);
-                //}
-                //catch (Exception ex)
-                //{
-                //    Console.WriteLine(ex.Message);
-                //    Console.WriteLine(ex);
-                //    Environment.Exit(-1);
-                //}
-                return Task.CompletedTask;
-            };
+            //Client.MessageReceived += msg =>
+            //{
+            //    Log.Verbose("MESSAGE {Channel}{tab}{User}: {Content}",  msg.Channel.Name, "\t", msg.Author.Username, msg.ToString());
+            //    //try
+            //    //{
+            //    //    await _kiteChat.AsyncParseChat(msg, Client);
+            //    //}
+            //    //catch (Exception ex)
+            //    //{
+            //    //    Console.WriteLine(ex.Message);
+            //    //    Console.WriteLine(ex);
+            //    //    Environment.Exit(-1);
+            //    //}
+            //    return Task.CompletedTask;
+            //};
 
-            Client.GuildAvailable += async server =>
-            {
-                if (Client.Guilds.Any())
-                {
-                    var markovChainDone = await _kiteChat.InitializeMarkovChain();
-                    Log.Information("Ready {Done}",markovChainDone);
-                }
-            };
+            //Client.GuildAvailable += async server =>
+            //{
+            //    if (Client.Guilds.Any())
+            //    {
+            //        var markovChainDone = await _kiteChat.InitializeMarkovChain();
+            //        Log.Information("Ready {Done}",markovChainDone);
+            //    }
+            //};
 
-            Client.JoinedGuild += server =>
-            {
-                Log.Information("Connected to {Name}", server.Name);
-                return Task.CompletedTask;
-            };
+            //Client.JoinedGuild += server =>
+            //{
+            //    Log.Information("Connected to {Name}", server.Name);
+            //    return Task.CompletedTask;
+            //};
 
-            Client.GuildMemberUpdated += async (before, after) =>
-            {
-                var channel = (ITextChannel)Client.GetChannel(85842104034541568);
-                if (!before.Username.Equals(after.Username))
-                {
-                    await channel.SendMessageAsync($"{before.Username} changed his name to {after.Username}.");
-                    WhoIsService.AddWhoIs(before, after);
-                }
-                try
-                {
-                    if (before.Nickname != after.Nickname)
-                    {
-                        if (before.Nickname != null && after.Nickname != null)
-                        {
-                            await channel.SendMessageAsync($"{before.Nickname} changed his nickname to {after.Nickname}.");
-                            WhoIsService.AddWhoIs(before, after.Nickname);
-                        }
-                        else if (before.Nickname == null && after.Nickname != null)
-                        {
-                            await channel.SendMessageAsync($"{before.Username} set his nickname to {after.Nickname}.");
-                            WhoIsService.AddWhoIs(before, after.Nickname);
-                        }
-                        else
-                        {
-                            await channel.SendMessageAsync($"{before.Username} reset his nickname.");
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex + "\r\n" + ex.Message);
-                }
-            };
+            //Client.GuildMemberUpdated += async (before, after) =>
+            //{
+            //    var channel = (ITextChannel)Client.GetChannel(85842104034541568);
+            //    if (!before.Username.Equals(after.Username))
+            //    {
+            //        await channel.SendMessageAsync($"{before.Username} changed his name to {after.Username}.");
+            //        WhoIsService.AddWhoIs(before, after);
+            //    }
+            //    try
+            //    {
+            //        if (before.Nickname != after.Nickname)
+            //        {
+            //            if (before.Nickname != null && after.Nickname != null)
+            //            {
+            //                await channel.SendMessageAsync($"{before.Nickname} changed his nickname to {after.Nickname}.");
+            //                WhoIsService.AddWhoIs(before, after.Nickname);
+            //            }
+            //            else if (before.Nickname == null && after.Nickname != null)
+            //            {
+            //                await channel.SendMessageAsync($"{before.Username} set his nickname to {after.Nickname}.");
+            //                WhoIsService.AddWhoIs(before, after.Nickname);
+            //            }
+            //            else
+            //            {
+            //                await channel.SendMessageAsync($"{before.Username} reset his nickname.");
+            //            }
+            //        }
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        Console.WriteLine(ex + "\r\n" + ex.Message);
+            //    }
+            //};
 
             Console.WriteLine("LoginAsync");
-            await Client.LoginAsync(TokenType.Bot, _settings.DiscordToken);
+            await
+                Client.LoginAsync(TokenType.User, "mfa.ei0mb4dbFIUicPcMSS2foQcir3iJ_It30AigDG0t8UuEFo4qgeVazW0joJ13YUj4S_nIYpuYhwdOyawaaC-6");//settings.DiscordToken);
             await Client.ConnectAsync();
 
+            string output = "";
+            await Client.Guilds.First(x => x.Id == 106386929506873344).DownloadUsersAsync();
+            foreach (var socketGuildUser in Client.Guilds.First(x => x.Id == 106386929506873344).Users.OrderBy(x => x.JoinedAt))
+                output += socketGuildUser != null ? socketGuildUser.Username + " Joined at: " + socketGuildUser.JoinedAt + "\n" : string.Empty;
+
+
             var map = new DependencyMap();
-            _handler = new CommandHandler();
+            //_handler = new CommandHandler();
             map.Add(Client);
             map.Add(_settings);
             map.Add(_kiteChat);
             map.Add(_handler);
 
             
-            await _handler.Install( map, _settings.CommandPrefix);
+            //await _handler.Install( map, _settings.CommandPrefix);
 
             await Task.Delay(-1);
         }
