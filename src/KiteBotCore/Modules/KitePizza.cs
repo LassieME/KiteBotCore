@@ -25,7 +25,7 @@ namespace KiteBotCore.Modules
 
             else
                 pizzaToppings.AddRange(new [] {"Extra Cheese", "Pepperoni", "Sausage", "Chicken", "Ham", "Canadian Bacon",
-                    "Bacon", "Green Peppers", "Black Olives", "White Onion", "Diced Tomatoes",
+                    "Bacon", "Green Peppers", "Black Olives", "White Onion", "Diced Tomatoes", "Pesto",
                     "Spinach", "Roasted Red Peppers", "Sun Dried Tomato", "Pineapple", "Italian Sausage",
                     "Red Onion", "Green Chile", "Basil", "Mushrooms", "Beef"});
 

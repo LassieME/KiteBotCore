@@ -135,6 +135,25 @@ namespace KiteBotCore.Modules
             await client.SetGame(input);
         }
 
+        [Command("setusername")]
+        [Alias("username")]
+        [Summary("Sets a game in discord")]
+        [RequireOwner]
+        public async Task UsernameCommand([Remainder] string input)
+        {
+            var client = _map.Get<DiscordSocketClient>();
+            await client.CurrentUser.ModifyAsync(x => x.Username = input);
+        }
+
+        [Command("setusername")]
+        [Alias("username")]
+        [Summary("Sets a game in discord")]
+        [RequireOwner,RequireContext(ContextType.Guild)]
+        public async Task NicknameCommand([Remainder] string input)
+        {
+            await (await Context.Guild.GetCurrentUserAsync()).ModifyAsync(x => x.Nickname = input);
+        }
+
         [Command("help")]
         [Summary("Lists available commands")]
         public async Task Help(string optional = null)
