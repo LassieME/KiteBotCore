@@ -7,7 +7,9 @@ using Discord.WebSocket;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Globalization;
+using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
+using Discord.API;
 
 namespace KiteBotCore.Modules
 {
@@ -152,6 +154,17 @@ namespace KiteBotCore.Modules
         public async Task NicknameCommand([Remainder] string input)
         {
             await (await Context.Guild.GetCurrentUserAsync()).ModifyAsync(x => x.Nickname = input);
+        }
+
+        [Command("setavatar")]
+        [Alias("avatar")]
+        [Summary("Sets a new avatar image for this bot")]
+        [RequireOwner]
+        public async Task AvatarCommand([Remainder] string input)
+        {
+            var avatarStream = await new HttpClient().GetStreamAsync(input);
+            await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(avatarStream));
+            await ReplyAsync("👌");
         }
 
         [Command("help")]
