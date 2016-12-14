@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using Newtonsoft.Json;
+using Discord;
 
 namespace KiteBotCore.Json.GiantBomb.Search
 {
@@ -249,16 +250,31 @@ namespace KiteBotCore.Json.GiantBomb.Search
             return s;
         }
 
-        /*public override string ToString()
+        public EmbedBuilder ToEmbed()
         {
-            return $@"
-{(Name != null ? "`Title:` **" + Name:"")}
-{(Deck != null ? " * *\n`Deck:` " + Deck:"")}
-{(OriginalReleaseDate != null ? "\n`Release Date:` " + OriginalReleaseDate.Replace(" 00:00:00", "") : "")}
-{(Platforms != null ? "\n`Platforms:` " + string.Join(", ", Platforms?.Select(x => x.Name)) : "")}
-{(SiteDetailUrl != null ? "\n`Link:` " + SiteDetailUrl : "")}
-{(Image?.SmallUrl != null ? "\n`img:` " + Image?.SmallUrl : "")}";
-        }*/
+            EmbedBuilder embedBuilder = new EmbedBuilder();
+            embedBuilder
+                .WithTitle(Name ?? null)
+                .WithUrl(SiteDetailUrl ?? null)
+                .WithDescription(Deck != null ? Deck : "No Deck on Giant Bomb.")
+                .AddField(x => 
+                {
+                    x.Name = "First release date";
+                    x.Value = OriginalReleaseDate?.Replace(" 00:00:00", "") ?? null;
+                    x.IsInline = true;
+                })
+                .AddField(x => 
+                {
+                    x.Name = "Platforms";
+                    x.Value = Platforms != null ? string.Join(", ", Platforms?.Select(y => y.Name)) : null;
+                    x.IsInline = true;
+                })
+                .WithImageUrl(Image?.SmallUrl ?? null)                
+                .WithFooter(x => x.Text = "Giant Bomb")
+                .WithColor(new Color(0x00CC00))
+                .WithCurrentTimestamp();
+                return embedBuilder;
+        }
     }
 
     internal class Search

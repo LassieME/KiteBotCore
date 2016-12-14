@@ -7,6 +7,8 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Discord.Commands;
 using KiteBotCore.Json;
+using Discord;
+using Serilog;
 
 namespace KiteBotCore.Modules
 {
@@ -23,17 +25,18 @@ namespace KiteBotCore.Modules
         [Summary("Finds a anime from the anilist database")]
         public async Task AnimeCommand([Remainder] string animeTitle)
         {
-            string output;
+            string output = "";
+            EmbedBuilder embed = null;
             try
             {
                 var animedata = await SearchHelper.GetAnimeData(animeTitle);
                 if (animedata.Count == 1)
                 {
-                    output = (await SearchHelper.GetAnimeData(animeTitle))[0].ToString();
+                    embed = (await SearchHelper.GetAnimeData(animeTitle))[0].ToEmbed();
                 }
                 else
                 {
-                    var dict = new Dictionary<string, string>();
+                    var dict = new Dictionary<string, Tuple<string, EmbedBuilder>>();
 
                     int i = 1;
                     output = "Which of these anime did you mean?" + Environment.NewLine;
@@ -42,7 +45,7 @@ namespace KiteBotCore.Modules
                         if (i < 11 && result.TitleEnglish != null && result.TitleJapanese != null)
                         {
                             var name = result.TitleEnglish ?? result.TitleJapanese;
-                            dict.Add(i.ToString(), result.ToString());
+                            dict.Add(i.ToString(), Tuple.Create("", result.ToEmbed()));//TODO: Change to embed
                             output += $"{i++}. {name} {Environment.NewLine}";
                         }
                         else
@@ -55,28 +58,35 @@ namespace KiteBotCore.Modules
                     return;
                 }
             }
-            catch (JsonSerializationException)
+            catch (JsonSerializationException ex)
             {
                 output = "Can't find any anime with that name on anilist.";
+                Log.Verbose(ex + ex.Message);
             }
-            await ReplyAsync(output);
+            catch (Exception ex)
+            {
+                output = "Some other error happened, check the logs.";
+                Log.Debug(ex + ex.Message);
+            }
+            await ReplyAsync(output, false, embed);
         }
 
         [Command("manga")]
         [Summary("Finds a manga from the anilist database")]
         public async Task MangaCommand([Remainder] string mangaTitle)
         {
-            string output;
+            string output = "";
+            EmbedBuilder embed = null;
             try
             {
                 var mangaData = await SearchHelper.GetMangaData(mangaTitle);
                 if (mangaData.Count == 1)
                 {
-                    output = (await SearchHelper.GetAnimeData(mangaTitle))[0].ToString();
+                    embed = (await SearchHelper.GetAnimeData(mangaTitle))[0].ToEmbed();
                 }
                 else
                 {
-                    var dict = new Dictionary<string, string>();
+                    var dict = new Dictionary<string, Tuple<string, EmbedBuilder>>();
 
                     int i = 1;
                     output = "Which of these manga did you mean?" + Environment.NewLine;
@@ -84,8 +94,15 @@ namespace KiteBotCore.Modules
                     {
                         if (i < 11 && result.TitleEnglish != null && result.TitleJapanese != null)
                         {
-                            var name = result.TitleEnglish ?? result.TitleJapanese;
-                            dict.Add(i.ToString(), result.ToString());
+                            var name = result.TitleEnglish ?? result.TitleRomaji ?? result.TitleJapanese;
+                            try
+                            {
+                                dict.Add(i.ToString(), Tuple.Create("", result.ToEmbed()));//TODO: Change to embed);
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Information($"{ex} - \n {ex.Message}");
+                            }
                             output += $"{i++}. {name} {Environment.NewLine}";
                         }
                         else
@@ -98,11 +115,17 @@ namespace KiteBotCore.Modules
                     return;
                 }
             }
-            catch (JsonSerializationException)
+            catch (JsonSerializationException ex)
             {
                 output = "Can't find any manga with that name on anilist.";
+                Log.Verbose(ex + ex.Message);
             }
-            await ReplyAsync(output);
+            catch (Exception ex)
+            {
+                output = "Some other error happened, check the logs.";
+                Log.Debug(ex + ex.Message);
+            }
+            await ReplyAsync(output, false, embed);
         }
 
         public static class SearchHelper

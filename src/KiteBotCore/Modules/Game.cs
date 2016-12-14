@@ -7,6 +7,7 @@ using Discord.Commands;
 using KiteBotCore.Json;
 using KiteBotCore.Json.GiantBomb.Search;
 using Newtonsoft.Json;
+using Discord;
 
 namespace KiteBotCore.Modules
 {
@@ -39,7 +40,7 @@ namespace KiteBotCore.Modules
                 }
                 else if (search.Results.Length > 1)
                 {
-                    var dict = new Dictionary<string, string>();
+                    var dict = new Dictionary<string, Tuple<string, EmbedBuilder>>();
 
                     int i = 1;
                     string reply = "Which of these games did you mean?" + Environment.NewLine;
@@ -47,7 +48,7 @@ namespace KiteBotCore.Modules
                     {
                         if (result.Name != null)
                         {
-                            dict.Add(i.ToString(), result.ToString());
+                            dict.Add(i.ToString(), Tuple.Create("", result.ToEmbed()));
                             reply += $"{i++}. {result.Name} {Environment.NewLine}";
                         }
                         else
@@ -56,7 +57,7 @@ namespace KiteBotCore.Modules
                         }
                     }
                     var messageToEdit = await ReplyAsync(reply + "Just type the number you want, this command will self-destruct in 2 minutes if no action is taken.");
-                    FollowUpService.AddNewFollowUp(new FollowUp(_map, dict, Context.User.Id, Context.Channel.Id,messageToEdit));
+                    FollowUpService.AddNewFollowUp(new FollowUp(_map, dict, Context.User.Id, Context.Channel.Id, messageToEdit));
                 }
                 else
                 {

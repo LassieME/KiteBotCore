@@ -28,14 +28,14 @@ namespace KiteBotCore.Modules
     {
         bool _disposed;
 
-        private readonly Dictionary<string, string> _dictionary;
+        private readonly Dictionary<string, Tuple<string, EmbedBuilder>> _dictionary;
         private readonly DiscordSocketClient _client;
         private readonly DateTime _creationTime;
         public readonly ulong User;
         private readonly ulong _channel;
         private readonly IUserMessage _messageToEdit;
 
-        public FollowUp(IDependencyMap map, Dictionary<string, string> dictionary, ulong user, ulong channel, IUserMessage messageToEdit)
+        public FollowUp(IDependencyMap map, Dictionary<string, Tuple<string, EmbedBuilder>> dictionary, ulong user, ulong channel, IUserMessage messageToEdit)
         {
             _client = map.Get<DiscordSocketClient>();
             _dictionary = dictionary;
@@ -53,8 +53,17 @@ namespace KiteBotCore.Modules
             var enumerable = any as string[] ?? any.ToArray();
             if (parameterMessage.Author.Id == User && parameterMessage.Channel.Id == _channel && enumerable.Any())
             {
-                await _messageToEdit.ModifyAsync(x => x.Content = _dictionary[enumerable.FirstOrDefault()]);
-                
+                var outputString = _dictionary[enumerable.FirstOrDefault()].Item1;
+                var outputEmbed = _dictionary[enumerable.FirstOrDefault()].Item2;
+                if (outputEmbed != null)
+                {
+                    await _messageToEdit.ModifyAsync(x => { x.Content = outputString; x.Embed = outputEmbed; });
+                }
+                else
+                {
+                    await _messageToEdit.ModifyAsync(x => x.Content = outputString);
+                }
+
                 FollowUpService.RemoveFollowUp(this);
             }
             else if(DateTime.Now.Subtract(_creationTime) > TimeSpan.FromMinutes(2))

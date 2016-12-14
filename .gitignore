@@ -251,3 +251,7 @@ ModelManifest.xml
 /src/KiteBotCore/Content/.messages.zip
 /src/KiteBotCore/Content/subscribers.json
 /src/KiteBotCore/Properties/PublishProfiles
+/src/KiteBotCore/Content
+/src/KiteBotCore/Content/subscriber.json
+/src/KiteBotCore/pub
+/src/MarkovChain/pub

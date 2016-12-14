@@ -185,7 +185,7 @@ namespace KiteBotCore.Modules
                 output += "Couldn't find a command with that name, givng you the commandlist instead:" +
                           Environment.NewLine;
             }
-            foreach (CommandInfo cmdInfo in _handler.Commands)
+            foreach (CommandInfo cmdInfo in _handler.Commands.OrderBy(x => x.Aliases[0]))
             {
                 if ((await cmdInfo.CheckPreconditionsAsync(Context, _map)).IsSuccess)
                 {

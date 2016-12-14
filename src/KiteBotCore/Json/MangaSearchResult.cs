@@ -5,13 +5,12 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Discord;
 
 namespace KiteBotCore.Json
 {
-
     internal class MangaListStats
     {
-
         [JsonProperty("completed")]
         public int Completed { get; set; }
 
@@ -30,7 +29,6 @@ namespace KiteBotCore.Json
 
     internal class MangaSearchResult
     {
-
         [JsonProperty("id")]
         public int Id { get; set; }
 
@@ -113,10 +111,10 @@ namespace KiteBotCore.Json
         public MangaListStats ListStats { get; set; }
 
         [JsonProperty("total_chapters")]
-        public int TotalChapters { get; set; }
+        public int? TotalChapters { get; set; }
 
         [JsonProperty("total_volumes")]
-        public int TotalVolumes { get; set; }
+        public int? TotalVolumes { get; set; }
 
         [JsonProperty("publishing_status")]
         public string PublishingStatus { get; set; }
@@ -129,5 +127,56 @@ namespace KiteBotCore.Json
             "\n`Link:` http://anilist.co/manga/" + Id +
             "\n`Synopsis:` " + Description.Substring(0, Description.Length > 500 ? 500 : Description.Length) + "..." +
             "\n`img:` " + ImageUrlLge;
+
+        public EmbedBuilder ToEmbed()
+        {
+            EmbedBuilder embedBuilder = new EmbedBuilder();
+
+            embedBuilder
+                .WithTitle($"{TitleEnglish ?? ""} ({TitleRomaji ?? TitleJapanese})")
+                .WithUrl("http://anilist.co/anime/" + Id)
+                .WithDescription(Description?.Substring(0, Description.Length > 500 ? 500 : Description.Length) + "...")
+                .AddField(x =>
+                {
+                    x.Name = "Status";
+                    x.Value = PublishingStatus ?? "Unknown";
+                    x.IsInline = true;
+                })
+                .AddField(x =>
+                {
+                    x.Name = "Adult Content";
+                    x.Value = (Adult ? "Yes" : "No") ?? "Unknown";
+                    x.IsInline = true;
+                })
+                .AddField(x =>
+                {
+                    x.Name = "Genres";
+                    x.Value = string.Join(", ", Genres) ?? "Unknown";
+                    x.IsInline = true;
+                })
+                .AddField(x =>
+                {
+                    x.Name = "Chapters";
+                    x.Value = TotalChapters?.ToString() ?? "Unknown";
+                    x.IsInline = true;
+                })
+                .AddField(x =>
+                {
+                    x.Name = "Volumes";
+                    x.Value = TotalVolumes?.ToString() ?? "Unknown";
+                    x.IsInline = true;
+                })
+                .AddField(x =>
+                {
+                    x.Name = "Start and End dates";                    
+                    x.Value = $"{StartDate?.Replace("T00:00:00+09:00","") ?? "Unknown"} - {EndDate?.Replace("T00:00:00+09:00", "") ?? "Unknown"}";
+                    x.IsInline = true;
+                })
+                .WithFooter(x => x.Text = "anilist.co")
+                .WithColor(new Color(0x00CC00))
+                .WithImageUrl(ImageUrlLge ?? null)
+                .WithCurrentTimestamp();
+            return embedBuilder;
+        }
     }
 }

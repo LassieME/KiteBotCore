@@ -5,13 +5,12 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Discord;
 
 namespace KiteBotCore.Json
 {
-
     internal class AnimeListStats
     {
-
         [JsonProperty("completed")]
         public int Completed { get; set; }
 
@@ -30,7 +29,6 @@ namespace KiteBotCore.Json
 
     internal class AnimeSearchResult
     {
-
         [JsonProperty("id")]
         public int Id { get; set; }
 
@@ -56,7 +54,7 @@ namespace KiteBotCore.Json
         public string EndDate { get; set; }
 
         [JsonProperty("start_date_fuzzy")]
-        public int StartDateFuzzy { get; set; }
+        public int? StartDateFuzzy { get; set; }
 
         [JsonProperty("end_date_fuzzy")]
         public int? EndDateFuzzy { get; set; }
@@ -74,7 +72,7 @@ namespace KiteBotCore.Json
         public double AverageScore { get; set; }
 
         [JsonProperty("popularity")]
-        public int Popularity { get; set; }
+        public int? Popularity { get; set; }
 
         [JsonProperty("favourite")]
         public bool Favourite { get; set; }
@@ -113,10 +111,10 @@ namespace KiteBotCore.Json
         public AnimeListStats ListStats { get; set; }
 
         [JsonProperty("total_episodes")]
-        public int TotalEpisodes { get; set; }
+        public int? TotalEpisodes { get; set; }
 
         [JsonProperty("duration")]
-        public int Duration { get; set; }
+        public int? Duration { get; set; }
 
         [JsonProperty("airing_status")]
         public string AiringStatus { get; set; }
@@ -137,5 +135,50 @@ namespace KiteBotCore.Json
         "\n`Link:` http://anilist.co/anime/" + Id +
         "\n`Synopsis:` " + Description.Substring(0, Description.Length > 500 ? 500 : Description.Length) + "..." +
         "\n`img:` " + ImageUrlLge;
+
+        public EmbedBuilder ToEmbed()
+        {
+            EmbedBuilder embedBuilder = new EmbedBuilder();
+            
+            embedBuilder
+                .WithTitle($"{TitleEnglish ?? ""} ({TitleRomaji ?? TitleJapanese})")
+                .WithUrl("http://anilist.co/anime/" + Id)
+                .WithDescription(Description?.Substring(0, Description.Length > 500 ? 500 : Description.Length) + "...")
+                .AddField(x =>
+                {
+                    x.Name = "Airing status";
+                    x.Value = AiringStatus ?? "Unknown";
+                    x.IsInline = true;
+                })
+                .AddField(x =>
+                {
+                    x.Name = "Episodes";
+                    x.Value = TotalEpisodes.ToString() ?? "Unknown";
+                    x.IsInline = true;
+                })
+                .AddField(x =>
+                {
+                    x.Name = "Genres";
+                    x.Value = string.Join(", ", Genres);
+                    x.IsInline = true;
+                })
+                .AddField(x =>
+                {
+                    x.Name = "Start and End dates";
+                    x.Value = $"{StartDate?.Replace("T00:00:00+09:00", "") ?? "Unknown"} - {EndDate?.Replace("T00:00:00+09:00", "") ?? "Unknown"}";
+                    x.IsInline = true;
+                })
+                .AddField(x =>
+                {
+                    x.Name = "Adult Content";
+                    x.Value = (Adult ? "Yes" : "No") ?? "Unknown";
+                    x.IsInline = true;
+                })
+                .WithFooter(x => x.Text = "anilist.co")
+                .WithColor(new Color(0x00CC00))
+                .WithImageUrl(ImageUrlLge ?? null)
+                .WithCurrentTimestamp();            
+            return embedBuilder;
+        }
     }
 }
