@@ -25,8 +25,7 @@ namespace KiteBotCore.Modules.Eval
             "System.IO",
             "Discord",
             "Discord.Commands",
-            "Discord.WebSocket",
-            "KiteBotCore"
+            "Discord.WebSocket"            
         };
 
         private readonly ScriptOptions _options;
@@ -50,7 +49,7 @@ namespace KiteBotCore.Modules.Eval
             using (context.Channel.EnterTypingState())
             {
                 var working = await context.Channel.SendMessageAsync("**Evaluating**, just a sec...");
-                var globals = new ScriptGlobals
+                ScriptGlobals globals = new ScriptGlobals
                 {
                     handler = _handler,
                     client = _client,
@@ -61,7 +60,7 @@ namespace KiteBotCore.Modules.Eval
                 {
                     var eval =
                         await
-                            CSharpScript.EvaluateAsync(script, _options, globals, typeof(ScriptGlobals), _token.Token);
+                            CSharpScript.EvaluateAsync(script, _options, globals, cancellationToken: _token.Token);
                     await context.Channel.SendMessageAsync(eval.ToString());
                 }
                 catch (Exception e)

@@ -6,7 +6,6 @@ namespace KiteBotCore.Json.GiantBomb.Search
 {
     internal class Image
     {
-
         [JsonProperty("icon_url")]
         public string IconUrl { get; set; }
 
@@ -31,7 +30,6 @@ namespace KiteBotCore.Json.GiantBomb.Search
 
     internal class OriginalGameRating
     {
-
         [JsonProperty("api_detail_url")]
         public string ApiDetailUrl { get; set; }
 
@@ -44,7 +42,6 @@ namespace KiteBotCore.Json.GiantBomb.Search
 
     internal class Platform
     {
-
         [JsonProperty("api_detail_url")]
         public string ApiDetailUrl { get; set; }
 
@@ -63,7 +60,6 @@ namespace KiteBotCore.Json.GiantBomb.Search
 
     internal class FirstAppearedInFranchise
     {
-
         [JsonProperty("api_detail_url")]
         public string ApiDetailUrl { get; set; }
 
@@ -76,7 +72,6 @@ namespace KiteBotCore.Json.GiantBomb.Search
 
     internal class FirstAppearedInGame
     {
-
         [JsonProperty("api_detail_url")]
         public string ApiDetailUrl { get; set; }
 
@@ -89,7 +84,6 @@ namespace KiteBotCore.Json.GiantBomb.Search
 
     internal class FirstCreditedGame
     {
-
         [JsonProperty("api_detail_url")]
         public string ApiDetailUrl { get; set; }
 
@@ -102,7 +96,6 @@ namespace KiteBotCore.Json.GiantBomb.Search
 
     internal class Result
     {
-
         [JsonProperty("aliases")]
         public string Aliases { get; set; }
 
@@ -256,7 +249,7 @@ namespace KiteBotCore.Json.GiantBomb.Search
             embedBuilder
                 .WithTitle(Name ?? null)
                 .WithUrl(SiteDetailUrl ?? null)
-                .WithDescription(Deck != null ? Deck : "No Deck on Giant Bomb.")
+                .WithDescription(Deck ?? "No Deck on Giant Bomb.")
                 .AddField(x => 
                 {
                     x.Name = "First release date";

@@ -141,31 +141,31 @@ namespace KiteBotCore
             map.Add(_handler);
 
             
-            await _handler.Install( map, _settings.CommandPrefix);
+            await _handler.Install( map, _settings.CommandPrefix);            
 
             await Task.Delay(-1);
         }
 
         private static Task LogDiscordMessage(LogMessage msg)
         {
-            switch ((int)msg.Severity)
+            switch (msg.Severity)
             {
-                case 0:
+                case LogSeverity.Critical:
                     Log.Fatal("{Source} {Message} {Exception}",msg.Source, msg.Message, msg.Exception?.ToString());
                     break;
-                case 1:
+                case LogSeverity.Error:
                     Log.Error("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString());
                     break;
-                case 2:
+                case LogSeverity.Warning:
                     Log.Warning("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString());
                     break;
-                case 3:
+                case LogSeverity.Info:
                     Log.Information("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString());
                     break;
-                case 4:
+                case LogSeverity.Verbose:
                     Log.Debug("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString());
                     break;
-                case 5: //Verbose and Debug are switched between Serilog and Discord.Net
+                case LogSeverity.Debug: //Verbose and Debug are switched between Serilog and Discord.Net
                     Log.Verbose("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString());
                     break;                
             }

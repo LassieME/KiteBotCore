@@ -8,7 +8,6 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Globalization;
 using System.Net.Http;
-using System.Security.Cryptography.X509Certificates;
 using Discord.API;
 
 namespace KiteBotCore.Modules

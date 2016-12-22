@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Discord;
+using Newtonsoft.Json;
 
 namespace KiteBotCore.Json.GiantBomb.Videos
 {
@@ -102,5 +103,19 @@ namespace KiteBotCore.Json.GiantBomb.Videos
 
         [JsonProperty("youtube_id")]
         public string YoutubeId { get; set; }
+
+        internal EmbedBuilder ToEmbed()
+        {
+            EmbedBuilder embedBuilder = new EmbedBuilder();
+            embedBuilder
+                .WithTitle(Name ?? null)
+                .WithUrl(SiteDetailUrl ?? null)
+                .WithDescription(Deck ?? "No Deck on Giant Bomb.")                
+                .WithImageUrl(Image?.SmallUrl ?? null)
+                .WithAuthor(x => { x.Name = "Giant Bomb"; x.Url = "http://giantbomb.com/"; x.IconUrl = "http://giantbomb.com/favicon.ico"; })
+                .WithColor(new Color(0x010101))
+                .WithCurrentTimestamp();
+            return embedBuilder;
+        }
     }
 }

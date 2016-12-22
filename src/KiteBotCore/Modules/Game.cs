@@ -22,7 +22,7 @@ namespace KiteBotCore.Modules
             BotSettings botSettings;
             if (_map.TryGet(out botSettings))
             {
-                _apiCallUrl = $"http://www.giantbomb.com/api/search/?api_key={botSettings.GiantBombApiKey}&resources=game&field_list=deck,image,name,original_release_date,platforms,site_detail_url&format=json&query=\"";
+                _apiCallUrl = $"http://www.giantbomb.com/api/search/?api_key={botSettings.GiantBombApiKey}&resources=game&field_list=deck,image,name,original_release_date,platforms,site_detail_url&format=json&query=";
             }
         }
 
@@ -77,7 +77,7 @@ namespace KiteBotCore.Modules
                 using (var client = new HttpClient())
                 {
                     client.DefaultRequestHeaders.Add("User-Agent", $"KiteBotCore 1.1 GB Discord Bot for fetching wiki information");
-                    return JsonConvert.DeserializeObject<Search>(await client.GetStringAsync(_apiCallUrl+gameTitle+"\""));
+                    return JsonConvert.DeserializeObject<Search>(Uri.EscapeUriString(await client.GetStringAsync($@"{_apiCallUrl}""{gameTitle}""")));
                 }
             }
             catch (Exception)
