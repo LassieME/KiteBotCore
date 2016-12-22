@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Discord.Commands;
 using KiteBotCore.Json;
 using KiteBotCore.Json.GiantBomb.Search;
+using KiteBotCore.Utils.FuzzyString;
 using Newtonsoft.Json;
 using Discord;
 
@@ -44,7 +45,7 @@ namespace KiteBotCore.Modules
 
                     int i = 1;
                     string reply = "Which of these games did you mean?" + Environment.NewLine;
-                    foreach (var result in search.Results.Take(10))
+                    foreach (var result in search.Results.OrderBy(x => x.Name.LevenshteinDistance(gameTitle)).Take(10))
                     {
                         if (result.Name != null)
                         {
@@ -76,8 +77,9 @@ namespace KiteBotCore.Modules
             {
                 using (var client = new HttpClient())
                 {
+                    await Task.Delay(1000);
                     client.DefaultRequestHeaders.Add("User-Agent", $"KiteBotCore 1.1 GB Discord Bot for fetching wiki information");
-                    return JsonConvert.DeserializeObject<Search>(Uri.EscapeUriString(await client.GetStringAsync($@"{_apiCallUrl}""{gameTitle}""")));
+                    return JsonConvert.DeserializeObject<Search>(await client.GetStringAsync(Uri.EscapeUriString($@"{_apiCallUrl}""{gameTitle}""")));
                 }
             }
             catch (Exception)
