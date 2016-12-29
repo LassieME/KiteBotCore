@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Net.Http;
 using Discord.API;
+using System.IO;
 
 namespace KiteBotCore.Modules
 {
@@ -155,14 +156,15 @@ namespace KiteBotCore.Modules
             await (await Context.Guild.GetCurrentUserAsync()).ModifyAsync(x => x.Nickname = input);
         }
 
-        [Command("setavatar")]
+        [Command("setavatar",RunMode = RunMode.Sync)]
         [Alias("avatar")]
         [Summary("Sets a new avatar image for this bot")]
         [RequireOwner]
         public async Task AvatarCommand([Remainder] string input)
         {
-            var avatarStream = await new HttpClient().GetStreamAsync(input);
-            await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(avatarStream));
+            var avatarStream = await new HttpClient().GetByteArrayAsync(input);
+            Stream stream = new MemoryStream(avatarStream);
+            await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(stream));
             await ReplyAsync("👌");
         }
 
