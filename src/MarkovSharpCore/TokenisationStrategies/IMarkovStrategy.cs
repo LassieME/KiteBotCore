@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace MarkovSharp.TokenisationStrategies
 {
@@ -22,7 +23,7 @@ namespace MarkovSharp.TokenisationStrategies
         
         List<TGram> GetMatches(TPhrase input);
         
-        void Save(string file);
+        void Save(string file, Formatting format);
 
         T Load<T>(string file, int level = 1) where T : IMarkovStrategy<TPhrase, TGram>;
 

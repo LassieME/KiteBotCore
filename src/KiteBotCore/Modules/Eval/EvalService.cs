@@ -25,7 +25,8 @@ namespace KiteBotCore.Modules.Eval
             "System.IO",
             "Discord",
             "Discord.Commands",
-            "Discord.WebSocket"            
+            "Discord.WebSocket",
+            "KiteBotCore"
         };
 
         private readonly ScriptOptions _options;

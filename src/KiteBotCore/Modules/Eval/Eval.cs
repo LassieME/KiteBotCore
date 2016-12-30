@@ -29,27 +29,27 @@ namespace KiteBotCore.Modules.Eval
             if (!scriptTask.IsCompleted) evalService.PopToken();
         }
 
-        public static unsafe void EvalCommand()
-        {
-            var assembly = typeof(Foo).GetTypeInfo().Assembly; //let's grab the current in-memory assembly
-            if (assembly.TryGetRawMetadata(out byte* b, out int length))
-            {
-                var moduleMetadata = ModuleMetadata.CreateFromMetadata((IntPtr)b, length);
-                var assemblyMetadata = AssemblyMetadata.Create(moduleMetadata);
-                var reference = assemblyMetadata.GetReference();
+        //public static unsafe void EvalCommand()
+        //{
+        //    var assembly = typeof(Foo).GetTypeInfo().Assembly; //let's grab the current in-memory assembly
+        //    if (assembly.TryGetRawMetadata(out byte* b, out int length))
+        //    {
+        //        var moduleMetadata = ModuleMetadata.CreateFromMetadata((IntPtr)b, length);
+        //        var assemblyMetadata = AssemblyMetadata.Create(moduleMetadata);
+        //        var reference = assemblyMetadata.GetReference();
 
-                var opts = ScriptOptions.Default.AddImports("ConsoleApplication").AddReferences(reference);
-                var script = CSharpScript.Create("var foo = new Foo();", opts);
-                var result = script.RunAsync().Result; //runs fine, possible to use main application types in the script
-            }
+        //        var opts = ScriptOptions.Default.AddImports("ConsoleApplication").AddReferences(reference);
+        //        var script = CSharpScript.Create("var foo = new Foo();", opts);
+        //        var result = script.RunAsync().Result; //runs fine, possible to use main application types in the script
+        //    }
 
-            Console.WriteLine("Hello World!");
-        }
+        //    Console.WriteLine("Hello World!");
+        //}
 
-        public class Foo
-        {
-            public int Bar { get; set; }
-        }
+        //public class Foo
+        //{
+        //    public int Bar { get; set; }
+        //}
     }
 }
 
