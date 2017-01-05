@@ -19,6 +19,7 @@
     <ProjectReference Include="..\MarkovChain\MarkovChain.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Discord.Net" Version="1.0.0-rc-00544" />
     <PackageReference Include="Microsoft.NET.Sdk">
       <Version>1.0.0-alpha-20161104-2</Version>
       <PrivateAssets>All</PrivateAssets>
@@ -59,9 +60,6 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools">
       <Version>1.1.0-preview4-final</Version>
     </PackageReference>
-    <PackageReference Include="Discord.Net">
-      <Version>1.0.0-beta2-00502</Version>
-    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Utils\" />
@@ -70,6 +68,10 @@
     <DefineConstants>$(DefineConstants);RELEASE</DefineConstants>
   </PropertyGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup Label="Configuration">
+    <SignAssembly>False</SignAssembly>
+    <DelaySign>False</DelaySign>
+  </PropertyGroup>
   <PropertyGroup />
   <PropertyGroup />
   <PropertyGroup />
@@ -78,4 +80,7 @@
   <PropertyGroup />
   <PropertyGroup />
   <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AssemblyOriginatorKeyFile>KiteBotKey.pfx</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
 </Project>

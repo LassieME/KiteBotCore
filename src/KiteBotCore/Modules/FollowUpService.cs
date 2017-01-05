@@ -57,7 +57,7 @@ namespace KiteBotCore.Modules
                 var outputEmbed = _dictionary[enumerable.FirstOrDefault()].Item2;
                 if (outputEmbed != null)
                 {
-                    await _messageToEdit.ModifyAsync(x => { x.Content = outputString; x.Embed = outputEmbed; });
+                    await _messageToEdit.ModifyAsync(x => { x.Content = outputString; x.Embed = outputEmbed.Build(); });
                 }
                 else
                 {

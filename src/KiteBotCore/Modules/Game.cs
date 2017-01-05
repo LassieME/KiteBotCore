@@ -20,8 +20,8 @@ namespace KiteBotCore.Modules
         public Game(IDependencyMap map)
         {
             _map = map;
-            BotSettings botSettings;
-            if (_map.TryGet(out botSettings))
+            
+            if (_map.TryGet(out BotSettings botSettings))
             {
                 _apiCallUrl = $"http://www.giantbomb.com/api/search/?api_key={botSettings.GiantBombApiKey}&resources=game&field_list=deck,image,name,original_release_date,platforms,site_detail_url&format=json&query=";
             }
@@ -37,7 +37,7 @@ namespace KiteBotCore.Modules
                 
                 if (search.Results.Length == 1)
                 {
-                    await ReplyAsync(search.Results.FirstOrDefault()?.ToString());
+                    await ReplyAsync("", embed: search.Results.FirstOrDefault().ToEmbed());
                 }
                 else if (search.Results.Length > 1)
                 {

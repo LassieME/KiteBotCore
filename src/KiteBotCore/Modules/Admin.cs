@@ -8,7 +8,6 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Globalization;
 using System.Net.Http;
-using Discord.API;
 using System.IO;
 
 namespace KiteBotCore.Modules
@@ -114,10 +113,12 @@ namespace KiteBotCore.Modules
         [RequireOwner]
         public async Task EmbedCommand([Remainder] string input)
         {
-            var embed = new EmbedBuilder();
-            embed.Title = "Test";
-            embed.Color = new Color(255,0,0);
-            embed.Description = input;
+            var embed = new EmbedBuilder()
+            {
+                Title = "Test",
+                Color = new Color(255, 0, 0),
+                Description = input
+            };
             embed.AddField(x =>
             {
                 x.IsInline = false;
@@ -134,7 +135,7 @@ namespace KiteBotCore.Modules
         public async Task PlayingCommand([Remainder] string input)
         {
             var client = _map.Get<DiscordSocketClient>();
-            await client.SetGame(input);
+            await client.SetGameAsync(input);
         }
 
         [Command("setusername")]

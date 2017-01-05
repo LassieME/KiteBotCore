@@ -19,7 +19,7 @@ namespace KiteBotCore.Modules
         }
 
         // Override the CheckPermissions method
-        public override Task<PreconditionResult> CheckPermissions(CommandContext context, CommandInfo executingCommand, IDependencyMap map)
+        public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo executingCommand, IDependencyMap map)
         {
             if (context.Guild != null)
             {

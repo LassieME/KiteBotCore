@@ -25,6 +25,23 @@ namespace MarkovSharp
     /// <typeparam name="TGram"></typeparam>
     public abstract class GenericMarkov<TPhrase, TGram> : IMarkovStrategy<TPhrase, TGram>
     {
+        /// <summary>
+        /// Set to true to ensure that all lines generated are different and not same as the training data.
+        /// This might not return as many lines as requested if genreation is exhausted and finds no new unique values.
+        /// </summary>
+        public bool EnsureUniqueWalk { get; set; }
+
+        // The number of previous states for the model to to consider when 
+        //suggesting the next state
+        public int Level { get; private set; }
+
+        // Dictionary containing the model data. The key is the N number of
+        // previous words and value is a list of possible outcomes, given that key
+        [JsonIgnore]
+        public ConcurrentDictionary<SourceGrams<TGram>, List<TGram>> Model { get; set; }
+
+        public List<TPhrase> SourceLines { get; set; }
+
         private readonly ILog _logger = LogManager.GetLogger(typeof(GenericMarkov<TPhrase, TGram>));
 
         protected GenericMarkov(int level = 2)
@@ -39,13 +56,6 @@ namespace MarkovSharp
             Level = level;
             EnsureUniqueWalk = false;
         }
-
-        // Dictionary containing the model data. The key is the N number of
-        // previous words and value is a list of possible outcomes, given that key
-        [JsonIgnore]
-        public ConcurrentDictionary<SourceGrams<TGram>, List<TGram>> Model { get; set; }
-
-        public List<TPhrase> SourceLines { get; set; }
 
         /// <summary>
         /// Defines how to split the phrase to ngrams
@@ -67,16 +77,6 @@ namespace MarkovSharp
         public abstract TGram GetTerminatorGram();
 
         public abstract TGram GetPrepadGram();
-
-        /// <summary>
-        /// Set to true to ensure that all lines generated are different and not same as the training data.
-        /// This might not return as many lines as requested if genreation is exhausted and finds no new unique values.
-        /// </summary>
-        public bool EnsureUniqueWalk { get; set; }
-
-        // The number of previous states for the model to to consider when 
-        //suggesting the next state
-        public int Level { get; private set; }
         
         public void Learn(IEnumerable<TPhrase> phrases, bool ignoreAlreadyLearnt = true)
         {

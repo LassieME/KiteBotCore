@@ -64,7 +64,7 @@ namespace KiteBotCore
             _timer = new Timer(async e => await SaveAsync(), null, 600000, 600000);
         }
 
-        public async Task<bool> Initialize()
+        public async Task<bool> InitializeAsync()
         {
             Console.WriteLine("Initialize");
             if (!_isInitialized)
@@ -80,7 +80,7 @@ namespace KiteBotCore
                         _semaphore.Release();
                         string s = File.ReadAllText(JsonLastMessageLocation);
                         _lastMessage = JsonConvert.DeserializeObject<JsonLastMessage>(s);
-                        List<IMessage> list = new List<IMessage>(await DownloadMessagesAfterId(_lastMessage.MessageId, _lastMessage.ChannelId));
+                        List<IMessage> list = new List<IMessage>(await DownloadMessagesAfterIdAsync(_lastMessage.MessageId, _lastMessage.ChannelId));
                         foreach (IMessage message in list)
                         {
                             FeedMarkovChain(message);
@@ -96,7 +96,7 @@ namespace KiteBotCore
                     try
                     {
                         var guild = (await _client.GetGuildsAsync()).ToArray();
-                        List<IMessage> list = new List<IMessage>(await GetMessagesFromChannel(guild.FirstOrDefault().Id, 1000));
+                        List<IMessage> list = new List<IMessage>(await GetMessagesFromChannelAsync(guild.FirstOrDefault().Id, 1000));
                         foreach (IMessage message in list)
                         {
                             if (!string.IsNullOrWhiteSpace(message?.Content))
@@ -184,7 +184,7 @@ namespace KiteBotCore
             }
         }
 
-        private async Task<IEnumerable<IMessage>> GetMessagesFromChannel(ulong channelId, int i)
+        private async Task<IEnumerable<IMessage>> GetMessagesFromChannelAsync(ulong channelId, int i)
         {
             Console.WriteLine("GetMessagesFromChannel");
             SocketTextChannel channel = (SocketTextChannel)await _client.GetChannelAsync(channelId);
@@ -193,7 +193,7 @@ namespace KiteBotCore
             return enumerable;
         }
 
-        private async Task<IEnumerable<IMessage>> DownloadMessagesAfterId(ulong id, ulong channelId)
+        private async Task<IEnumerable<IMessage>> DownloadMessagesAfterIdAsync(ulong id, ulong channelId)
         {
             Console.WriteLine("DownloadMessagesAfterId");
             SocketTextChannel channel = (SocketTextChannel)await _client.GetChannelAsync(channelId);

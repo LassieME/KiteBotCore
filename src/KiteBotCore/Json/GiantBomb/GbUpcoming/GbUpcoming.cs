@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
 
 namespace KiteBotCore.Json.GiantBomb.GbUpcoming
 {
@@ -37,8 +38,8 @@ namespace KiteBotCore.Json.GiantBomb.GbUpcoming
         [JsonProperty("image")]
         public string Image { get; set; }
 
-        [JsonProperty("date")]
-        public string Date { get; set; }
+        [JsonProperty("date", NullValueHandling = NullValueHandling.Ignore)]
+        public DateTime Date { get; set; }
 
         [JsonProperty("premium")]
         public bool Premium { get; set; }

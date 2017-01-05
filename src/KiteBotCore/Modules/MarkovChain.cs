@@ -34,7 +34,7 @@ namespace KiteBotCore.Modules
         {
             var messages = Context.Channel.GetMessagesAsync(amount);
             int i = 0;
-            ImmutableList<MarkovMessage> list = KiteChat.MultiDeepMarkovChains.GetFullDatabase();//
+            ImmutableList<MarkovMessage> list = KiteChat.MultiDeepMarkovChains.GetFullDatabase();
             await messages.ForEachAsync( collection =>
             {
                 i++;

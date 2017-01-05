@@ -23,9 +23,9 @@ namespace KiteBotCore
         private static string SettingsPath => Directory.GetCurrentDirectory() + "/Content/settings.json";
 
         // ReSharper disable once UnusedMember.Local
-        private static void Main(string[] args) => AsyncMain(args).GetAwaiter().GetResult();
+        private static void Main(string[] args) => MainAsync(args).GetAwaiter().GetResult();
 
-        public static async Task AsyncMain(string[] args)
+        public static async Task MainAsync(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.LiterateConsole()
@@ -68,7 +68,7 @@ namespace KiteBotCore
                 Log.Verbose("MESSAGE {Channel}{tab}{User}: {Content}", msg.Channel.Name, "\t", msg.Author.Username, msg.ToString());
                 //try
                 //{
-                //    await _kiteChat.AsyncParseChat(msg, Client);
+                //    await _kiteChat.ParseChatAsync(msg, Client);
                 //}
                 //catch (Exception ex)
                 //{
@@ -83,7 +83,7 @@ namespace KiteBotCore
             {
                 if (Client.Guilds.Any())
                 {
-                    var markovChainDone = await _kiteChat.InitializeMarkovChain();
+                    var markovChainDone = await _kiteChat.InitializeMarkovChainAsync();
                     Log.Information("Ready {Done}", markovChainDone);
                 }
             };

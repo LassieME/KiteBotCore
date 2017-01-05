@@ -60,7 +60,7 @@ namespace KiteBotCore
             }
             else
             {
-                await _map.Get<KiteChat>().AsyncParseChat(parameterMessage, _map.Get<DiscordSocketClient>());
+                await _map.Get<KiteChat>().ParseChatAsync(parameterMessage, _map.Get<DiscordSocketClient>());
             }
         }
     }

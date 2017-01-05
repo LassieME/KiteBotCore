@@ -39,7 +39,7 @@ namespace KiteBotCore
             StartMarkovChain = markovbool;
             _greetings = arrayOfGreetings;
             RandomSeed = randomSeed;
-            LoadBekGreetings().Wait();
+            LoadBekGreetingsAsync().Wait();
 
             ReminderService.Init();
             if (streamRefresh > 3000) StreamChecker = new LivestreamChecker(gBapi, streamRefresh);
@@ -47,13 +47,13 @@ namespace KiteBotCore
             if (StartMarkovChain && depth > 0)MultiDeepMarkovChains = new MultiTextMarkovChainHelper(depth);
         }
 
-        public async Task<bool> InitializeMarkovChain()
+        public async Task<bool> InitializeMarkovChainAsync()
         {
-            if (StartMarkovChain) await Task.Run(() => MultiDeepMarkovChains.Initialize()).ConfigureAwait(false);
+            if (StartMarkovChain) await Task.Run(() => MultiDeepMarkovChains.InitializeAsync()).ConfigureAwait(false);
             return true;
         }
 
-        public async Task AsyncParseChat(SocketMessage msg, IDiscordClient client)
+        public async Task ParseChatAsync(SocketMessage msg, IDiscordClient client)
         {
             //Console.WriteLine("(" + msg.Author.Username + "/" + msg.Author.Id + ") - " + msg.Content);
             //add all messages to the Markov Chain list
@@ -147,7 +147,7 @@ namespace KiteBotCore
         }
 
         //grabs random greetings for user bekenel from a reddit profile
-		private async Task<bool> LoadBekGreetings()
+		private async Task<bool> LoadBekGreetingsAsync()
 		{
 			const string url = "https://www.reddit.com/user/UWotM8_SS";
 			string htmlCode = null;

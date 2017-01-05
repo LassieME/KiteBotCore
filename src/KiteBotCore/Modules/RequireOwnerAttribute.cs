@@ -12,10 +12,9 @@ namespace KiteBotCore.Modules
         public static ulong OwnerId;
 
         // Override the CheckPermissions method
-        public override Task<PreconditionResult> CheckPermissions(CommandContext context, CommandInfo executingCommand, IDependencyMap map)
+        public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo executingCommand, IDependencyMap map)
         {
-            BotSettings botSettings;
-            if (map.TryGet(out botSettings))
+            if (map.TryGet(out BotSettings botSettings))
             {
                 OwnerId = botSettings.OwnerId;
             }

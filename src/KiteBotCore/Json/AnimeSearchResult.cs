@@ -171,7 +171,7 @@ namespace KiteBotCore.Json
                 .AddField(x =>
                 {
                     x.Name = "Adult Content";
-                    x.Value = (Adult ? "Yes" : "No") ?? "Unknown";
+                    x.Value = Adult ? "Yes" : "No";
                     x.IsInline = true;
                 })
                 .WithFooter(x => x.Text = "anilist.co")
