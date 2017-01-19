@@ -40,6 +40,8 @@ namespace MarkovSharp
         [JsonIgnore]
         public ConcurrentDictionary<SourceGrams<TGram>, List<TGram>> Model { get; set; }
 
+        public Random RandomGenerator = new Random();
+
         public List<TPhrase> SourceLines { get; set; }
 
         private readonly ILog _logger = LogManager.GetLogger(typeof(GenericMarkov<TPhrase, TGram>));
@@ -219,7 +221,7 @@ namespace MarkovSharp
         {
             if (seed == null)
             {
-                seed = RebuildPhrase(new List<TGram>() {GetPrepadGram()});
+                seed = RebuildPhrase(new List<TGram> {GetPrepadGram()});
             }
 
             _logger.Info($"Walking to return {lines} phrases from {Model.Count} states");
@@ -274,7 +276,9 @@ namespace MarkovSharp
                 var key = new SourceGrams<TGram>(q.Cast<TGram>().ToArray());
                 if (Model.ContainsKey(key))
                 {
-                    var chosen = Model[key].OrderBy(x => Guid.NewGuid()).FirstOrDefault();
+                    //var chosen = Model[key].OrderBy(x => Guid.NewGuid()).First(); This is soo bad
+                    var list = Model[key];
+                    var chosen = list[RandomGenerator.Next(list.Count)];
 
                     q.Dequeue();
                     q.Enqueue(chosen);

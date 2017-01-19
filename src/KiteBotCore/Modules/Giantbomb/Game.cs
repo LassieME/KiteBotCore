@@ -27,7 +27,8 @@ namespace KiteBotCore.Modules
             }
         }
 
-        [Command("game")]
+        //TODO: Add proper ratelimiting to this command
+        [Command("game", RunMode = RunMode.Mixed)]
         [Summary("Finds a game in the Giantbomb games database")]
         public async Task GameCommand([Remainder] string gameTitle)
         {
@@ -45,7 +46,7 @@ namespace KiteBotCore.Modules
 
                     int i = 1;
                     string reply = "Which of these games did you mean?" + Environment.NewLine;
-                    foreach (var result in search.Results.OrderBy(x => x.Name.LevenshteinDistance(gameTitle)).Take(10))
+                    foreach (var result in search.Results.OrderBy(x => x.Name.LevenshteinDistance(gameTitle)))
                     {
                         if (result.Name != null)
                         {
@@ -77,7 +78,6 @@ namespace KiteBotCore.Modules
             {
                 using (var client = new HttpClient())
                 {
-                    await Task.Delay(1000);
                     client.DefaultRequestHeaders.Add("User-Agent", $"KiteBotCore 1.1 GB Discord Bot for fetching wiki information");
                     return JsonConvert.DeserializeObject<Search>(await client.GetStringAsync(Uri.EscapeUriString($@"{_apiCallUrl}""{gameTitle}""")));
                 }

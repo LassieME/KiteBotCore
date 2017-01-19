@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using Newtonsoft.Json;
 
 namespace MarkovSharp.Models
@@ -20,7 +16,7 @@ namespace MarkovSharp.Models
         {
             var x = o as SourceGrams<T>;
 
-            if (x == null && this != null)
+            if (x == null)
             {
                 return false;
             }

@@ -33,7 +33,7 @@ namespace KiteBotCore.Modules
             var role = Context.Guild.Roles.FirstOrDefault(x => x.Name == input);
             var output = $"Name: {role.Name}\n" +
                 $"Position: {role.Position}\n" +
-                $"Color: R:{role.Color.R}, G:{role.Color.G}, B:{role.Color.B}, Raw:{role.Color.RawValue.ToString("X")}\n" +
+                $"Color: R:{role.Color.R}, G:{role.Color.G}, B:{role.Color.B}, Raw:{role.Color.RawValue:X}\n" +
                 $"IsHoisted: {role.IsHoisted}\n" +
                 $"IsManaged: {role.IsManaged}\n" +
                 $"IsMentionable: {role.IsMentionable}\n" +

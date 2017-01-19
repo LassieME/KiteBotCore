@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
+using Discord.Audio;
 using Discord.Commands;
 using Discord.WebSocket;
 using KiteBotCore.Json;
@@ -35,7 +36,8 @@ namespace KiteBotCore
             Client = new DiscordSocketClient(new DiscordSocketConfig
             {
                 LogLevel = LogSeverity.Verbose,                
-                MessageCacheSize = 0                
+                MessageCacheSize = 0,
+                AudioMode = AudioMode.Outgoing
             });
             
             _settings = File.Exists(SettingsPath) ?

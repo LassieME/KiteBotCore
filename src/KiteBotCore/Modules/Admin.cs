@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
@@ -9,6 +10,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Net.Http;
 using System.IO;
+using System.Text;
+using Newtonsoft.Json;
 
 namespace KiteBotCore.Modules
 {
@@ -21,6 +24,40 @@ namespace KiteBotCore.Modules
         {
             _handler = map.Get<CommandService>();
             _map = map;
+        }
+
+        [Command("archive")]
+        [Summary("archives a channel and uploads a JSON")]
+        [RequireOwner]
+        public async Task ArchiveCommand(string guildName, string channelName, int amount = 10000)
+        {
+            var channelToArchive = (await
+                (await Context.Client.GetGuildsAsync())
+                .FirstOrDefault(x => x.Name == guildName)
+                .GetTextChannelsAsync())
+                .FirstOrDefault(x => x.Name == channelName);
+            if (channelToArchive != null)
+            {
+                var listOfMessages = new List<IMessage>(await channelToArchive.GetMessagesAsync(amount).Flatten());
+                List<Message> list = new List<Message>(listOfMessages.Capacity);
+                foreach (var message in listOfMessages)
+                    list.Add(new Message { Author = message.Author.Username, Content = message.Content, Timestamp = message.Timestamp });
+                var jsonSettings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
+                var json = JsonConvert.SerializeObject(list, Formatting.Indented, jsonSettings);
+                await Context.Channel.SendFileAsync(GenerateStreamFromString(json), $"{channelName}.json");
+            }
+        }
+
+        public class Message
+        {
+            public string Author;
+            public string Content;
+            public DateTimeOffset Timestamp;
+        }
+
+        private static MemoryStream GenerateStreamFromString(string value)
+        {
+            return new MemoryStream(Encoding.Unicode.GetBytes(value ?? ""));
         }
 
         [Command("save")]
@@ -47,7 +84,7 @@ namespace KiteBotCore.Modules
             await saveTask.ContinueWith(async (e) =>
             {
                 if (e.IsCompleted) await message.ModifyAsync(x => x.Content += ", Saved.");
-            });            
+            });
             Environment.Exit(0);
         }
 
@@ -67,7 +104,7 @@ namespace KiteBotCore.Modules
         [RequireOwner]
         public async Task DeleteCommand()
         {
-            if (KiteChat.BotMessages.Any()) await ((IUserMessage) KiteChat.BotMessages.Last()).DeleteAsync();
+            if (KiteChat.BotMessages.Any()) await ((IUserMessage)KiteChat.BotMessages.Last()).DeleteAsync();
         }
 
         [Command("restart")]
@@ -113,7 +150,7 @@ namespace KiteBotCore.Modules
         [RequireOwner]
         public async Task EmbedCommand([Remainder] string input)
         {
-            var embed = new EmbedBuilder()
+            var embed = new EmbedBuilder
             {
                 Title = "Test",
                 Color = new Color(255, 0, 0),
@@ -125,7 +162,7 @@ namespace KiteBotCore.Modules
                 x.Name = "Image";
                 x.Value = "http://static.giantbomb.com/uploads/square_avatar/13/137243/1887704-lassie_01.jpg";
             });
-            await ReplyAsync( input, false, embed);
+            await ReplyAsync(input, false, embed);
         }
 
         [Command("setgame")]
@@ -151,13 +188,13 @@ namespace KiteBotCore.Modules
         [Command("setusername")]
         [Alias("username")]
         [Summary("Sets a game in discord")]
-        [RequireOwner,RequireContext(ContextType.Guild)]
+        [RequireOwner, RequireContext(ContextType.Guild)]
         public async Task NicknameCommand([Remainder] string input)
         {
             await (await Context.Guild.GetCurrentUserAsync()).ModifyAsync(x => x.Nickname = input);
         }
 
-        [Command("setavatar",RunMode = RunMode.Sync)]
+        [Command("setavatar", RunMode = RunMode.Sync)]
         [Alias("avatar")]
         [Summary("Sets a new avatar image for this bot")]
         [RequireOwner]

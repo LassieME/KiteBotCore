@@ -13,6 +13,13 @@ namespace KiteBotCore.Modules
             await ReplyAsync("http://420.moe/");
         }
 
+        [Command("hi")]
+        [Summary("Mentions you and says hello")]
+        public async Task HiCommand()
+        {
+            await ReplyAsync($"{Context.User.Mention} Heyyo!");
+        }
+
         [Command("randomql")]
         [Alias("randql")]
         [Summary("Posts a random quick look.")]

@@ -108,10 +108,10 @@ namespace KiteBotCore.Json.GiantBomb.Videos
         {
             EmbedBuilder embedBuilder = new EmbedBuilder();
             embedBuilder
-                .WithTitle(Name ?? null)
-                .WithUrl(SiteDetailUrl ?? null)
+                .WithTitle(Name)
+                .WithUrl(SiteDetailUrl)
                 .WithDescription(Deck ?? "No Deck on Giant Bomb.")                
-                .WithImageUrl(Image?.SmallUrl ?? null)
+                .WithImageUrl(Image?.SuperUrl ?? Image?.ScreenUrl ?? Image?.MediumUrl ?? Image?.SmallUrl)
                 .WithAuthor(x => { x.Name = "Giant Bomb"; x.Url = "http://giantbomb.com/"; x.IconUrl = "http://giantbomb.com/favicon.ico"; })
                 .WithColor(new Color(0x010101))
                 .WithCurrentTimestamp();

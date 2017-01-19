@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using KiteBotCore.Modules;
+using KiteBotCore.Modules.Giantbomb;
 
 namespace KiteBotCore
 {
@@ -29,6 +30,7 @@ namespace KiteBotCore
         public static string ChatDirectory = Directory.GetCurrentDirectory();
         public static string GreetingFileLocation = ChatDirectory + "/Content/Greetings.txt";
 
+        private string GBAPI;
 
         public KiteChat(bool markovbool, string gBapi, int streamRefresh, int videoRefresh, int depth) : this(markovbool, depth,gBapi, streamRefresh, videoRefresh, File.ReadAllLines(GreetingFileLocation), new Random())
         {
@@ -36,10 +38,12 @@ namespace KiteBotCore
 
         public KiteChat(bool markovbool, int depth, string gBapi,int streamRefresh, int videoRefresh, string[] arrayOfGreetings, Random randomSeed)
         {
+            GBAPI = gBapi;
             StartMarkovChain = markovbool;
             _greetings = arrayOfGreetings;
             RandomSeed = randomSeed;
             LoadBekGreetingsAsync().Wait();
+            Video.InitializeTask(GBAPI).GetAwaiter().GetResult();
 
             ReminderService.Init();
             if (streamRefresh > 3000) StreamChecker = new LivestreamChecker(gBapi, streamRefresh);
