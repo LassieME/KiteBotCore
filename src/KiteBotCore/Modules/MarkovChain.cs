@@ -29,7 +29,7 @@ namespace KiteBotCore.Modules
 
         [Command("feed", RunMode = RunMode.Mixed)]
         [Summary("Downloads and feeds the markovchain")]
-        [RequireOwner,RequireServer(Server.KiteCo)]
+        [RequireOwner, RequireServer(Server.KiteCo)]
         public async Task FeedCommand(int amount)
         {
             var messages = Context.Channel.GetMessagesAsync(amount);
