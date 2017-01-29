@@ -20,13 +20,10 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Discord.Net" Version="1.0.0-rc-00546" />
-    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.19.0.655" />
+    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.20.0.701" />
     <PackageReference Include="Microsoft.NET.Sdk">
       <Version>1.0.0-alpha-20161104-2</Version>
       <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Discord.Addons.WS4NetCompatibility">
-      <Version>1.0.0-beta1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.NETCore.App">
       <Version>1.1.0</Version>

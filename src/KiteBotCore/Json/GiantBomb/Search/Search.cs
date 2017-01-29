@@ -246,27 +246,31 @@ namespace KiteBotCore.Json.GiantBomb.Search
         public EmbedBuilder ToEmbed()
         {
             EmbedBuilder embedBuilder = new EmbedBuilder();
-            embedBuilder
-                .WithTitle(Name ?? null)
-                .WithUrl(SiteDetailUrl ?? null)
+            embedBuilder.WithTitle(Name)
+                .WithUrl(SiteDetailUrl)
                 .WithDescription(Deck ?? "No Deck on Giant Bomb.")
-                .AddField(x => 
+                .WithImageUrl(Image?.SmallUrl)                
+                .WithFooter(x => x.Text = "Giant Bomb")
+                .WithColor(new Color(0x00CC00))
+                .WithCurrentTimestamp();
+
+            if (OriginalReleaseDate != null)
+                embedBuilder.AddField(x =>
                 {
                     x.Name = "First release date";
-                    x.Value = OriginalReleaseDate?.Replace(" 00:00:00", "") ?? null;
+                    x.Value = OriginalReleaseDate?.Replace(" 00:00:00", "");
                     x.IsInline = true;
-                })
-                .AddField(x => 
+                });
+
+            if (Platforms.Any())
+                embedBuilder.AddField(x =>
                 {
                     x.Name = "Platforms";
                     x.Value = Platforms != null ? string.Join(", ", Platforms?.Select(y => y.Name)) : null;
                     x.IsInline = true;
-                })
-                .WithImageUrl(Image?.SmallUrl ?? null)                
-                .WithFooter(x => x.Text = "Giant Bomb")
-                .WithColor(new Color(0x00CC00))
-                .WithCurrentTimestamp();
-                return embedBuilder;
+                });
+
+            return embedBuilder;
         }
     }
 

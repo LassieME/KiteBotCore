@@ -49,6 +49,7 @@ namespace KiteBotCore
                     DiscordPassword = "password",
                     DiscordToken = "Token",
                     GiantBombApiKey = "GbAPIKey",
+                    YoutubeApiKey = "",
                     OwnerId = 0,
                     MarkovChainStart = false,
                     MarkovChainDepth = 2,
@@ -56,10 +57,12 @@ namespace KiteBotCore
                     GiantBombVideoRefreshRate = 60000
                 };
 
-            _kiteChat = new KiteChat(_settings.MarkovChainStart,
-                _settings.GiantBombApiKey,
-                _settings.GiantBombLiveStreamRefreshRate,
-                _settings.GiantBombVideoRefreshRate,
+            _kiteChat = new KiteChat(Client, 
+                _settings.MarkovChainStart, 
+                _settings.GiantBombApiKey, 
+                _settings.YoutubeApiKey, 
+                _settings.GiantBombLiveStreamRefreshRate, 
+                _settings.GiantBombVideoRefreshRate, 
                 _settings.MarkovChainDepth);
 
             Client.Log += LogDiscordMessage;
@@ -68,16 +71,6 @@ namespace KiteBotCore
             Client.MessageReceived += msg =>
             {
                 Log.Verbose("MESSAGE {Channel}{tab}{User}: {Content}", msg.Channel.Name, "\t", msg.Author.Username, msg.ToString());
-                //try
-                //{
-                //    await _kiteChat.ParseChatAsync(msg, Client);
-                //}
-                //catch (Exception ex)
-                //{
-                //    Console.WriteLine(ex.Message);
-                //    Console.WriteLine(ex);
-                //    Environment.Exit(-1);
-                //}
                 return Task.CompletedTask;
             };
 
@@ -143,8 +136,7 @@ namespace KiteBotCore
             map.Add(_handler);
 
             
-            await _handler.Install( map, _settings.CommandPrefix);            
-
+            await _handler.InstallAsync( map, _settings.CommandPrefix);
             await Task.Delay(-1);
         }
 
@@ -164,10 +156,10 @@ namespace KiteBotCore
                 case LogSeverity.Info:
                     Log.Information("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString());
                     break;
-                case LogSeverity.Verbose:
+                case LogSeverity.Verbose: //Verbose and Debug are switched between Serilog and Discord.Net
                     Log.Debug("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString());
                     break;
-                case LogSeverity.Debug: //Verbose and Debug are switched between Serilog and Discord.Net
+                case LogSeverity.Debug: 
                     Log.Verbose("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString());
                     break;                
             }

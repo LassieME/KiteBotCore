@@ -35,7 +35,7 @@ namespace KiteBotCore.Modules
             if (!string.IsNullOrWhiteSpace(gameTitle))
             {
                 var search = await GetGamesEndpoint(gameTitle, 0);
-                
+
                 if (search.Results.Length == 1)
                 {
                     await ReplyAsync("", embed: search.Results.FirstOrDefault().ToEmbed());
@@ -58,8 +58,11 @@ namespace KiteBotCore.Modules
                             break;
                         }
                     }
-                    var messageToEdit = await ReplyAsync(reply + "Just type the number you want, this command will self-destruct in 2 minutes if no action is taken.");
-                    FollowUpService.AddNewFollowUp(new FollowUp(_map, dict, Context.User.Id, Context.Channel.Id, messageToEdit));
+                    var messageToEdit =
+                        await ReplyAsync(reply +
+                                         "Just type the number you want, this command will self-destruct in 2 minutes if no action is taken.");
+                    FollowUpService.AddNewFollowUp(new FollowUp(_map, dict, Context.User.Id, Context.Channel.Id,
+                        messageToEdit));
                 }
                 else
                 {

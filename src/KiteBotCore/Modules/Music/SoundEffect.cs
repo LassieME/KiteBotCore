@@ -1,6 +1,8 @@
 ﻿using System;
+using System.IO;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 
@@ -17,18 +19,18 @@ namespace KiteBotCore.Modules.Music
             _map = map;
         }
 
-        [Command("play",RunMode = RunMode.Mixed)]
+        [Command("play", RunMode = RunMode.Mixed)]
         [Summary("What is love")]
         [RequireOwner, RequireContext(ContextType.Guild)]
         public async Task ArchiveCommand()
         {
-            var channel = (Context.User as SocketGuildUser).VoiceChannel;
+            var channel = (Context.User as SocketGuildUser)?.VoiceChannel;
             Debug.Assert(channel != null);
-            const string path = "D:\\Users\\sindr\\Downloads\\MarkovChristmas.mp3";
+            const string path = @"D:\Users\sindr\Downloads\MarkovChristmas.mp3";
             try
             {
                 using (var audioClient = await channel.ConnectAsync())
-                using (var stream = audioClient.CreatePCMStream(2880,bitrate: channel.Bitrate))
+                using (var stream = audioClient.CreatePCMStream(2880, bitrate: channel.Bitrate))
                 {
                     var process = Process.Start(new ProcessStartInfo
                     {
@@ -38,11 +40,11 @@ namespace KiteBotCore.Modules.Music
                         RedirectStandardOutput = true,
                         RedirectStandardError = true
                     });
-                    process.EnableRaisingEvents = true;
-                    
+                    Task flush = process.StandardError.BaseStream.CopyToAsync(Stream.Null);
                     await process.StandardOutput.BaseStream.CopyToAsync(stream);
+                    await flush;
                     process.WaitForExit();
-                    await ReplyAsync("OK");
+                    await ReplyAsync("👌");
                 }
             }
             catch (Exception ex)

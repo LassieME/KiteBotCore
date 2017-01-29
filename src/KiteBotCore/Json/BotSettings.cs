@@ -19,6 +19,9 @@ namespace KiteBotCore.Json
         [JsonProperty("GiantBombApiKey")]
         public string GiantBombApiKey { get; set; }
 
+        [JsonProperty("YoutubeApiKey")]
+        public string YoutubeApiKey { get; set; }
+
         [JsonProperty("OwnerId")]
         public ulong OwnerId { get; set; }
 
@@ -33,6 +36,5 @@ namespace KiteBotCore.Json
 
         [JsonProperty("GiantBombLiveStreamRefreshRate")]
         public int GiantBombLiveStreamRefreshRate { get; set; }
-        
     }
 }

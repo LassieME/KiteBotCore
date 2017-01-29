@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Net.Http;
 using System.IO;
 using System.Text;
+using Discord.Rest;
 using Newtonsoft.Json;
 
 namespace KiteBotCore.Modules
@@ -156,13 +157,7 @@ namespace KiteBotCore.Modules
                 Color = new Color(255, 0, 0),
                 Description = input
             };
-            embed.AddField(x =>
-            {
-                x.IsInline = false;
-                x.Name = "Image";
-                x.Value = "http://static.giantbomb.com/uploads/square_avatar/13/137243/1887704-lassie_01.jpg";
-            });
-            await ReplyAsync(input, false, embed);
+            await ReplyAsync("", false, embed);
         }
 
         [Command("setgame")]
@@ -177,7 +172,7 @@ namespace KiteBotCore.Modules
 
         [Command("setusername")]
         [Alias("username")]
-        [Summary("Sets a game in discord")]
+        [Summary("Sets a new username for discord")]
         [RequireOwner]
         public async Task UsernameCommand([Remainder] string input)
         {
@@ -185,8 +180,8 @@ namespace KiteBotCore.Modules
             await client.CurrentUser.ModifyAsync(x => x.Username = input);
         }
 
-        [Command("setusername")]
-        [Alias("username")]
+        [Command("setnickname")]
+        [Alias("nickname")]
         [Summary("Sets a game in discord")]
         [RequireOwner, RequireContext(ContextType.Guild)]
         public async Task NicknameCommand([Remainder] string input)
@@ -240,7 +235,12 @@ namespace KiteBotCore.Modules
         [Summary("Contains info about the bot, such as owner, library, and runtime information")]
         public async Task Info()
         {
+            string GetUptime() => (DateTime.Now - Process.GetCurrentProcess().StartTime).ToString(@"dd\.hh\:mm\:ss");
+
+            string GetHeapSize() => Math.Round(GC.GetTotalMemory(true) / (1024.0 * 1024.0), 2).ToString(CultureInfo.InvariantCulture);
+
             var application = await Context.Client.GetApplicationInfoAsync();
+
             await ReplyAsync(
                 $"{Format.Bold("Info")}\n" +
                 $"- Author: {application.Owner.Username}#{application.Owner.DiscriminatorValue} (ID {application.Owner.Id})\n" +
@@ -257,8 +257,5 @@ namespace KiteBotCore.Modules
                 $"- Users: {(Context.Client as DiscordSocketClient)?.Guilds.Sum(g => g.Users.Count)}"
             );
         }
-
-        private static string GetUptime() => (DateTime.Now - Process.GetCurrentProcess().StartTime).ToString(@"dd\.hh\:mm\:ss");
-        private static string GetHeapSize() => Math.Round(GC.GetTotalMemory(true) / (1024.0 * 1024.0), 2).ToString(CultureInfo.InvariantCulture);
     }
 }

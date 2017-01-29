@@ -10,6 +10,7 @@ using Discord;
 using Discord.WebSocket;
 using KiteBotCore.Modules;
 using KiteBotCore.Modules.Giantbomb;
+using KiteBotCore.Modules.Youtube;
 
 namespace KiteBotCore
 {
@@ -30,22 +31,23 @@ namespace KiteBotCore
         public static string ChatDirectory = Directory.GetCurrentDirectory();
         public static string GreetingFileLocation = ChatDirectory + "/Content/Greetings.txt";
 
-        private string GBAPI;
+        private readonly string GBAPI;
 
-        public KiteChat(bool markovbool, string gBapi, int streamRefresh, int videoRefresh, int depth) : this(markovbool, depth,gBapi, streamRefresh, videoRefresh, File.ReadAllLines(GreetingFileLocation), new Random())
+        public KiteChat(DiscordSocketClient client, bool markovbool, string gBapi, string ytApi, int streamRefresh, int videoRefresh, int depth) : this(client, markovbool, gBapi, ytApi, streamRefresh, videoRefresh, depth, File.ReadAllLines(GreetingFileLocation), new Random())
         {
         }
 
-        public KiteChat(bool markovbool, int depth, string gBapi,int streamRefresh, int videoRefresh, string[] arrayOfGreetings, Random randomSeed)
+        public KiteChat(DiscordSocketClient client, bool markovbool, string gBapi, string ytApi, int streamRefresh, int videoRefresh, int depth, string[] arrayOfGreetings, Random randomSeed)
         {
             GBAPI = gBapi;
             StartMarkovChain = markovbool;
             _greetings = arrayOfGreetings;
             RandomSeed = randomSeed;
             LoadBekGreetingsAsync().Wait();
+            YoutubeModuleService.Init(ytApi, client);
+            ReminderService.Init();
             Video.InitializeTask(GBAPI).GetAwaiter().GetResult();
 
-            ReminderService.Init();
             if (streamRefresh > 3000) StreamChecker = new LivestreamChecker(gBapi, streamRefresh);
             if (videoRefresh > 3000) GbVideoChecker = new GiantBombVideoChecker(gBapi, videoRefresh);
             if (StartMarkovChain && depth > 0)MultiDeepMarkovChains = new MultiTextMarkovChainHelper(depth);
