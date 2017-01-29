@@ -28,7 +28,7 @@ namespace KiteBotCore.Modules.Youtube
             ? JsonConvert.DeserializeObject<Dictionary<string, WatchedChannel>>(File.ReadAllText(WatchLivestreamPath))
             : new Dictionary<string, WatchedChannel>();
 
-        private static Queue<WatchedChannel> Queue = new Queue<WatchedChannel>(60);
+        private static Queue<WatchedChannel> _queue = new Queue<WatchedChannel>(60);
         private static Timer _timer;
         private static DiscordSocketClient _client;
        
@@ -45,15 +45,15 @@ namespace KiteBotCore.Modules.Youtube
                 _timer = new Timer(RunSomethingAsync, null, 120000 / numberOfWatched, 120000 / numberOfWatched);
                 foreach (var watched in VideoChannels.Values.Concat(LivestreamChannels.Values))
                 {
-                    Queue.Enqueue(watched);
+                    _queue.Enqueue(watched);
                 }
             }
         }
 
         private static async void RunSomethingAsync(object state)
         {
-            var watched = Queue.Dequeue();
-            Queue.Enqueue(watched);
+            var watched = _queue.Dequeue();
+            _queue.Enqueue(watched);
             Log.Information("YoutubeChecker just ran.");
             await CheckForNewContentAsync(watched);
         }
@@ -97,23 +97,23 @@ namespace KiteBotCore.Modules.Youtube
 
         private static void AddToQueue(WatchedChannel wc)
         {
-            Queue.Enqueue(wc);
+            _queue.Enqueue(wc);
             if (_timer != null)
             {
-                _timer.Change(120000 / Queue.Count, 120000 / Queue.Count);
+                _timer.Change(120000 / _queue.Count, 120000 / _queue.Count);
             }
             else
             {
-                _timer = new Timer(RunSomethingAsync, null, 120000 / Queue.Count, 120000 / Queue.Count);
+                _timer = new Timer(RunSomethingAsync, null, 120000 / _queue.Count, 120000 / _queue.Count);
             }
         }
 
         private static void RemoveFromQueue(WatchedChannel wc)
         {
-            Queue = new Queue<WatchedChannel>(Queue.Where(s => s != wc));
-            if (Queue.Count > 0)
+            _queue = new Queue<WatchedChannel>(_queue.Where(s => s != wc));
+            if (_queue.Count > 0)
             {
-                _timer.Change(120000 / Queue.Count, 120000 / Queue.Count);
+                _timer.Change(120000 / _queue.Count, 120000 / _queue.Count);
             }
             else
             {
