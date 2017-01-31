@@ -69,49 +69,61 @@ namespace KiteBotCore
             Console.WriteLine("Initialize");
             if (!_isInitialized)
             {
-                if (File.Exists(JsonLastMessageLocation))
+                try
                 {
-                    try
+                    if (File.Exists(JsonLastMessageLocation))
                     {
-                        foreach (MarkovMessage message in _db.Messages)
+                        try
                         {
-                            FeedMarkovChain(message);
-                        }
-                        _semaphore.Release();
-                        string s = File.ReadAllText(JsonLastMessageLocation);
-                        _lastMessage = JsonConvert.DeserializeObject<JsonLastMessage>(s);
-                        List<IMessage> list = new List<IMessage>(await DownloadMessagesAfterIdAsync(_lastMessage.MessageId, _lastMessage.ChannelId));
-                        foreach (IMessage message in list)
-                        {
-                            FeedMarkovChain(message);
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        Console.WriteLine("fucking Last Message JSON is killing me");
-                    }
-                }
-                else
-                {
-                    try
-                    {
-                        var guild = (await _client.GetGuildsAsync()).ToArray();
-                        List<IMessage> list = new List<IMessage>(await GetMessagesFromChannelAsync(guild.FirstOrDefault().Id, 1000));
-                        foreach (IMessage message in list)
-                        {
-                            if (!string.IsNullOrWhiteSpace(message?.Content))
+                            foreach (MarkovMessage message in _db.Messages)
+                            {
+                                FeedMarkovChain(message);
+                            }
+                            _semaphore.Release();
+                            string s = File.ReadAllText(JsonLastMessageLocation);
+                            _lastMessage = JsonConvert.DeserializeObject<JsonLastMessage>(s);
+                            List<IMessage> list =
+                                new List<IMessage>(await DownloadMessagesAfterIdAsync(_lastMessage.MessageId,
+                                    _lastMessage.ChannelId));
+                            foreach (IMessage message in list)
                             {
                                 FeedMarkovChain(message);
                             }
                         }
+                        catch (Exception)
+                        {
+                            Console.WriteLine("fucking Last Message JSON is killing me");
+                        }
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        Console.WriteLine(ex + ex.Message);
+                        try
+                        {
+                            var guild = (await _client.GetGuildsAsync()).ToArray();
+                            List<IMessage> list =
+                                new List<IMessage>(await GetMessagesFromChannelAsync(guild.FirstOrDefault().Id, 1000));
+                            _semaphore.Release();
+                            foreach (IMessage message in list)
+                            {
+                                if (!string.IsNullOrWhiteSpace(message?.Content))
+                                {
+                                    FeedMarkovChain(message);
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex + ex.Message);
+                        }
                     }
+                    _isInitialized = true;
+                    await SaveAsync();
+                    return _isInitialized;
                 }
-                await SaveAsync();
-                return _isInitialized = true;
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex + ex.Message);
+                }
             }
             return _isInitialized;
         }
@@ -153,7 +165,6 @@ namespace KiteBotCore
                     //_jsonList.Add(json);
                     try
                     {
-                        //if(!_db.Messages.Any(x => x.Id == json.Id))
                         Log.Verbose("_semaphore.Wait in add()");
                         _semaphore.Wait();
                         _db.Messages.Add(json);

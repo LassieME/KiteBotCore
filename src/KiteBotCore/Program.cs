@@ -30,7 +30,7 @@ namespace KiteBotCore
         {
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.LiterateConsole()
-                .MinimumLevel.Debug()
+                .MinimumLevel.Verbose()
                 .CreateLogger();
 
             Client = new DiscordSocketClient(new DiscordSocketConfig
@@ -78,7 +78,7 @@ namespace KiteBotCore
             {
                 if (Client.Guilds.Any())
                 {
-                    var markovChainDone = await _kiteChat.InitializeMarkovChainAsync();
+                    var markovChainDone = await _kiteChat.InitializeMarkovChainAsync().ConfigureAwait(false);
                     Log.Information("Ready {Done}", markovChainDone);
                 }
             };

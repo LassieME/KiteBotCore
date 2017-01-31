@@ -45,8 +45,6 @@ namespace KiteBotCore
             // Determine if the message has a valid prefix, adjust argPos 
             if (message.HasMentionPrefix(_client.CurrentUser, ref argPos) || message.HasCharPrefix(_prefix, ref argPos))
             {
-                if (System.Diagnostics.Debugger.IsAttached && parameterMessage.Author.Id != _ownerId)
-                    return;
                 // Create a Command Context
                 try
                 {

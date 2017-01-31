@@ -13,7 +13,7 @@ namespace KiteBotCore
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite("Filename=./messages.db");
+            optionsBuilder.UseSqlite("Filename=./Content/messages.db");
         }
     }
 }

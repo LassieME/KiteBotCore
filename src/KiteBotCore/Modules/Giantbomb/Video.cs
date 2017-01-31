@@ -10,6 +10,7 @@ using Discord.Commands;
 using KiteBotCore.Json.GiantBomb.Videos;
 using KiteBotCore.Utils.FuzzyString;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace KiteBotCore.Modules.Giantbomb
 {
@@ -42,12 +43,14 @@ namespace KiteBotCore.Modules.Giantbomb
             }
             else
             {
+                Log.Debug("Running full GB video list download");
                 _allVideos = new Dictionary<int, Result>(12500);
                 Videos latest;
                 int i = 0;
                 do
                 {
                     latest = await GetVideosEndpoint(i, 3);
+                    Log.Verbose("Queried GB videos API {one}/{two}", latest.NumberOfPageResults + i*100, latest.NumberOfTotalResults);
                     foreach (var latestResult in latest.Results)
                     {
                         _allVideos[latestResult.Id] = latestResult;

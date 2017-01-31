@@ -47,6 +47,7 @@ namespace KiteBotCore
             {
                 Log.Debug("Running Videochecker");
                 await RefreshVideosApi();
+                Log.Debug("Finishing Videochecker");
             }
             catch (Exception ex)
             {

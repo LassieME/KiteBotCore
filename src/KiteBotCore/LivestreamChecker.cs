@@ -57,6 +57,7 @@ namespace KiteBotCore
             {
                 Log.Debug("Running Livestreamchecker");
                 await RefreshChatsApi(true);
+                Log.Debug("Finishing Livestreamchecker");
             }
             catch (Exception ex)
             {

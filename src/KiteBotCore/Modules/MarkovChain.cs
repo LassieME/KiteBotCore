@@ -27,7 +27,7 @@ namespace KiteBotCore.Modules
             }
         }
 
-        [Command("feed", RunMode = RunMode.Mixed)]
+        [Command("feed", RunMode = RunMode.Async)]
         [Summary("Downloads and feeds the markovchain")]
         [RequireOwner, RequireServer(Server.KiteCo)]
         public async Task FeedCommand(int amount)

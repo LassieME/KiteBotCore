@@ -33,20 +33,14 @@ namespace KiteBotCore
 
         private readonly string GBAPI;
 
-        public KiteChat(DiscordSocketClient client, bool markovbool, string gBapi, string ytApi, int streamRefresh, int videoRefresh, int depth) : this(client, markovbool, gBapi, ytApi, streamRefresh, videoRefresh, depth, File.ReadAllLines(GreetingFileLocation), new Random())
-        {
-        }
-
-        public KiteChat(DiscordSocketClient client, bool markovbool, string gBapi, string ytApi, int streamRefresh, int videoRefresh, int depth, string[] arrayOfGreetings, Random randomSeed)
+        public KiteChat(DiscordSocketClient client, bool markovbool, string gBapi, string ytApi, int streamRefresh, int videoRefresh, int depth)
         {
             GBAPI = gBapi;
             StartMarkovChain = markovbool;
-            _greetings = arrayOfGreetings;
-            RandomSeed = randomSeed;
-            LoadBekGreetingsAsync().Wait();
+            _greetings = File.ReadAllLines(GreetingFileLocation);
+            RandomSeed = new Random();
             YoutubeModuleService.Init(ytApi, client);
             ReminderService.Init();
-            Video.InitializeTask(GBAPI).GetAwaiter().GetResult();
 
             if (streamRefresh > 3000) StreamChecker = new LivestreamChecker(gBapi, streamRefresh);
             if (videoRefresh > 3000) GbVideoChecker = new GiantBombVideoChecker(gBapi, videoRefresh);
@@ -55,14 +49,20 @@ namespace KiteBotCore
 
         public async Task<bool> InitializeMarkovChainAsync()
         {
-            if (StartMarkovChain) await Task.Run(() => MultiDeepMarkovChains.InitializeAsync()).ConfigureAwait(false);
+            var videoTask = Video.InitializeTask(GBAPI).ConfigureAwait(false); //Could be a longrunning Task
+            
+            var bekTask = LoadBekGreetingsAsync().ConfigureAwait(false);
+            
+            if (StartMarkovChain) await MultiDeepMarkovChains.InitializeAsync().ConfigureAwait(false); //This usually is a long running task, unless they bot has just recently been off
+
+            await bekTask;
+            await videoTask;
+            
             return true;
         }
 
         public async Task ParseChatAsync(SocketMessage msg, IDiscordClient client)
         {
-            //Console.WriteLine("(" + msg.Author.Username + "/" + msg.Author.Id + ") - " + msg.Content);
-            //add all messages to the Markov Chain list
             if (msg.Author.Id == client.CurrentUser.Id)
             {
                 BotMessages.Add(msg);
