@@ -1,93 +1,24 @@
-﻿<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp1.0</TargetFramework>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyName>KiteBotCore</AssemblyName>
-    <OutputType>exe</OutputType>
-    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">$(PackageTargetFallback);dnxcore50;portable-net451+win8</PackageTargetFallback>
-    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
-    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="**\*.cs" />
-    <EmbeddedResource Include="**\*.resx" />
-    <EmbeddedResource Include="compiler\resources\**\*" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\MarkovChain\MarkovChain.csproj" />
-  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Discord.Net" Version="1.0.0-rc-00588" />
     <PackageReference Include="Google.Apis.YouTube.v3" Version="1.20.0.701" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="2.1.0-beta1-61220-03" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="1.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite.Design" Version="1.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="1.1.0-preview4-final" />
-    <PackageReference Include="Microsoft.NET.Sdk">
-      <Version>1.0.0-alpha-20161104-2</Version>
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Discord.Addons.WS4NetCompatibility">
-      <Version>1.0.0-beta1</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.NETCore.App">
-      <Version>1.1.0</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting">
-      <Version>2.1.0-beta1-61220-03</Version>
-    </PackageReference>
-    <PackageReference Include="Serilog">
-      <Version>2.3.0</Version>
-    </PackageReference>
-    <PackageReference Include="Serilog.Sinks.Literate">
-      <Version>2.0.0</Version>
-    </PackageReference>
-    <PackageReference Include="System.Net.WebSockets.Client">
-      <Version>4.4.0-beta-24629-01</Version>
-    </PackageReference>
-    <PackageReference Include="System.Runtime.Loader">
-      <Version>4.4.0-beta-24814-02</Version>
-    </PackageReference>
-    <PackageReference Include="System.Dynamic.Runtime">
-      <Version>4.4.0-beta-24814-02</Version>
-    </PackageReference>
-    <PackageReference Include="System.Threading.Tasks.Parallel">
-      <Version>4.3.0</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
-      <Version>1.1.0</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite">
-      <Version>1.1.0</Version>
-    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
+    <PackageReference Include="Serilog.Sinks.Literate" Version="2.0.0" />
+    <PackageReference Include="System.Dynamic.Runtime" Version="4.4.0-beta-24913-02" />
+    <PackageReference Include="System.Net.WebSockets" Version="4.4.0-beta-24913-02" />
+    <PackageReference Include="System.Runtime.Loader" Version="4.4.0-beta-24913-02" />
+    <PackageReference Include="System.Threading.Tasks.Parallel" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Utils\" />
+    <ProjectReference Include="..\MarkovChain\MarkovChain.csproj" />
+    <ProjectReference Include="..\MarkovSharpCore\MarkovSharpCore.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="libsodium.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="opus.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <DefineConstants>$(DefineConstants);RELEASE</DefineConstants>
-  </PropertyGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup Label="Configuration">
-    <SignAssembly>False</SignAssembly>
-    <DelaySign>False</DelaySign>
-  </PropertyGroup>
-  <PropertyGroup />
-  <PropertyGroup />
-  <PropertyGroup />
-  <PropertyGroup />
-  <PropertyGroup />
-  <PropertyGroup />
-  <PropertyGroup />
-  <PropertyGroup />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <AssemblyOriginatorKeyFile>KiteBotKey.pfx</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
 </Project>
