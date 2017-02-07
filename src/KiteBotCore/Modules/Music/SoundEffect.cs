@@ -2,7 +2,6 @@
 using System.IO;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 
@@ -11,12 +10,10 @@ namespace KiteBotCore.Modules.Music
     public class SoundEffect : CleansingModuleBase
     {
         private readonly DiscordSocketClient _client;
-        private readonly IDependencyMap _map;
 
-        public SoundEffect(IDependencyMap map)
+        public SoundEffect(DiscordSocketClient client)
         {
-           _client = map.Get<DiscordSocketClient>();
-            _map = map;
+            _client = client;
         }
 
         [Command("play", RunMode = RunMode.Mixed)]

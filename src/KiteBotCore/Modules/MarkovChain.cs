@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Discord.Commands;
 using System.Linq;
 using KiteBotCore.Json;
+using Discord;
 
 namespace KiteBotCore.Modules
 {
@@ -11,7 +12,7 @@ namespace KiteBotCore.Modules
     {
         [Command("testMarkov")]
         [Alias("tm")]
-        [Summary("creates a Markov Chain string based on user messages")]
+        [Summary("Creates a Markov Chain string based on user messages")]
         [RequireServer(Server.KiteCo)]
         public async Task MarkovChainCommand(string haiku = null)
         {
@@ -48,6 +49,19 @@ namespace KiteBotCore.Modules
             });
             await KiteChat.MultiDeepMarkovChains.SaveAsync();//TODO: Stare at this some more http://stackoverflow.com/questions/1930982/when-should-i-call-savechanges-when-creating-1000s-of-entity-framework-object
             await ReplyAsync($"{i*100} messages downloaded.");
+        }
+
+        [Command("remove", RunMode = RunMode.Async)]
+        [Summary("Downloads and feeds the markovchain")]
+        [RequireOwner, RequireServer(Server.KiteCo)]
+        public async Task RemoveCommand(ulong messageId)
+        {
+            ImmutableList<MarkovMessage> list = KiteChat.MultiDeepMarkovChains.GetFullDatabase();
+
+            foreach (var item in list.Where(x => x.Id == messageId))
+                await KiteChat.MultiDeepMarkovChains.RemoteItemAsync(item);
+
+            await ReplyAsync($"<:bop:230275292076179460>");
         }
     }
 }

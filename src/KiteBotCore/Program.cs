@@ -20,7 +20,6 @@ namespace KiteBotCore
         private static KiteChat _kiteChat;
         private static BotSettings _settings;
         private static CommandHandler _handler;
-        private static CommandService _commandService = new CommandService();
         private static string SettingsPath => Directory.GetCurrentDirectory() + "/Content/settings.json";
 
         // ReSharper disable once UnusedMember.Local
@@ -30,16 +29,16 @@ namespace KiteBotCore
         {
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.LiterateConsole()
-                .MinimumLevel.Verbose()
+                .MinimumLevel.Debug()
                 .CreateLogger();
 
             Client = new DiscordSocketClient(new DiscordSocketConfig
             {
-                LogLevel = LogSeverity.Verbose,                
+                LogLevel = LogSeverity.Verbose,
                 MessageCacheSize = 0,
                 AudioMode = AudioMode.Outgoing
             });
-            
+
             _settings = File.Exists(SettingsPath) ?
                 JsonConvert.DeserializeObject<BotSettings>(File.ReadAllText(SettingsPath))
                 : new BotSettings
@@ -57,12 +56,12 @@ namespace KiteBotCore
                     GiantBombVideoRefreshRate = 60000
                 };
 
-            _kiteChat = new KiteChat(Client, 
-                _settings.MarkovChainStart, 
-                _settings.GiantBombApiKey, 
-                _settings.YoutubeApiKey, 
-                _settings.GiantBombLiveStreamRefreshRate, 
-                _settings.GiantBombVideoRefreshRate, 
+            _kiteChat = new KiteChat(Client,
+                _settings.MarkovChainStart,
+                _settings.GiantBombApiKey,
+                _settings.YoutubeApiKey,
+                _settings.GiantBombLiveStreamRefreshRate,
+                _settings.GiantBombVideoRefreshRate,
                 _settings.MarkovChainDepth);
 
             Client.Log += LogDiscordMessage;
@@ -91,41 +90,45 @@ namespace KiteBotCore
 
             Client.GuildMemberUpdated += async (before, after) =>
             {
-                var channel = (ITextChannel)Client.GetChannel(85842104034541568);
-                if (!before.Username.Equals(after.Username))
+                if (before.Guild.Id == 85814946004238336)
                 {
-                    await channel.SendMessageAsync($"{before.Username} changed his name to {after.Username}.");
-                    WhoIsService.AddWhoIs(before, after);
-                }
-                try
-                {
-                    if (before.Nickname != after.Nickname)
+                    var channel = (ITextChannel)Client.GetChannel(85842104034541568);
+                    if (!before.Username.Equals(after.Username))
                     {
-                        if (before.Nickname != null && after.Nickname != null)
+                        await channel.SendMessageAsync($"{before.Username} changed his name to {after.Username}.");
+                        WhoIsService.AddWhoIs(before, after);
+                    }
+                    try
+                    {
+                        if (before.Nickname != after.Nickname)
                         {
-                            await channel.SendMessageAsync($"{before.Nickname} changed his nickname to {after.Nickname}.");
-                            WhoIsService.AddWhoIs(before, after.Nickname);
-                        }
-                        else if (before.Nickname == null && after.Nickname != null)
-                        {
-                            await channel.SendMessageAsync($"{before.Username} set his nickname to {after.Nickname}.");
-                            WhoIsService.AddWhoIs(before, after.Nickname);
-                        }
-                        else
-                        {
-                            await channel.SendMessageAsync($"{before.Username} reset his nickname.");
+                            if (before.Nickname != null && after.Nickname != null)
+                            {
+                                await channel.SendMessageAsync(
+                                    $"{before.Nickname} changed his nickname to {after.Nickname}.");
+                                WhoIsService.AddWhoIs(before, after.Nickname);
+                            }
+                            else if (before.Nickname == null && after.Nickname != null)
+                            {
+                                await channel.SendMessageAsync($"{before.Username} set his nickname to {after.Nickname}.");
+                                WhoIsService.AddWhoIs(before, after.Nickname);
+                            }
+                            else
+                            {
+                                await channel.SendMessageAsync($"{before.Username} reset his nickname.");
+                            }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex + "\r\n" + ex.Message);
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex + "\r\n" + ex.Message);
+                    }
                 }
             };
 
             Console.WriteLine("LoginAsync");
-            await
-                Client.LoginAsync(TokenType.Bot, _settings.DiscordToken);
+            await Client.LoginAsync(TokenType.Bot, _settings.DiscordToken);
+            Console.WriteLine("ConnectAsync");
             await Client.ConnectAsync();
 
             var map = new DependencyMap();
@@ -135,8 +138,7 @@ namespace KiteBotCore
             map.Add(_kiteChat);
             map.Add(_handler);
 
-            
-            await _handler.InstallAsync( map, _settings.CommandPrefix);
+            await _handler.InstallAsync(map);
             await Task.Delay(-1);
         }
 
@@ -145,7 +147,7 @@ namespace KiteBotCore
             switch (msg.Severity)
             {
                 case LogSeverity.Critical:
-                    Log.Fatal("{Source} {Message} {Exception}",msg.Source, msg.Message, msg.Exception?.ToString());
+                    Log.Fatal("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString());
                     break;
                 case LogSeverity.Error:
                     Log.Error("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString());
@@ -159,11 +161,11 @@ namespace KiteBotCore
                 case LogSeverity.Verbose: //Verbose and Debug are switched between Serilog and Discord.Net
                     Log.Debug("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString());
                     break;
-                case LogSeverity.Debug: 
+                case LogSeverity.Debug:
                     Log.Verbose("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString());
-                    break;                
+                    break;
             }
             return Task.CompletedTask;
-        }        
+        }
     }
 }

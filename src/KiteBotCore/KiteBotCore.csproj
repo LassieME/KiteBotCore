@@ -5,8 +5,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Discord.Net" Version="1.0.0-rc-00588" />
-    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.20.0.701" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="2.1.0-beta1-61220-03" />
+    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.20.0.760" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="2.1.0-rc4-61402-01" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="1.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite.Design" Version="1.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="1.1.0-preview4-final" />

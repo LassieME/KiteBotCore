@@ -249,7 +249,7 @@ namespace KiteBotCore.Json.GiantBomb.Search
             embedBuilder.WithTitle(Name)
                 .WithUrl(SiteDetailUrl)
                 .WithDescription(Deck ?? "No Deck on Giant Bomb.")
-                .WithImageUrl(Image?.SmallUrl)                
+                .WithImageUrl(Image?.MediumUrl ?? Image?.SmallUrl ?? Image?.ThumbUrl ?? Image?.SuperUrl)                
                 .WithFooter(x => x.Text = "Giant Bomb")
                 .WithColor(new Color(0x00CC00))
                 .WithCurrentTimestamp();
@@ -262,7 +262,7 @@ namespace KiteBotCore.Json.GiantBomb.Search
                     x.IsInline = true;
                 });
 
-            if (Platforms.Any())
+            if (Platforms != null && Platforms.Any())
                 embedBuilder.AddField(x =>
                 {
                     x.Name = "Platforms";

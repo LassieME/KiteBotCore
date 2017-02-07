@@ -29,8 +29,8 @@ namespace KiteBotCore
         private static SemaphoreSlim _semaphore;
 
         public static string RootDirectory = Directory.GetCurrentDirectory();
-        public static string JsonLastMessageLocation => RootDirectory + "/Content/LastMessage.json";
-        public static string JsonMessageFileLocation => RootDirectory + "/Content/messages.zip";
+        private static string JsonLastMessageLocation => RootDirectory + "/Content/LastMessage.json";
+        private static string JsonMessageFileLocation => RootDirectory + "/Content/messages.zip";
 
         public MultiTextMarkovChainHelper(int depth) : this(Program.Client, depth)
         {
@@ -128,7 +128,7 @@ namespace KiteBotCore
             return _isInitialized;
         }
 
-        public void Feed(IMessage message)
+        internal void Feed(IMessage message)
         {
             FeedMarkovChain(message);
         }
@@ -213,7 +213,7 @@ namespace KiteBotCore
             return enumerable;
         }
 
-        public async Task SaveAsync()
+        internal async Task SaveAsync()
         {
             Console.WriteLine("SaveAsync");
             if (_isInitialized)
@@ -275,9 +275,15 @@ namespace KiteBotCore
             }
         }
 
-        public ImmutableList<MarkovMessage> GetFullDatabase()
+        internal ImmutableList<MarkovMessage> GetFullDatabase()
         {
             return _db.Messages.ToImmutableList();
+        }
+
+        internal async Task RemoteItemAsync(MarkovMessage mm)
+        {
+            _db.Remove(mm);
+            await _db.SaveChangesAsync();
         }
     }
 }

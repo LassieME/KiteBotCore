@@ -18,7 +18,7 @@ namespace KiteBotCore.Modules
 
         public static DiscordSocketClient Client = Program.Client;
 
-        [Command("subscribe")]
+        [Command("subscribe"), Alias("sub")]
         [Summary("Subscribes to livestream DMs")]
         public async Task SubscribeCommands()
         {
@@ -32,7 +32,7 @@ namespace KiteBotCore.Modules
                 await ReplyAsync("You are now subscribed, to unsubscribe use \"~unsubscribe\". You have to stay in the server to continue to get messages.");
             }
         }
-        [Command("unsubscribe")]
+        [Command("unsubscribe"), Alias("unsub")]
         [Summary("Unsubscribes to livestream DMs")]
         public async Task UnsubscribeCommands()
         {

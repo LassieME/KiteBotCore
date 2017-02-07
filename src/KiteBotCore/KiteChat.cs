@@ -3,8 +3,6 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
@@ -21,7 +19,6 @@ namespace KiteBotCore
 		public static bool StartMarkovChain;
 
         private static string[] _greetings;
-        private static string[] _bekGreetings;
 
         public static LivestreamChecker StreamChecker;
         public static GiantBombVideoChecker GbVideoChecker;
@@ -31,11 +28,11 @@ namespace KiteBotCore
         public static string ChatDirectory = Directory.GetCurrentDirectory();
         public static string GreetingFileLocation = ChatDirectory + "/Content/Greetings.txt";
 
-        private readonly string GBAPI;
+        private readonly string _gbapi;
 
         public KiteChat(DiscordSocketClient client, bool markovbool, string gBapi, string ytApi, int streamRefresh, int videoRefresh, int depth)
         {
-            GBAPI = gBapi;
+            _gbapi = gBapi;
             StartMarkovChain = markovbool;
             _greetings = File.ReadAllLines(GreetingFileLocation);
             RandomSeed = new Random();
@@ -49,13 +46,10 @@ namespace KiteBotCore
 
         public async Task<bool> InitializeMarkovChainAsync()
         {
-            var videoTask = Video.InitializeTask(GBAPI).ConfigureAwait(false); //Could be a longrunning Task
-            
-            var bekTask = LoadBekGreetingsAsync().ConfigureAwait(false);
+            var videoTask = Video.InitializeTask(_gbapi).ConfigureAwait(false); //Could be a longrunning Task,
             
             if (StartMarkovChain) await MultiDeepMarkovChains.InitializeAsync().ConfigureAwait(false); //This usually is a long running task, unless they bot has just recently been off
 
-            await bekTask;
             await videoTask;
             
             return true;
@@ -103,31 +97,23 @@ namespace KiteBotCore
             }
         }
 
-        public static string GetResponseUriFromRandomQlCrew()
+        public static async Task<string> GetResponseUriFromRandomQlCrew()
 		{
             string url = "http://qlcrew.com/main.php?anyone=anyone&inc%5B0%5D=&p=999&exc%5B0%5D=&per_page=15&random";
-
-            /*WebClient client = new WebClient();
-            client.Headers.Add("user-agent", "LassieMEKiteBotCore/0.9 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
-		    client..OpenRead(url);*/
 
 		    HttpWebRequest request = WebRequest.Create(url) as HttpWebRequest;
             if (request != null)
             {
-                HttpWebResponse response = (HttpWebResponse)request.GetResponseAsync().GetAwaiter().GetResult();
-                return response.ResponseUri.AbsoluteUri;
+                HttpWebResponse response = await request.GetResponseAsync() as HttpWebResponse;
+                return response?.ResponseUri.AbsoluteUri;
             }
-            return "Couldn't load qlcrew's Random Link.";
+            return "Couldn't load QLcrew's Random Link.";
 		}
         
         //returns a greeting from the greetings.txt list on a per user or generic basis
 	    private string ParseGreeting(string userName)
         {
-		    if (userName.Equals("Bekenel") || userName.Equals("Pete"))
-		    {
-			    return (_bekGreetings[RandomSeed.Next(0, _bekGreetings.Length)]);
-		    }
-	        List<string> possibleResponses = new List<string>();
+		    List<string> possibleResponses = new List<string>();
 
 	        for (int i = 0; i < _greetings.Length - 2; i += 2)
 	        {
@@ -153,39 +139,39 @@ namespace KiteBotCore
         }
 
         //grabs random greetings for user bekenel from a reddit profile
-		private async Task<bool> LoadBekGreetingsAsync()
-		{
-			const string url = "https://www.reddit.com/user/UWotM8_SS";
-			string htmlCode = null;
-		    try
-		    {
-		        using (HttpClient client = new HttpClient())
-		        {
-		            htmlCode = await client.GetStringAsync(url);
-		        }
-		    }
-		    catch (Exception e)
-		    {
-		        Console.WriteLine("Could not load Bek greetings, server not found: " + e.Message);
-		    }
-		    finally
-		    {
-		        var regex1 = new Regex(@"<div class=""md""><p>(?<quote>.+)</p>");
-		        if (htmlCode != null)
-		        {
-		            var matches = regex1.Matches(htmlCode);
-		            var stringArray = new string[matches.Count];
-		            var i = 0;
-		            foreach (Match match in matches)
-		            {
-		                var s = match.Groups["quote"].Value.Replace("&#39;", "'").Replace("&quot;", "\"");
-		                stringArray[i] = s;
-		                i++;
-		            }
-		            _bekGreetings = stringArray;
-                }
-		    }
-            return true;
-        }
+		//private async Task<bool> LoadBekGreetingsAsync()
+		//{
+		//	const string url = "https://www.reddit.com/user/UWotM8_SS";
+		//	string htmlCode = null;
+		//    try
+		//    {
+		//        using (HttpClient client = new HttpClient())
+		//        {
+		//            htmlCode = await client.GetStringAsync(url);
+		//        }
+		//    }
+		//    catch (Exception e)
+		//    {
+		//        Console.WriteLine("Could not load Bek greetings, server not found: " + e.Message);
+		//    }
+		//    finally
+		//    {
+		//        var regex1 = new Regex(@"<div class=""md""><p>(?<quote>.+)</p>");
+		//        if (htmlCode != null)
+		//        {
+		//            var matches = regex1.Matches(htmlCode);
+		//            var stringArray = new string[matches.Count];
+		//            var i = 0;
+		//            foreach (Match match in matches)
+		//            {
+		//                var s = match.Groups["quote"].Value.Replace("&#39;", "'").Replace("&quot;", "\"");
+		//                stringArray[i] = s;
+		//                i++;
+		//            }
+		//            _bekGreetings = stringArray;
+        //        }
+		//    }
+        //    return true;
+        //}
     }
 }

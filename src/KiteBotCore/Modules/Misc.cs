@@ -28,7 +28,7 @@ namespace KiteBotCore.Modules
         [Summary("Posts a random quick look.")]
         public async Task Command()
         {
-            await ReplyAsync(KiteChat.GetResponseUriFromRandomQlCrew());
+            await ReplyAsync(await KiteChat.GetResponseUriFromRandomQlCrew());
         }
     }
 }

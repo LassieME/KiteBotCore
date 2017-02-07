@@ -16,17 +16,17 @@ namespace KiteBotCore
         private char _prefix;
         private ulong _ownerId;
 
-        public async Task InstallAsync(IDependencyMap map, char prefix)
+        public async Task InstallAsync(IDependencyMap map)
         {
-            _prefix = prefix;
-            // Create Command Service, inject it into Dependency Map
-            _client = map.Get<DiscordSocketClient>();
+            _map = map;
             _commands = new CommandService();
             map.Add(_commands);
-            _map = map;
+            _client = map.Get<DiscordSocketClient>();
+           
             if (map.TryGet(out BotSettings botSettings))
             {
                 _ownerId = botSettings.OwnerId;
+                _prefix = botSettings.CommandPrefix;
             }
 
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly());
@@ -39,6 +39,7 @@ namespace KiteBotCore
             // Don't handle the command if it is a system message
             var message = parameterMessage as SocketUserMessage;
             if (message == null) return;
+            if (message.Author.IsBot) return;
 
             // Mark where the prefix ends and the command begins
             int argPos = 0;

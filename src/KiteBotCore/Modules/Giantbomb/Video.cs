@@ -116,7 +116,7 @@ namespace KiteBotCore.Modules.Giantbomb
             {
                 if (++retry < 3)
                 {
-                    await Task.Delay(10000);
+                    await Task.Delay(5000);
                     await rateLimitTask;
                     return await GetVideosEndpoint(offset, retry);
                 }

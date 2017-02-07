@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Discord.Commands;
 using KiteBotCore.Json;
@@ -9,6 +10,7 @@ using KiteBotCore.Json.GiantBomb.Search;
 using KiteBotCore.Utils.FuzzyString;
 using Newtonsoft.Json;
 using Discord;
+using Serilog;
 
 namespace KiteBotCore.Modules
 {
@@ -32,51 +34,60 @@ namespace KiteBotCore.Modules
         [Summary("Finds a game in the Giantbomb games database")]
         public async Task GameCommand([Remainder] string gameTitle)
         {
-            if (!string.IsNullOrWhiteSpace(gameTitle))
+            try
             {
-                var search = await GetGamesEndpoint(gameTitle, 0);
-
-                if (search.Results.Length == 1)
+                if (!string.IsNullOrWhiteSpace(gameTitle))
                 {
-                    await ReplyAsync("", embed: search.Results.FirstOrDefault().ToEmbed());
-                }
-                else if (search.Results.Length > 1)
-                {
-                    var dict = new Dictionary<string, Tuple<string, EmbedBuilder>>();
+                    var search = await GetGamesEndpoint(gameTitle, 0);
 
-                    int i = 1;
-                    string reply = "Which of these games did you mean?" + Environment.NewLine;
-                    foreach (var result in search.Results.OrderBy(x => x.Name.LevenshteinDistance(gameTitle)))
+                    if (search.Results.Length == 1)
                     {
-                        if (result.Name != null)
-                        {
-                            dict.Add(i.ToString(), Tuple.Create("", result.ToEmbed()));
-                            reply += $"{i++}. {result.Name} {Environment.NewLine}";
-                        }
-                        else
-                        {
-                            break;
-                        }
+                        await ReplyAsync("", embed: search.Results.FirstOrDefault().ToEmbed());
                     }
-                    var messageToEdit =
-                        await ReplyAsync(reply +
-                                         "Just type the number you want, this command will self-destruct in 2 minutes if no action is taken.");
-                    FollowUpService.AddNewFollowUp(new FollowUp(_map, dict, Context.User.Id, Context.Channel.Id,
-                        messageToEdit));
+                    else if (search.Results.Length > 1)
+                    {
+                        var dict = new Dictionary<string, Tuple<string, EmbedBuilder>>();
+
+                        int i = 1;
+                        string reply = "Which of these games did you mean?" + Environment.NewLine;
+                        foreach (var result in search.Results.OrderBy(x => x.Name.LevenshteinDistance(gameTitle)))
+                        {
+                            if (result.Name != null)
+                            {
+                                dict.Add(i.ToString(), Tuple.Create("", result.ToEmbed()));
+                                reply += $"{i++}. {result.Name} {Environment.NewLine}";
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                        var messageToEdit =
+                            await ReplyAsync(reply +
+                                             "Just type the number you want, this command will self-destruct in 2 minutes if no action is taken.");
+                        FollowUpService.AddNewFollowUp(new FollowUp(_map, dict, Context.User.Id, Context.Channel.Id,
+                            messageToEdit));
+                    }
+                    else
+                    {
+                        await ReplyAsync("Giantbomb doesn\'t have any games that match that name.");
+                    }
                 }
                 else
                 {
-                    await ReplyAsync("Giantbomb doesn\'t have any games that match that name.");
+                    await ReplyAsync("Empty game name given, please specify a game title");
                 }
             }
-            else
+            catch (Exception ex)
             {
-                await ReplyAsync("Empty game name given, please specify a game title");
+                Log.Information(ex + ex.Message);
             }
         }
 
         private async Task<Search> GetGamesEndpoint(string gameTitle, int retry)
         {
+            await RateLimit.WaitAsync();
+            var rateLimitTask = StartRatelimit();
             try
             {
                 using (var client = new HttpClient())
@@ -89,11 +100,19 @@ namespace KiteBotCore.Modules
             {
                 if (++retry < 3)
                 {
-                    await Task.Delay(10000);
+                    await Task.Delay(5000);
+                    await rateLimitTask;
                     return await GetGamesEndpoint(gameTitle, retry);
                 }
                 throw new TimeoutException();
             }
+        }
+
+        private static readonly SemaphoreSlim RateLimit = new SemaphoreSlim(1, 1);
+        private static async Task StartRatelimit()
+        {
+            await Task.Delay(1000);
+            RateLimit.Release();
         }
     }
 }
