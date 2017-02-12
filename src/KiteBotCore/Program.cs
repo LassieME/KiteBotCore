@@ -9,6 +9,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using KiteBotCore.Json;
 using KiteBotCore.Modules;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -21,6 +22,7 @@ namespace KiteBotCore
         private static KiteChat _kiteChat;
         private static BotSettings _settings;
         private static CommandHandler _handler;
+        private static DiscordContextFactory _dbFactory;
         private static string SettingsPath => Directory.GetCurrentDirectory() + "/Content/settings.json";
         private static bool _silentStartup;
 
@@ -60,14 +62,16 @@ namespace KiteBotCore
                     DiscordToken = "Token",
                     GiantBombApiKey = "GbAPIKey",
                     YoutubeApiKey = "",
+                    DatabaseConnectionString = "",
                     OwnerId = 0,
                     MarkovChainStart = false,
                     MarkovChainDepth = 2,
                     GiantBombLiveStreamRefreshRate = 60000,
                     GiantBombVideoRefreshRate = 60000
                 };
+            _dbFactory = new DiscordContextFactory();
 
-            _kiteChat = new KiteChat(Client,
+            _kiteChat = new KiteChat(Client, _dbFactory,
                 _settings.MarkovChainStart,
                 _settings.GiantBombApiKey,
                 _settings.YoutubeApiKey,
@@ -87,11 +91,14 @@ namespace KiteBotCore
 
             Client.GuildAvailable += async server =>
             {
-                if (Client.Guilds.Any())
-                {
-                    var markovChainDone = await _kiteChat.InitializeMarkovChainAsync().ConfigureAwait(false);
-                    Log.Information("Ready {Done}", markovChainDone);
-                }
+                var sw = new Stopwatch();
+                sw.Start();
+                await _dbFactory.SyncGuild(server);
+                sw.Stop();
+                Log.Information("{sw} ms",sw.ElapsedMilliseconds);
+                await _kiteChat.InitializeMarkovChainAsync().ConfigureAwait(false);
+
+                Log.Information("Ready: {Done}", server.Name);
             };
 
             Client.JoinedGuild += server =>

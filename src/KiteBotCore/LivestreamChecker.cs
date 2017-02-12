@@ -24,8 +24,9 @@ namespace KiteBotCore
 
         private static readonly DiscordSocketClient Client = Program.Client;
         private static string IgnoreFilePath => Directory.GetCurrentDirectory() + "/Content/ignoredChannels.json";
-        private static readonly List<string> IgnoreList = File.Exists(IgnoreFilePath) ? JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(IgnoreFilePath))
-                : new List<string>();
+        private static readonly List<string> IgnoreList = File.Exists(IgnoreFilePath) ? 
+            JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(IgnoreFilePath))
+            : new List<string>();
 
         public LivestreamChecker(string gBapi, int streamRefresh, bool silentStartup)
         {

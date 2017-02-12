@@ -30,7 +30,7 @@ namespace KiteBotCore
 
         private readonly string _gbapi;
 
-        public KiteChat(DiscordSocketClient client, bool markovbool, string gBapi, string ytApi, int streamRefresh, bool silentStarup, int videoRefresh, int depth)
+        public KiteChat(DiscordSocketClient client, DiscordContextFactory db, bool markovbool, string gBapi, string ytApi, int streamRefresh, bool silentStartup, int videoRefresh, int depth)
         {
             _gbapi = gBapi;
             StartMarkovChain = markovbool;
@@ -39,9 +39,9 @@ namespace KiteBotCore
             YoutubeModuleService.Init(ytApi, client);
             ReminderService.Init();
 
-            if (streamRefresh > 3000) StreamChecker = new LivestreamChecker(gBapi, streamRefresh, silentStarup);
+            if (streamRefresh > 3000) StreamChecker = new LivestreamChecker(gBapi, streamRefresh, silentStartup);
             if (videoRefresh > 3000) GbVideoChecker = new GiantBombVideoChecker(gBapi, videoRefresh);
-            if (StartMarkovChain && depth > 0)MultiDeepMarkovChains = new MultiTextMarkovChainHelper(depth);
+            if (StartMarkovChain && depth > 0)MultiDeepMarkovChains = new MultiTextMarkovChainHelper(client, db, depth);
         }
 
         public async Task<bool> InitializeMarkovChainAsync()
@@ -63,7 +63,7 @@ namespace KiteBotCore
             }
             if (msg.Author.Id != client.CurrentUser.Id)
             {
-                if(StartMarkovChain)MultiDeepMarkovChains.Feed(msg);
+                if(StartMarkovChain) await MultiDeepMarkovChains.Feed(msg);
 
                 if (msg.Content.Contains("Mistake") && msg.Channel.Id == 96786127238725632)
                 {
