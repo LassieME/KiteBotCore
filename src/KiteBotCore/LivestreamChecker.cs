@@ -27,12 +27,13 @@ namespace KiteBotCore
         private static readonly List<string> IgnoreList = File.Exists(IgnoreFilePath) ? JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(IgnoreFilePath))
                 : new List<string>();
 
-        public LivestreamChecker(string gBapi, int streamRefresh)
+        public LivestreamChecker(string gBapi, int streamRefresh, bool silentStartup)
         {
             if (gBapi.Length > 0)
             {
                 ApiCallUrl = $"http://www.giantbomb.com/api/chats/?api_key={gBapi}&format=json";
                 RefreshRate = streamRefresh;
+                _wasStreamRunning = silentStartup;
                 _chatTimer = new Timer(RefreshChatsApi, null, 60000, RefreshRate);
             }
         }
@@ -153,7 +154,7 @@ namespace KiteBotCore
                     if (postMessage)
                         await channel.SendMessageAsync(
                             "Show is over folks, if you need more Giant Bomb videos, check this out: " +
-                            KiteChat.GetResponseUriFromRandomQlCrew());
+                            await KiteChat.GetResponseUriFromRandomQlCrew());
 
                 }
                 else
@@ -164,7 +165,7 @@ namespace KiteBotCore
                     if (postMessage)
                         await channel.SendMessageAsync(
                             "Show is over folks, if you need more Giant Bomb videos, check this out: " +
-                            KiteChat.GetResponseUriFromRandomQlCrew());
+                            await KiteChat.GetResponseUriFromRandomQlCrew());
                 }
             }
         }

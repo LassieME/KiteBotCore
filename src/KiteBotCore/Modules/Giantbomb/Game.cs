@@ -25,11 +25,10 @@ namespace KiteBotCore.Modules
             
             if (_map.TryGet(out BotSettings botSettings))
             {
-                _apiCallUrl = $"http://www.giantbomb.com/api/search/?api_key={botSettings.GiantBombApiKey}&resources=game&field_list=deck,image,name,original_release_date,platforms,site_detail_url&format=json&query=";
+                _apiCallUrl = $"http://www.giantbomb.com/api/search/?api_key={botSettings.GiantBombApiKey}&resources=game&field_list=deck,image,name,original_release_date,platforms,site_detail_url,expected_release_day,expected_release_month,expected_release_quarter,expected_release_year&format=json&query=";
             }
         }
 
-        //TODO: Add proper ratelimiting to this command
         [Command("game", RunMode = RunMode.Mixed)]
         [Summary("Finds a game in the Giantbomb games database")]
         public async Task GameCommand([Remainder] string gameTitle)

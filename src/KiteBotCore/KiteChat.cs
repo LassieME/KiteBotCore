@@ -30,7 +30,7 @@ namespace KiteBotCore
 
         private readonly string _gbapi;
 
-        public KiteChat(DiscordSocketClient client, bool markovbool, string gBapi, string ytApi, int streamRefresh, int videoRefresh, int depth)
+        public KiteChat(DiscordSocketClient client, bool markovbool, string gBapi, string ytApi, int streamRefresh, bool silentStarup, int videoRefresh, int depth)
         {
             _gbapi = gBapi;
             StartMarkovChain = markovbool;
@@ -39,7 +39,7 @@ namespace KiteBotCore
             YoutubeModuleService.Init(ytApi, client);
             ReminderService.Init();
 
-            if (streamRefresh > 3000) StreamChecker = new LivestreamChecker(gBapi, streamRefresh);
+            if (streamRefresh > 3000) StreamChecker = new LivestreamChecker(gBapi, streamRefresh, silentStarup);
             if (videoRefresh > 3000) GbVideoChecker = new GiantBombVideoChecker(gBapi, videoRefresh);
             if (StartMarkovChain && depth > 0)MultiDeepMarkovChains = new MultiTextMarkovChainHelper(depth);
         }

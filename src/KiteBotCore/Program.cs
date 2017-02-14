@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -21,6 +22,7 @@ namespace KiteBotCore
         private static BotSettings _settings;
         private static CommandHandler _handler;
         private static string SettingsPath => Directory.GetCurrentDirectory() + "/Content/settings.json";
+        private static bool _silentStartup;
 
         // ReSharper disable once UnusedMember.Local
         private static void Main(string[] args) => MainAsync(args).GetAwaiter().GetResult();
@@ -31,6 +33,15 @@ namespace KiteBotCore
                 .WriteTo.LiterateConsole()
                 .MinimumLevel.Debug()
                 .CreateLogger();
+
+            if (args.Length != 0 && (args[0].Contains("--silent") || args[0].Contains("-s")))
+            {
+                _silentStartup = true;
+            }
+            else
+            {
+                Log.Warning("Are you sure you shouldn't be using the --silent argument?");
+            }
 
             Client = new DiscordSocketClient(new DiscordSocketConfig
             {
@@ -61,6 +72,7 @@ namespace KiteBotCore
                 _settings.GiantBombApiKey,
                 _settings.YoutubeApiKey,
                 _settings.GiantBombLiveStreamRefreshRate,
+                _silentStartup,
                 _settings.GiantBombVideoRefreshRate,
                 _settings.MarkovChainDepth);
 
