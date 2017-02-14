@@ -29,10 +29,16 @@ namespace KiteBotCore
             var downloadUserTask = socketGuild.DownloadUsersAsync();
             using (var dbContext = dbFactory.Create(new DbContextFactoryOptions()))
             {
-                long id;
-                unchecked { id = (long) socketGuild.Id; }
-                
-                Guild guild = await dbContext.FindAsync<Guild>(id);
+                //long id;
+                //unchecked { id = (long) socketGuild.Id; }
+                //Guild guild = await dbContext.FindAsync<Guild>(id);
+
+                List<Guild> guilds = await dbContext.Guilds
+                    .Include(g => g.Channels)
+                    .Include(g => g.Users)
+                    .ToListAsync();
+
+                Guild guild = guilds.FirstOrDefault(x => x.Id == socketGuild.Id);
 
                 if (guild == null)
                     //If guild does not exist, we create a new one and populate it with Users and Channels
@@ -178,22 +184,9 @@ namespace KiteBotCore
         }
         public string Name { get; set; }
 
-        [NotMapped]
-        public List<Channel> Channels { get; set; }
-        public Channel[] ChannelsArray
-        {
-            get { return Channels.ToArray(); }
-            set { Channels = new List<Channel>(value); }
-        }
-
-        [NotMapped]
-        public List<User> Users { get; set; }
-        public User[] UsersArray
-        {
-            get { return Users.ToArray(); }
-            set { Users = new List<User>(value); }
-        }
-    }
+        public virtual List<Channel> Channels { get; set; }
+        
+        public virtual List<User> Users { get; set; }}
 
     public class User
     {
@@ -214,15 +207,9 @@ namespace KiteBotCore
         public DateTimeOffset? JoinedAt { get; set; }
 
         [ForeignKey("GuildForeignKey")]
-        public Guild Guild { get; set; }
+        public virtual Guild Guild { get; set; }
 
-        [NotMapped]
-        public List<Message> Messages { get; set; }
-        public Message[] MessagesArray
-        {
-            get { return Messages.ToArray(); }
-            set { Messages = new List<Message>(value); }
-        }
+        public virtual List<Message> Messages { get; set; }
     }
 
     public class Channel
@@ -239,15 +226,9 @@ namespace KiteBotCore
         public string Name { get; set; }
 
         [ForeignKey("GuildForeignKey")]
-        public Guild Guild { get; set; }
+        public virtual Guild Guild { get; set; }
 
-        [NotMapped]
-        public List<Message> Messages { get; set; }
-        public Message[] MessagesArray
-        {
-            get { return Messages.ToArray(); }
-            set { Messages = new List<Message>(value); }
-        }
+        public virtual List<Message> Messages { get; set; }
     }
 
     public class Message
@@ -264,9 +245,9 @@ namespace KiteBotCore
         public string Content { get; set; }
 
         [ForeignKey("UserForeignKey")]
-        public User User { get; set; }
+        public virtual User User { get; set; }
 
         [ForeignKey("ChannelForeignKey")]
-        public Channel Channel { get; set; }
+        public virtual Channel Channel { get; set; }
     }
 }
