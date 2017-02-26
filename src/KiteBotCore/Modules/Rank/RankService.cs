@@ -17,6 +17,7 @@ namespace KiteBotCore.Modules.Rank
         {
             _discordFactory = discordContextFactory;
             client.UserJoined += AddUser;
+            client.MessageReceived += UpdateLastActivity;
 
         }
 
@@ -24,14 +25,11 @@ namespace KiteBotCore.Modules.Rank
         {
             using (DiscordContext db = _discordFactory.Create(new DbContextFactoryOptions()))
             {
-                unchecked
-                {
-                    long key = (long) inputUser.Id;
-                    User user = await db.FindAsync<User>(key);
+                User user = await db.FindAsync<User>(inputUser.Id.ConvertToUncheckedLong());
 
-                    Debug.Assert(user != null);
-                    return user.JoinedAt.Value;                    
-                }                
+                Debug.Assert(user != null);
+                return user.JoinedAt.Value;
+
             }
         }
 
@@ -39,34 +37,29 @@ namespace KiteBotCore.Modules.Rank
         {
             using (DiscordContext db = _discordFactory.Create(new DbContextFactoryOptions()))
             {
-                unchecked
+                Guild guild = await db.FindAsync<Guild>(userInput.Guild.Id.ConvertToUncheckedLong());
+                User user = await db.FindAsync<User>(userInput.Id.ConvertToUncheckedLong());
+
+                if (user == null)
                 {
-                    long guildKey = (long)userInput.Guild.Id;
-                    Guild guild = await db.FindAsync<Guild>(guildKey);
-
-                    long userKey = (long)userInput.Id;
-                    User user = await db.FindAsync<User>(userKey);
-
-                    if (user == null)
+                    user = new User()
                     {
-                        user = new User()
-                        {
-                            Name = userInput.Username,
-                            Guild = guild,
-                            Id = userInput.Id,
-                            JoinedAt = userInput.JoinedAt,
-                            LastActivityAt = DateTimeOffset.UtcNow,
-                            Messages = new List<Message>()
-                        };
-                        guild.Users.Add(user);
-                    }
-                    else
-                    {
-                        user.LastActivityAt = DateTimeOffset.UtcNow;
-                    }
-                    await db.SaveChangesAsync();
-                    await UpdateUserRoles(userInput);
+                        Name = userInput.Username,
+                        Guild = guild,
+                        Id = userInput.Id,
+                        JoinedAt = userInput.JoinedAt,
+                        LastActivityAt = DateTimeOffset.UtcNow,
+                        Messages = new List<Message>()
+                    };
+                    guild.Users.Add(user);
                 }
+                else
+                {
+                    user.LastActivityAt = DateTimeOffset.UtcNow;
+                }
+                await db.SaveChangesAsync();
+                await UpdateUserRoles(userInput);
+
             }
         }
 
@@ -74,5 +67,26 @@ namespace KiteBotCore.Modules.Rank
         {
 
         }
+
+        internal async Task UpdateLastActivity(SocketMessage message)
+        {
+            SocketGuildChannel messageChannel = (message.Channel as SocketGuildChannel);
+            if (messageChannel != null)
+            {
+                using (DiscordContext db = _discordFactory.Create(new DbContextFactoryOptions()))
+                {
+                    await db.FindAsync<User>(message.Author.Id.ConvertToUncheckedLong());
+                }
+            }
+        }
+    }
+
+    public static class IdHelper
+    {
+        public static long ConvertToUncheckedLong(this ulong u)
+        {
+            unchecked { return (long)u; }
+        }
     }
 }
+
