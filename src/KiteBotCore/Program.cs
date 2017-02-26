@@ -156,6 +156,7 @@ namespace KiteBotCore
             map.Add(_settings);
             map.Add(_kiteChat);
             map.Add(_handler);
+            map.Add(_dbFactory);
 
             await _handler.InstallAsync(map);
             await Task.Delay(-1);
