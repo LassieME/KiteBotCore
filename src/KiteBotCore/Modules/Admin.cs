@@ -37,6 +37,7 @@ namespace KiteBotCore.Modules
                 .FirstOrDefault(x => x.Name == guildName)
                 .GetTextChannelsAsync())
                 .FirstOrDefault(x => x.Name == channelName);
+
             if (channelToArchive != null)
             {
                 var listOfMessages = new List<IMessage>(await channelToArchive.GetMessagesAsync(amount).Flatten());

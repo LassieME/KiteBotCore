@@ -4,16 +4,16 @@
     <TargetFramework>netcoreapp1.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Discord.Net" Version="1.0.0-rc-00595" />
+    <PackageReference Include="Discord.Net" Version="1.0.0-rc-00614" />
     <PackageReference Include="Google.Apis.YouTube.v3" Version="1.21.0.760" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="2.1.0-rc4-61402-01" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="1.1.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite.Design" Version="1.1.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="1.1.0-preview4-final" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="2.3.0-beta1-61506-01" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="1.1.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite.Design" Version="1.1.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="1.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools.DotNet" Version="1.1.0-preview4-final" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.Design" Version="1.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
-    <PackageReference Include="Serilog.Sinks.Literate" Version="2.0.0" />
+    <PackageReference Include="Serilog.Sinks.Literate" Version="2.1.0" />
     <PackageReference Include="System.Dynamic.Runtime" Version="4.4.0-beta-24913-02" />
     <PackageReference Include="System.Net.WebSockets" Version="4.4.0-beta-24913-02" />
     <PackageReference Include="System.Runtime.Loader" Version="4.4.0-beta-24913-02" />

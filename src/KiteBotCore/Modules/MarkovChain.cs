@@ -5,6 +5,7 @@ using Discord.Commands;
 using System.Linq;
 using KiteBotCore.Json;
 using Discord;
+using Discord.WebSocket;
 
 namespace KiteBotCore.Modules
 {
@@ -35,7 +36,7 @@ namespace KiteBotCore.Modules
         {
             var messages = Context.Channel.GetMessagesAsync(amount);
             int i = 0;
-            ImmutableList<Message> list = KiteChat.MultiDeepMarkovChains.GetFullDatabase();
+            List<Message> list = await KiteChat.MultiDeepMarkovChains.GetFullDatabase();
             await messages.ForEachAsync( collection =>
             {
                 i++;
@@ -51,12 +52,12 @@ namespace KiteBotCore.Modules
             await ReplyAsync($"{i*100} messages downloaded.");
         }
 
-        [Command("remove", RunMode = RunMode.Async)]
+        [Command("remove", RunMode = RunMode.Mixed)]
         [Summary("Downloads and feeds the markovchain")]
         [RequireOwner, RequireServer(Server.KiteCo)]
         public async Task RemoveCommand(ulong messageId)
         {
-            ImmutableList<Message> list = KiteChat.MultiDeepMarkovChains.GetFullDatabase();
+            List<Message> list = await KiteChat.MultiDeepMarkovChains.GetFullDatabase();
 
             foreach (var item in list.Where(x => x.Id == messageId))
                 await KiteChat.MultiDeepMarkovChains.RemoteItemAsync(item);

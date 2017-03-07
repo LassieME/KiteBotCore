@@ -125,8 +125,8 @@ namespace KiteBotCore.Json
         [JsonProperty("classification")]
         public string Classification { get; set; }
 
-        [JsonProperty("airing_stats")]
-        public object[] AiringStats { get; set; }
+        //[JsonProperty("airing_stats")]
+        //public object[] AiringStats { get; set; }
 
         public override string ToString() =>
         "`Title:` **" + TitleEnglish +

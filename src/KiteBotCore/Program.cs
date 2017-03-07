@@ -148,7 +148,7 @@ namespace KiteBotCore
             Console.WriteLine("LoginAsync");
             await Client.LoginAsync(TokenType.Bot, _settings.DiscordToken);
             Console.WriteLine("ConnectAsync");
-            await Client.ConnectAsync();
+            await Client.StartAsync();
 
             var map = new DependencyMap();
             _handler = new CommandHandler();
@@ -157,6 +157,7 @@ namespace KiteBotCore
             map.Add(_kiteChat);
             map.Add(_handler);
             map.Add(_dbFactory);
+            map.Add(new AnimeManga.SearchHelper(_settings.AnilistId, _settings.AnilistSecret));
 
             await _handler.InstallAsync(map);
             await Task.Delay(-1);

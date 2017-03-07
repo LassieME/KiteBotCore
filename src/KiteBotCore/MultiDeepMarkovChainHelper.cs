@@ -144,7 +144,7 @@ namespace KiteBotCore
                 }
                 catch (NullReferenceException ex)
                 {
-                    Console.WriteLine("Nullref fun " + ex.Message);
+                    Log.Warning("Nullref fun {0}", ex.Message);
                     return GetSequence();
                 }
             }
@@ -285,9 +285,9 @@ namespace KiteBotCore
             }
         }
 
-        internal ImmutableList<Message> GetFullDatabase()
+        internal async Task<List<Message>> GetFullDatabase()
         {
-            return _db.Messages.ToImmutableList();
+            return await _db.Messages.ToListAsync();
         }
 
         internal async Task RemoteItemAsync(Message message)

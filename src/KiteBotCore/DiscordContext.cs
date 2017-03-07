@@ -22,6 +22,7 @@ namespace KiteBotCore
             return new DiscordContext(settings.DatabaseConnectionString);
         }
     }
+
     internal static class DiscordContextFactoryExtensions
     {
         internal static async Task SyncGuild(this DiscordContextFactory dbFactory, SocketGuild socketGuild)

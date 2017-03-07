@@ -30,7 +30,7 @@ namespace KiteBotCore
             }
 
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly());
-            
+
             _client.MessageReceived += HandleCommand;
         }
 

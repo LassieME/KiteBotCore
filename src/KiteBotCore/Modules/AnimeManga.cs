@@ -15,10 +15,12 @@ namespace KiteBotCore.Modules
     public class AnimeManga : ModuleBase
     {
         private readonly IDependencyMap _map;
+        private readonly SearchHelper _searchHelper;
 
-        public AnimeManga(IDependencyMap map)
+        public AnimeManga(IDependencyMap map, SearchHelper searchHelper)
         {
             _map = map;
+            _searchHelper = searchHelper;
         }
 
         [Command("anime")]
@@ -29,10 +31,10 @@ namespace KiteBotCore.Modules
             EmbedBuilder embed = null;
             try
             {
-                var animedata = await SearchHelper.GetAnimeData(animeTitle);
+                var animedata = await _searchHelper.GetAnimeData(animeTitle);
                 if (animedata.Count == 1)
                 {
-                    embed = (await SearchHelper.GetAnimeData(animeTitle))[0].ToEmbed();
+                    embed = (await _searchHelper.GetAnimeData(animeTitle))[0].ToEmbed();
                 }
                 else
                 {
@@ -79,10 +81,10 @@ namespace KiteBotCore.Modules
             EmbedBuilder embed = null;
             try
             {
-                var mangaData = await SearchHelper.GetMangaData(mangaTitle);
+                var mangaData = await _searchHelper.GetMangaData(mangaTitle);
                 if (mangaData.Count == 1)
                 {
-                    embed = (await SearchHelper.GetAnimeData(mangaTitle))[0].ToEmbed();
+                    embed = (await _searchHelper.GetAnimeData(mangaTitle))[0].ToEmbed();
                 }
                 else
                 {
@@ -128,14 +130,24 @@ namespace KiteBotCore.Modules
             await ReplyAsync(output, false, embed);
         }
 
-        public static class SearchHelper
+        public class SearchHelper
         {
-            private static DateTime _lastRefreshed = DateTime.MinValue;
-            private static string Token { get; set; } = "";
+            private DateTime _lastRefreshed = DateTime.MinValue;
+            private string Token { get; set; } = "";
 
-            public static async Task<Stream> GetResponseStreamAsync(string url,
-                IEnumerable<KeyValuePair<string, string>> headers = null,
-                RequestHttpMethod method = RequestHttpMethod.Get)
+            private readonly Dictionary<string, string> _headers;
+
+            internal SearchHelper(string clientId, string clientSecret)
+            {
+                _headers = new Dictionary<string, string>
+                {
+                    {"grant_type", "client_credentials"},
+                    {"client_id", clientId},
+                    {"client_secret", clientSecret}
+                };
+            }
+
+            internal async Task<Stream> GetResponseStreamAsync(string url, IEnumerable<KeyValuePair<string, string>> headers = null, RequestHttpMethod method = RequestHttpMethod.Get)
             {
                 if (string.IsNullOrWhiteSpace(url))
                     throw new ArgumentNullException(nameof(url));
@@ -164,7 +176,7 @@ namespace KiteBotCore.Modules
                 }
             }
 
-            public static async Task<string> GetResponseStringAsync(string url,
+            internal async Task<string> GetResponseStringAsync(string url,
                 IEnumerable<KeyValuePair<string, string>> headers = null,
                 RequestHttpMethod method = RequestHttpMethod.Get)
             {
@@ -175,7 +187,7 @@ namespace KiteBotCore.Modules
                 }
             }
 
-            internal static async Task<List<AnimeSearchResult>> GetAnimeData(string query)
+            internal async Task<List<AnimeSearchResult>> GetAnimeData(string query)
             {
                 if (string.IsNullOrWhiteSpace(query))
                     throw new ArgumentNullException(nameof(query));
@@ -184,7 +196,7 @@ namespace KiteBotCore.Modules
 
                 using (var cl = new HttpClient())
                 {
-                    var rq = "http://anilist.co/api/anime/search/" + Uri.EscapeUriString(query) + "?access_token=" +
+                    var rq = "https://anilist.co/api/anime/search/" + Uri.EscapeUriString(query) + "?access_token=" +
                              Token;
                     var smallContent = await cl.GetStringAsync(rq);
 
@@ -192,7 +204,7 @@ namespace KiteBotCore.Modules
                 }
             }
 
-            internal static async Task<List<MangaSearchResult>> GetMangaData(string query)
+            internal async Task<List<MangaSearchResult>> GetMangaData(string query)
             {
                 if (string.IsNullOrWhiteSpace(query))
                     throw new ArgumentNullException(nameof(query));
@@ -201,14 +213,14 @@ namespace KiteBotCore.Modules
 
                 using (var cl = new HttpClient())
                 {
-                    var rq = "http://anilist.co/api/manga/search/" + Uri.EscapeUriString(query) + "?access_token=" + Token;
+                    var rq = "https://anilist.co/api/manga/search/" + Uri.EscapeUriString(query) + "?access_token=" + Token;
                     var smallContent = await cl.GetStringAsync(rq);
 
                     return JsonConvert.DeserializeObject<List<MangaSearchResult>>(smallContent);
                 }
             }
 
-            private static async Task RefreshAnilistToken()
+            private async Task RefreshAnilistToken()
             {
                 if (DateTime.Now - _lastRefreshed > TimeSpan.FromMinutes(29))
                     _lastRefreshed = DateTime.Now;
@@ -216,21 +228,16 @@ namespace KiteBotCore.Modules
                 {
                     return;
                 }
-                var headers = new Dictionary<string, string>
-                {
-                    {"grant_type", "client_credentials"},
-                    {"client_id", "kwoth-w0ki9"},
-                    {"client_secret", "Qd6j4FIAi1ZK6Pc7N7V4Z"},
-                };
+                var headers = _headers;
                 var content =
                     await
-                        GetResponseStringAsync("http://anilist.co/api/auth/access_token", headers,
+                        GetResponseStringAsync("https://anilist.co/api/auth/access_token", headers,
                             RequestHttpMethod.Post);
 
                 Token = JObject.Parse(content)["access_token"].ToString();
             }
 
-            public enum RequestHttpMethod
+            internal enum RequestHttpMethod
             {
                 Get,
                 Post

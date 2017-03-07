@@ -2,6 +2,7 @@
 using System.IO;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Discord.Audio;
 using Discord.Commands;
 using Discord.WebSocket;
 
@@ -27,7 +28,7 @@ namespace KiteBotCore.Modules.Music
             try
             {
                 using (var audioClient = await channel.ConnectAsync())
-                using (var stream = audioClient.CreatePCMStream(2880, bitrate: channel.Bitrate))
+                using (var stream = audioClient.CreatePCMStream(AudioApplication.Music, 2880, bitrate: channel.Bitrate))
                 {
                     var process = Process.Start(new ProcessStartInfo
                     {
