@@ -63,9 +63,9 @@ namespace KiteBotCore.Modules.Rank
             }
         }
 
-        internal async Task UpdateUserRoles(SocketGuildUser user)
+        internal Task UpdateUserRoles(SocketGuildUser user)
         {
-
+            return Task.CompletedTask;
         }
 
         internal async Task UpdateLastActivity(SocketMessage message)

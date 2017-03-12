@@ -61,7 +61,7 @@ namespace KiteBotCore.Modules
                 {
                     var channel = await Client.GetUser(user).CreateDMChannelAsync();
                     await channel.SendMessageAsync(title + ": " + deck + " is LIVE at <http://www.giantbomb.com/chat/> NOW, check it out!" +
-                                Environment.NewLine + image);
+                                Environment.NewLine + (image ?? ""));
                 }
                 catch (Exception ex)
                 {

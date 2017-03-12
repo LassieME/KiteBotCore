@@ -24,29 +24,37 @@ namespace KiteBotCore.Modules
             {
                 ShorthandTz = new Dictionary<string, string>
                 {
-                    { "CET", "Europe/Oslo" },
+                    { "CET",  "Europe/Oslo" },
                     { "CEST", "Europe/Oslo" },
-                    { "GMT", "Europe/London" },
-                    { "EDT", "America/New_York" },
-                    { "EST", "America/New_York" },
-                    { "PDT", "America/Los_Angeles" },
-                    { "PST", "America/Los_Angeles" },
-                    { "JST", "Asia/Tokyo" }
+                    { "GMT",  "Europe/London" },
+                    { "EDT",  "America/New_York" },
+                    { "EST",  "America/New_York" },
+                    { "CST",  "America/Chicago" },
+                    { "CDT",  "America/Chicago" },
+                    { "MST",  "America/Denver" },
+                    { "MDT",  "America/Denver" },
+                    { "PDT",  "America/Los_Angeles" },
+                    { "PST",  "America/Los_Angeles" },
+                    { "JST",  "Asia/Tokyo" }
                 };
             }
             else
             {
                 ShorthandTz = new Dictionary<string, string>
                 {
-                    { "CET", "Central Europe Standard Time" },
+                    { "CET",  "Central Europe Standard Time" },
                     { "CEST", "Central Europe Standard Time" },
-                    { "GMT", "GMT Standard Time" },
-                    { "EDT", "Eastern Standard Time" },
-                    { "EST", "Eastern Standard Time" },
-                    { "PDT", "Pacific Standard Time" },
-                    { "PST", "Pacific Standard Time" },
-                    { "TST", "Tokyo Standard Time" },
-                    { "JST", "Tokyo Standard Time" }
+                    { "GMT",  "GMT Standard Time" },
+                    { "EDT",  "Eastern Standard Time" },
+                    { "EST",  "Eastern Standard Time" },
+                    { "CST",  "Central Standard Time" },
+                    { "CDT",  "Central Standard Time" },
+                    { "MST",  "Mountain Standard Time" },
+                    { "MDT",  "Mountain Standard Time" },
+                    { "PDT",  "Pacific Standard Time" },
+                    { "PST",  "Pacific Standard Time" },
+                    { "TST",  "Tokyo Standard Time" },
+                    { "JST",  "Tokyo Standard Time" }
                 };
             }
         }

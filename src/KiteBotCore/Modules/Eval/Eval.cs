@@ -1,11 +1,5 @@
 ﻿using System.Threading.Tasks;
 using Discord.Commands;
-using System;
-using Microsoft.CodeAnalysis.Scripting;
-using Microsoft.CodeAnalysis.CSharp.Scripting;
-using System.Reflection;
-using System.Reflection.Metadata;
-using Microsoft.CodeAnalysis;
 
 namespace KiteBotCore.Modules.Eval
 {
@@ -42,8 +36,6 @@ namespace KiteBotCore.Modules.Eval
         //        var script = CSharpScript.Create("var foo = new Foo();", opts);
         //        var result = script.RunAsync().Result; //runs fine, possible to use main application types in the script
         //    }
-
-        //    Console.WriteLine("Hello World!");
         //}
 
         //public class Foo
