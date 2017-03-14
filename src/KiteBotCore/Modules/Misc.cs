@@ -13,14 +13,14 @@ namespace KiteBotCore.Modules
         [Summary("Anime and weed, all you need.")]
         public async Task FourTwentyCommand()
         {
-            await ReplyAsync("http://420.moe/");
+            await ReplyAsync("http://420.moe/").ConfigureAwait(false);
         }
 
         [Command("hi")]
         [Summary("Mentions you and says hello")]
         public async Task HiCommand()
         {
-            await ReplyAsync($"{Context.User.Mention} Heyyo!");
+            await ReplyAsync($"{Context.User.Mention} Heyyo!").ConfigureAwait(false);
         }
 
         [Command("randomql")]
@@ -28,7 +28,7 @@ namespace KiteBotCore.Modules
         [Summary("Posts a random quick look.")]
         public async Task Command()
         {
-            await ReplyAsync(await KiteChat.GetResponseUriFromRandomQlCrew());
+            await ReplyAsync(await KiteChat.GetResponseUriFromRandomQlCrew().ConfigureAwait(false)).ConfigureAwait(false);
         }
     }
 }

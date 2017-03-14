@@ -28,11 +28,11 @@ namespace KiteBotCore
         public static string ChatDirectory = Directory.GetCurrentDirectory();
         public static string GreetingFileLocation = ChatDirectory + "/Content/Greetings.txt";
 
-        private readonly string _gbapi;
+        private readonly string _gbApi;
 
         public KiteChat(DiscordSocketClient client, DiscordContextFactory db, bool markovbool, string gBapi, string ytApi, int streamRefresh, bool silentStartup, int videoRefresh, int depth)
         {
-            _gbapi = gBapi;
+            _gbApi = gBapi;
             StartMarkovChain = markovbool;
             _greetings = File.ReadAllLines(GreetingFileLocation);
             RandomSeed = new Random();
@@ -46,7 +46,7 @@ namespace KiteBotCore
 
         public async Task<bool> InitializeMarkovChainAsync()
         {
-            var videoTask = Video.InitializeTask(_gbapi).ConfigureAwait(false); //Could be a longrunning Task,
+            var videoTask = Video.InitializeTask(_gbApi).ConfigureAwait(false); //Could be a longrunning Task,
             
             if (StartMarkovChain) await MultiDeepMarkovChains.InitializeAsync().ConfigureAwait(false); //This usually is a long running task, unless they bot has just recently been off
 

@@ -63,7 +63,7 @@ namespace KiteBotCore.Modules
         [Summary("Lists upcoming content on Giant Bomb")]
         public async Task UpcomingNewCommand([Remainder] string timeZone = null)
         {
-            var json = await TestDownload();
+            var json = await DownloadUpcomingJson().ConfigureAwait(false);
             string output = "";
             
             EmbedBuilder embed = new EmbedBuilder();
@@ -91,31 +91,27 @@ namespace KiteBotCore.Modules
             }
             else
             {
-                TimeZoneInfo pstZoneInfo =
-                    TimeZoneInfo.FindSystemTimeZoneById(ShorthandTz["PST"]);
                 string input;
-                TimeZoneInfo timeZoneInfo =
-                    TimeZoneInfo.FindSystemTimeZoneById(ShorthandTz.TryGetValue(timeZone, out input) ? input : timeZone);
 
                 foreach (var upcoming in json.Upcoming)
                 {
                     embed.AddField(x =>
                     {
                         x.Name = $"{(upcoming.Premium ? "Premium " + upcoming.Type : upcoming.Type)}: {upcoming.Title}";
-                        x.Value = $"on {TimeZoneInfo.ConvertTime(upcoming.Date, pstZoneInfo, timeZoneInfo)}";
+                        x.Value = $"on {TimeZoneInfo.ConvertTime(upcoming.Date, TimeZoneInfo.FindSystemTimeZoneById(ShorthandTz["PST"]), TimeZoneInfo.FindSystemTimeZoneById(ShorthandTz.TryGetValue(timeZone, out input) ? input : timeZone))}";
                     });
                 }
             }
-            await ReplyAsync(output, embed: embed);
+            await ReplyAsync(output, embed: embed).ConfigureAwait(false);
         }
 
-        internal static async Task<GbUpcoming> TestDownload()
+        internal static async Task<GbUpcoming> DownloadUpcomingJson()
         {
             using (HttpClient client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Add("User-Agent",
                     "KiteBotCore 1.1 GB Discord Bot looking for upcoming content");
-                GbUpcoming json = JsonConvert.DeserializeObject<GbUpcoming>(await client.GetStringAsync(UpcomingUrl));
+                GbUpcoming json = JsonConvert.DeserializeObject<GbUpcoming>(await client.GetStringAsync(UpcomingUrl).ConfigureAwait(false));
                 return json;
             }
         }

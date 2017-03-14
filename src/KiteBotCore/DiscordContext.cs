@@ -15,7 +15,7 @@ namespace KiteBotCore
 {
     public class DiscordContextFactory : IDbContextFactory<DiscordContext>
     {
-        private static string SettingsPath => Directory.GetCurrentDirectory().Replace(@"\bin\Debug\netcoreapp1.0\","") + "/Content/settings.json";
+        private static string SettingsPath => Directory.GetCurrentDirectory().Replace(@"\bin\Debug\netcoreapp1.1\","") + "/Content/settings.json";
         public DiscordContext Create(DbContextFactoryOptions options) //TODO: Make this actually use the options, whoops
         {
             var settings = JsonConvert.DeserializeObject<BotSettings>(File.ReadAllText(SettingsPath));
@@ -37,7 +37,7 @@ namespace KiteBotCore
                 List<Guild> guilds = await dbContext.Guilds
                     .Include(g => g.Channels)
                     .Include(g => g.Users)
-                    .ToListAsync();
+                    .ToListAsync().ConfigureAwait(false);
 
                 Guild guild = guilds.FirstOrDefault(x => x.Id == socketGuild.Id);
 
@@ -64,7 +64,7 @@ namespace KiteBotCore
                         guild.Channels.Add(channel);
                     }
 
-                    await downloadUserTask;
+                    await downloadUserTask.ConfigureAwait(false);
                     foreach (var socketUser in socketGuild.Users)
                         //For now, Users are unique for each guild, this will cause me problems later I'm sure
                     {
@@ -104,8 +104,7 @@ namespace KiteBotCore
                         dbContext.Update(guild);
                     }
 
-                    await downloadUserTask;
-                    // ReSharper disable once SimplifyLinqExpression
+                    await downloadUserTask.ConfigureAwait(false);
                     var usersNotTracked = socketGuild.Users.Where(x => !guild.Users.Any(y => y.Id == x.Id));
                         //Any stops at the first occurence, All checks all elements
                     var socketGuildUsers = usersNotTracked as IList<SocketGuildUser> ?? usersNotTracked.ToList();
@@ -127,7 +126,7 @@ namespace KiteBotCore
                         dbContext.Update(guild);
                     }
                 }
-                await dbContext.SaveChangesAsync(); //I could move this inside the branches, but its relatively cheap to call this if nothing has changed, and avoids multiple calls to it
+                await dbContext.SaveChangesAsync().ConfigureAwait(false); //I could move this inside the branches, but its relatively cheap to call this if nothing has changed, and avoids multiple calls to it
             }
         }
     }

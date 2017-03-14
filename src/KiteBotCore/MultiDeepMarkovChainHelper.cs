@@ -287,13 +287,13 @@ namespace KiteBotCore
 
         internal async Task<List<Message>> GetFullDatabase()
         {
-            return await _db.Messages.ToListAsync();
+            return await _db.Messages.ToListAsync().ConfigureAwait(false);
         }
 
-        internal async Task RemoteItemAsync(Message message)
+        internal async Task RemoveItemAsync(Message message)
         {
             _db.Remove(message);
-            await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync().ConfigureAwait(false);
         }
     }
 }

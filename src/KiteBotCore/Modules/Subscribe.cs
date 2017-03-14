@@ -24,12 +24,12 @@ namespace KiteBotCore.Modules
         {
             if (SubscriberList.Contains(Context.User.Id) )
             {
-                await ReplyAsync("You're already subscribed, to unsubscribe use \"~unsubscribe\"");
+                await ReplyAsync("You're already subscribed, to unsubscribe use \"~unsubscribe\"").ConfigureAwait(false);
             }
             else
             {
                 AddToList(Context.User.Id);
-                await ReplyAsync("You are now subscribed, to unsubscribe use \"~unsubscribe\". You have to stay in the server to continue to get messages.");
+                await ReplyAsync("You are now subscribed, to unsubscribe use \"~unsubscribe\". You have to stay in the server to continue to get messages.").ConfigureAwait(false);
             }
         }
         [Command("unsubscribe"), Alias("unsub")]
@@ -39,13 +39,12 @@ namespace KiteBotCore.Modules
             if (SubscriberList.Contains(Context.User.Id))
             {
                 RemoveFromList(Context.User.Id);
-                await
-                    ReplyAsync("You are now unsubscribed, thanks for trying it out.");
+
+                await ReplyAsync("You are now unsubscribed, thanks for trying it out.").ConfigureAwait(false);
             }
             else
             {
-                await
-                    ReplyAsync("You are already unsubscribed.");
+                await ReplyAsync("You are already unsubscribed.").ConfigureAwait(false);
             }
         }
 
@@ -59,9 +58,9 @@ namespace KiteBotCore.Modules
             {
                 try
                 {
-                    var channel = await Client.GetUser(user).CreateDMChannelAsync();
+                    var channel = await Client.GetUser(user).CreateDMChannelAsync().ConfigureAwait(false);
                     await channel.SendMessageAsync(title + ": " + deck + " is LIVE at <http://www.giantbomb.com/chat/> NOW, check it out!" +
-                                Environment.NewLine + (image ?? ""));
+                                                   Environment.NewLine + (image ?? "")).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {

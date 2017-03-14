@@ -29,7 +29,7 @@ namespace KiteBotCore
                 _prefix = botSettings.CommandPrefix;
             }
 
-            await _commands.AddModulesAsync(Assembly.GetEntryAssembly());
+            await _commands.AddModulesAsync(Assembly.GetEntryAssembly()).ConfigureAwait(false);
 
             _client.MessageReceived += HandleCommand;
         }
@@ -52,12 +52,12 @@ namespace KiteBotCore
                     var context = new CommandContext(_client, message);
 
                     // Execute the Command, store the result
-                    var result = await _commands.ExecuteAsync(context, argPos, _map);
+                    var result = await _commands.ExecuteAsync(context, argPos, _map).ConfigureAwait(false);
 
                     // If the command failed, notify the user unless no command was found
                     if (!result.IsSuccess && result.Error != CommandError.UnknownCommand)
                     {
-                        await message.Channel.SendMessageAsync($"**Error:** {result.ErrorReason}");
+                        await message.Channel.SendMessageAsync($"**Error:** {result.ErrorReason}").ConfigureAwait(false);
                         Log.Debug($"**Error:** {result.ErrorReason}");
                     }
                 }
@@ -68,7 +68,7 @@ namespace KiteBotCore
             }
             else
             {
-                await _map.Get<KiteChat>().ParseChatAsync(parameterMessage, _map.Get<DiscordSocketClient>());
+                await _map.Get<KiteChat>().ParseChatAsync(parameterMessage, _map.Get<DiscordSocketClient>()).ConfigureAwait(false);
             }
         }
     }

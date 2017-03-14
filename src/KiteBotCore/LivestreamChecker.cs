@@ -50,16 +50,16 @@ namespace KiteBotCore
 
         public async Task ForceUpdateChannel()
         {
-            await RefreshChatsApi(false);
+            await RefreshChatsApi(false).ConfigureAwait(false);
         }
 
         private async void RefreshChatsApi(object sender)
         {
             try
             {
-                Log.Debug("Running Livestreamchecker");
-                await RefreshChatsApi(true);
-                Log.Debug("Finishing Livestreamchecker");
+                Log.Debug("Running LivestreamChecker");
+                await RefreshChatsApi(true).ConfigureAwait(false);
+                Log.Debug("Finishing LivestreamChecker");
             }
             catch (Exception ex)
             {
@@ -76,7 +76,7 @@ namespace KiteBotCore
                 {
                     try
                     {
-                        _latestPromo = await GetChatsFromUrl(ApiCallUrl, 0);
+                        _latestPromo = await GetChatsFromUrl(ApiCallUrl, 0).ConfigureAwait(false);
 
                         var numberOfResults = _latestPromo.NumberOfPageResults;
 
@@ -84,27 +84,27 @@ namespace KiteBotCore
 
                         if (_wasStreamRunning == false && numberOfResults != 0 && stream != null)
                         {
-                            await Subscribe.PostLivestream(stream);
-                            await UpdateTask(stream, postMessage);
+                            await Subscribe.PostLivestream(stream).ConfigureAwait(false);
+                            await UpdateTask(stream, postMessage).ConfigureAwait(false);
                             _wasStreamRunning = true;
                         }
                         else if (_wasStreamRunning && (numberOfResults == 0 || stream == null))
                         {
-                            await UpdateTask(stream, postMessage);
+                            await UpdateTask(stream, postMessage).ConfigureAwait(false);
                             _wasStreamRunning = false;
                         }
 
                     }
                     catch (TimeoutException)
                     {
-                        Console.WriteLine("Livestreamchecker timed out.");
+                        Console.WriteLine("LivestreamChecker timed out.");
                     }
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"LivestreamChecker sucks: {ex} \n {ex.Message}");
-                var ownerDmChannel = await Program.Client.GetDMChannelAsync(85817630560108544);
+                var ownerDmChannel = await Program.Client.GetDMChannelAsync(85817630560108544).ConfigureAwait(false);
                 if (ownerDmChannel != null)
                     await ownerDmChannel.SendMessageAsync($"LivestreamChecker threw an {ex.GetType()}, check the logs").ConfigureAwait(false);
             }
@@ -121,12 +121,12 @@ namespace KiteBotCore
                     SocketTextChannel channel = (SocketTextChannel)Client.GetChannel(channelId);
 
                     await channel.ModifyAsync(p =>
-                        {
-                            p.Name = "livestream-live";
-                            p.Topic = $"Currently Live on Giant Bomb: {e.Title}\n http://www.giantbomb.com/chat/";
-                        });
+                    {
+                        p.Name = "livestream-live";
+                        p.Topic = $"Currently Live on Giant Bomb: {e.Title}\n http://www.giantbomb.com/chat/";
+                    }).ConfigureAwait(false);
 
-                    if (postMessage) await SendLivestreamMessageAsync(e, channel);
+                    if (postMessage) await SendLivestreamMessageAsync(e, channel).ConfigureAwait(false);
 
                 }
                 else
@@ -134,7 +134,7 @@ namespace KiteBotCore
                     const ulong channelId = 85842104034541568;
                     SocketTextChannel channel = (SocketTextChannel)Client.GetChannel(channelId);
 
-                    if (postMessage) await SendLivestreamMessageAsync(e, channel);
+                    if (postMessage) await SendLivestreamMessageAsync(e, channel).ConfigureAwait(false);
                 }
             }
             else
@@ -143,19 +143,21 @@ namespace KiteBotCore
                 {
                     const ulong channelId = 106390533974294528;
                     SocketTextChannel channel = (SocketTextChannel)Client.GetChannel(channelId);
-                    var nextLiveStream = (await UpcomingOn.TestDownload()).Upcoming.FirstOrDefault(x => x.Type == "Live Show");
+                    var nextLiveStream = (await UpcomingOn.DownloadUpcomingJson().ConfigureAwait(false)).Upcoming.FirstOrDefault(x => x.Type == "Live Show");
 
                     await channel.ModifyAsync(p =>
-                        {
-                            p.Name = "livestream";
-                            p.Topic =
-                                $"Chat for live broadcasts.\nUpcoming livestream: {(nextLiveStream != null ? nextLiveStream.Title + " on " + nextLiveStream.Date + " PST." + Environment.NewLine : "No upcoming livestream.")}";
-                        });
+                    {
+                        p.Name = "livestream";
+                        p.Topic =
+                            $"Chat for live broadcasts.\nUpcoming livestream: {(nextLiveStream != null ? nextLiveStream.Title + " on " + nextLiveStream.Date + " PST." + Environment.NewLine : "No upcoming livestream.")}";
+                    }).ConfigureAwait(false);
 
                     if (postMessage)
                         await channel.SendMessageAsync(
                             "Show is over folks, if you need more Giant Bomb videos, check this out: " +
-                            await KiteChat.GetResponseUriFromRandomQlCrew());
+                            await KiteChat.GetResponseUriFromRandomQlCrew()
+                            .ConfigureAwait(false))
+                            .ConfigureAwait(false);
 
                 }
                 else
@@ -166,7 +168,9 @@ namespace KiteBotCore
                     if (postMessage)
                         await channel.SendMessageAsync(
                             "Show is over folks, if you need more Giant Bomb videos, check this out: " +
-                            await KiteChat.GetResponseUriFromRandomQlCrew());
+                            await KiteChat.GetResponseUriFromRandomQlCrew()
+                            .ConfigureAwait(false))
+                            .ConfigureAwait(false);
                 }
             }
         }
@@ -184,7 +188,7 @@ namespace KiteBotCore
                 .WithColor(new Color(0xFFEE00))
                 .WithCurrentTimestamp();
 
-            await channel.SendMessageAsync("", false, embedBuilder);
+            await channel.SendMessageAsync("", false, embedBuilder).ConfigureAwait(false);
         }
 
         private async Task<Chats> GetChatsFromUrl(string url, int retry)
@@ -194,7 +198,7 @@ namespace KiteBotCore
                 using (HttpClient client = new HttpClient())
                 {
                     client.DefaultRequestHeaders.Add("User-Agent", $"KiteBotCore 1.1 GB Discord Bot that calls api every {RefreshRate / 1000} seconds.");
-                    Chats json = JsonConvert.DeserializeObject<Chats>(await client.GetStringAsync(url));
+                    Chats json = JsonConvert.DeserializeObject<Chats>(await client.GetStringAsync(url).ConfigureAwait(false));
                     return json;
                 }
             }
@@ -202,7 +206,7 @@ namespace KiteBotCore
             {
                 if (++retry < 3)
                 {
-                    await Task.Delay(10000);
+                    await Task.Delay(10000).ConfigureAwait(false);
                     return await GetChatsFromUrl(url, retry).ConfigureAwait(false);
                 }
                 throw new TimeoutException();
@@ -217,7 +221,7 @@ namespace KiteBotCore
 
         public async Task<string> ListChannels()
         {
-            var result = await GetChatsFromUrl(ApiCallUrl, 0);
+            var result = await GetChatsFromUrl(ApiCallUrl, 0).ConfigureAwait(false);
             var streams = result.Results;
             var output = "";
             foreach (var stream in streams)

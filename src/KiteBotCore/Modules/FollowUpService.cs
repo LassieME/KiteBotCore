@@ -57,18 +57,18 @@ namespace KiteBotCore.Modules
                 var outputEmbed = _dictionary[enumerable.FirstOrDefault()].Item2;
                 if (outputEmbed != null)
                 {
-                    await _messageToEdit.ModifyAsync(x => { x.Content = outputString; x.Embed = outputEmbed.Build(); });
+                    await _messageToEdit.ModifyAsync(x => { x.Content = outputString; x.Embed = outputEmbed.Build(); }).ConfigureAwait(false);
                 }
                 else
                 {
-                    await _messageToEdit.ModifyAsync(x => x.Content = outputString);
+                    await _messageToEdit.ModifyAsync(x => x.Content = outputString).ConfigureAwait(false);
                 }
 
                 FollowUpService.RemoveFollowUp(this);
             }
             else if(DateTime.Now.Subtract(_creationTime) > TimeSpan.FromMinutes(2))
             {
-                await _messageToEdit.ModifyAsync(x => x.Content = "Command timed out.");
+                await _messageToEdit.ModifyAsync(x => x.Content = "Command timed out.").ConfigureAwait(false);
                 FollowUpService.RemoveFollowUp(this);
             }
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord.Commands;
@@ -11,11 +12,11 @@ namespace KiteBotCore.Modules
     // Inherit from PreconditionAttribute
     public class RequireServerAttribute : PreconditionAttribute
     {
-        private readonly Server _requiredServer;
+        private readonly Server[] _requiredServers;
 
-        public RequireServerAttribute(Server requiredserver)
+        public RequireServerAttribute(params Server[] requiredservers)
         {
-            _requiredServer = requiredserver;
+            _requiredServers = requiredservers;
         }
 
         // Override the CheckPermissions method
@@ -23,14 +24,20 @@ namespace KiteBotCore.Modules
         {
             if (context.Guild != null)
             {
-                return Task.FromResult((Server)context.Guild.Id == _requiredServer ?
+                return Task.FromResult(_requiredServers.Any(x => (Server)context.Guild.Id == x) ?
                     PreconditionResult.FromSuccess() : PreconditionResult.FromError("You must be in the right server."));
             }
             else
             {
-                var guild = map.Get<DiscordSocketClient>().GetGuild((ulong) _requiredServer);
-                return Task.FromResult(guild != null && guild.Users.Any(x => x.Id == context.User.Id) ?
-                    PreconditionResult.FromSuccess() : PreconditionResult.FromError("You must be in the right server."));
+                foreach (var server in _requiredServers)
+                {
+                    var guild = map.Get<DiscordSocketClient>().GetGuild((ulong)server);
+                    bool isInGuild = guild.Users.Any(x => x.Id == context.User.Id);
+                    if (isInGuild)
+                        return Task.FromResult(PreconditionResult.FromSuccess());
+                }
+                
+                return Task.FromResult(PreconditionResult.FromError("You must be in a server that has this command enabled."));
             }
         }
     }

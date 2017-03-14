@@ -11,7 +11,7 @@ namespace KiteBotCore.Modules.Rank
 {
     class RankService
     {
-        private DiscordContextFactory _discordFactory;
+        private readonly DiscordContextFactory _discordFactory;
 
         public RankService(DiscordContextFactory discordContextFactory, DiscordSocketClient client)
         {
@@ -25,7 +25,7 @@ namespace KiteBotCore.Modules.Rank
         {
             using (DiscordContext db = _discordFactory.Create(new DbContextFactoryOptions()))
             {
-                User user = await db.FindAsync<User>(inputUser.Id.ConvertToUncheckedLong());
+                User user = await db.FindAsync<User>(inputUser.Id.ConvertToUncheckedLong()).ConfigureAwait(false);
 
                 Debug.Assert(user != null);
                 return user.JoinedAt.Value;
@@ -37,8 +37,8 @@ namespace KiteBotCore.Modules.Rank
         {
             using (DiscordContext db = _discordFactory.Create(new DbContextFactoryOptions()))
             {
-                Guild guild = await db.FindAsync<Guild>(userInput.Guild.Id.ConvertToUncheckedLong());
-                User user = await db.FindAsync<User>(userInput.Id.ConvertToUncheckedLong());
+                Guild guild = await db.FindAsync<Guild>(userInput.Guild.Id.ConvertToUncheckedLong()).ConfigureAwait(false);
+                User user = await db.FindAsync<User>(userInput.Id.ConvertToUncheckedLong()).ConfigureAwait(false);
 
                 if (user == null)
                 {
@@ -57,8 +57,8 @@ namespace KiteBotCore.Modules.Rank
                 {
                     user.LastActivityAt = DateTimeOffset.UtcNow;
                 }
-                await db.SaveChangesAsync();
-                await UpdateUserRoles(userInput);
+                await db.SaveChangesAsync().ConfigureAwait(false);
+                await UpdateUserRoles(userInput).ConfigureAwait(false);
 
             }
         }
@@ -75,7 +75,7 @@ namespace KiteBotCore.Modules.Rank
             {
                 using (DiscordContext db = _discordFactory.Create(new DbContextFactoryOptions()))
                 {
-                    await db.FindAsync<User>(message.Author.Id.ConvertToUncheckedLong());
+                    await db.FindAsync<User>(message.Author.Id.ConvertToUncheckedLong()).ConfigureAwait(false);
                 }
             }
         }

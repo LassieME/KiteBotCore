@@ -9,7 +9,6 @@ using Discord.Commands;
 using Discord.WebSocket;
 using KiteBotCore.Json;
 using KiteBotCore.Modules;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -93,7 +92,7 @@ namespace KiteBotCore
             {
                 var sw = new Stopwatch();
                 sw.Start();
-                await _dbFactory.SyncGuild(server);
+                await _dbFactory.SyncGuild(server).ConfigureAwait(false);
                 sw.Stop();
                 Log.Information("{sw} ms",sw.ElapsedMilliseconds);
                 await _kiteChat.InitializeMarkovChainAsync().ConfigureAwait(false);
@@ -114,7 +113,7 @@ namespace KiteBotCore
                     var channel = (ITextChannel)Client.GetChannel(85842104034541568);
                     if (!before.Username.Equals(after.Username))
                     {
-                        await channel.SendMessageAsync($"{before.Username} changed his name to {after.Username}.");
+                        await channel.SendMessageAsync($"{before.Username} changed his name to {after.Username}.").ConfigureAwait(false);
                         WhoIsService.AddWhoIs(before, after);
                     }
                     try
@@ -124,17 +123,17 @@ namespace KiteBotCore
                             if (before.Nickname != null && after.Nickname != null)
                             {
                                 await channel.SendMessageAsync(
-                                    $"{before.Nickname} changed his nickname to {after.Nickname}.");
+                                    $"{before.Nickname} changed his nickname to {after.Nickname}.").ConfigureAwait(false);
                                 WhoIsService.AddWhoIs(before, after.Nickname);
                             }
                             else if (before.Nickname == null && after.Nickname != null)
                             {
-                                await channel.SendMessageAsync($"{before.Username} set his nickname to {after.Nickname}.");
+                                await channel.SendMessageAsync($"{before.Username} set his nickname to {after.Nickname}.").ConfigureAwait(false);
                                 WhoIsService.AddWhoIs(before, after.Nickname);
                             }
                             else
                             {
-                                await channel.SendMessageAsync($"{before.Username} reset his nickname.");
+                                await channel.SendMessageAsync($"{before.Username} reset his nickname.").ConfigureAwait(false);
                             }
                         }
                     }
@@ -146,9 +145,9 @@ namespace KiteBotCore
             };
 
             Console.WriteLine("LoginAsync");
-            await Client.LoginAsync(TokenType.Bot, _settings.DiscordToken);
+            await Client.LoginAsync(TokenType.Bot, _settings.DiscordToken).ConfigureAwait(false);
             Console.WriteLine("ConnectAsync");
-            await Client.StartAsync();
+            await Client.StartAsync().ConfigureAwait(false);
 
             var map = new DependencyMap();
             _handler = new CommandHandler();
@@ -159,8 +158,8 @@ namespace KiteBotCore
             map.Add(_dbFactory);
             map.Add(new AnimeManga.SearchHelper(_settings.AnilistId, _settings.AnilistSecret));
 
-            await _handler.InstallAsync(map);
-            await Task.Delay(-1);
+            await _handler.InstallAsync(map).ConfigureAwait(false);
+            await Task.Delay(-1).ConfigureAwait(false);
         }
 
         private static Task LogDiscordMessage(LogMessage msg)

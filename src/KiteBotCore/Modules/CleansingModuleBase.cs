@@ -17,7 +17,7 @@ namespace KiteBotCore.Modules
             
             foreach (Match match in regex.Matches(message))
             {
-                var user = await Context.Guild.GetUserAsync(Convert.ToUInt64(match.Groups[0].Value));
+                var user = await Context.Guild.GetUserAsync(Convert.ToUInt64(match.Groups[0].Value)).ConfigureAwait(false);
                 if (user != null)
                     output = output.Replace(match.Value, "@" + (user.Nickname ?? user.Username));
             }

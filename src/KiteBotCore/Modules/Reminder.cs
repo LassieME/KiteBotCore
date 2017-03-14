@@ -40,11 +40,11 @@ namespace KiteBotCore.Modules
                         break;
                     default:
                         await
-                            ReplyAsync("Couldn't find any supported time units, please use [seconds|minutes|hour|days]");
+                            ReplyAsync("Couldn't find any supported time units, please use [seconds|minutes|hour|days]").ConfigureAwait(false);
                         break;
                 }
 
-                ReminderService.ReminderEvent reminderEvent = new ReminderService.ReminderEvent
+                var reminderEvent = new ReminderService.ReminderEvent
                 {
                     RequestedTime = DateTime.Now.AddMilliseconds(milliseconds),
                     UserId = Context.User.Id,
@@ -73,11 +73,11 @@ namespace KiteBotCore.Modules
                 ReminderService.Save();
                 await
                     ReplyAsync(
-                        $"Reminder set for {reminderEvent.RequestedTime.ToUniversalTime().ToString("g", new CultureInfo("en-US"))} UTC with reason: {reminderEvent.Reason}");
+                        $"Reminder set for {reminderEvent.RequestedTime.ToUniversalTime().ToString("g", new CultureInfo("en-US"))} UTC with reason: {reminderEvent.Reason}").ConfigureAwait(false);
             }
             else
             {
-                await ReplyAsync("Couldn't parse your command, please use the format \"!Reminder [number] [seconds|minutes|hour|days] [optional: reason for reminder]\"");
+                await ReplyAsync("Couldn't parse your command, please use the format \"!Reminder [number] [seconds|minutes|hour|days] [optional: reason for reminder]\"").ConfigureAwait(false);
             }
             
         }
@@ -126,9 +126,9 @@ namespace KiteBotCore.Modules
             {
                 if (reminder.RequestedTime.CompareTo(DateTime.Now) <= 0)
                 {
-                    var channel = await Program.Client.GetUser(reminder.UserId).CreateDMChannelAsync();
+                    var channel = await Program.Client.GetUser(reminder.UserId).CreateDMChannelAsync().ConfigureAwait(false);
 
-                    await channel.SendMessageAsync($"Reminder: {reminder.Reason}");
+                    await channel.SendMessageAsync($"Reminder: {reminder.Reason}").ConfigureAwait(false);
 
                     deleteBuffer.Add(reminder);
                     if (ReminderList.Count == 0)
@@ -158,7 +158,7 @@ namespace KiteBotCore.Modules
         {
             try
             {
-                await CheckReminders();
+                await CheckReminders().ConfigureAwait(false);
             }
             catch (Exception ex)
             {

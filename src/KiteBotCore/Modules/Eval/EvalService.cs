@@ -49,7 +49,7 @@ namespace KiteBotCore.Modules.Eval
         {
             using (context.Channel.EnterTypingState())
             {
-                var working = await context.Channel.SendMessageAsync("**Evaluating**, just a sec...");
+                var working = await context.Channel.SendMessageAsync("**Evaluating**, just a sec...").ConfigureAwait(false);
                 ScriptGlobals globals = new ScriptGlobals
                 {
                     handler = _handler,
@@ -59,18 +59,12 @@ namespace KiteBotCore.Modules.Eval
                 script = script.Trim('`');
                 try
                 {
-                    var eval =
-                        await
-                            CSharpScript.EvaluateAsync(script, _options, globals, cancellationToken: _token.Token);
-                    await context.Channel.SendMessageAsync(eval.ToString());
+                    var eval = await CSharpScript.EvaluateAsync(script, _options, globals, cancellationToken: _token.Token).ConfigureAwait(false);
+                    await working.ModifyAsync(x => x.Content = eval.ToString()).ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {
-                    await context.Channel.SendMessageAsync($"**Script Failed**\n{e.Message}");
-                }
-                finally
-                {
-                    await working.DeleteAsync();
+                    await working.ModifyAsync(x => x.Content = $"**Script Failed**\n{e.Message}").ConfigureAwait(false);
                 }
             }
         }

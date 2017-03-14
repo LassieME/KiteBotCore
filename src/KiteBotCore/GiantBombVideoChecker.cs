@@ -82,7 +82,7 @@ namespace KiteBotCore
 
                         ITextChannel channel = (ITextChannel) Program.Client.GetChannel(85842104034541568);
                         await channel.SendMessageAsync(title + ": " + deck + Environment.NewLine + "by: " + user +
-                                             Environment.NewLine + link);
+                                                       Environment.NewLine + link).ConfigureAwait(false);
                     }
                 }
             }
@@ -102,7 +102,7 @@ namespace KiteBotCore
                 using (HttpClient client = new HttpClient())
                 {
                     client.DefaultRequestHeaders.Add("User-Agent", $"KiteBotCore 1.1 GB Discord Bot that calls api every {RefreshRate / 1000} seconds.");
-                    Promos json = JsonConvert.DeserializeObject<Promos>(await client.GetStringAsync(url));
+                    Promos json = JsonConvert.DeserializeObject<Promos>(await client.GetStringAsync(url).ConfigureAwait(false));
                     return json;
                 }
             }
@@ -110,7 +110,7 @@ namespace KiteBotCore
             {
                 if (++retry < 3)
                 {
-                    await Task.Delay(10000);
+                    await Task.Delay(10000).ConfigureAwait(false);
                     return await GetPromosFromUrl(url,retry).ConfigureAwait(false);
                 }
                 throw new TimeoutException();

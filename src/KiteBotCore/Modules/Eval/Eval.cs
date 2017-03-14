@@ -19,7 +19,7 @@ namespace KiteBotCore.Modules.Eval
         {
             var evalService = new EvalService(_map);
             var scriptTask = evalService.Evaluate(Context, script);
-            await Task.Delay(10000);
+            await Task.Delay(10000).ConfigureAwait(false);
             if (!scriptTask.IsCompleted) evalService.PopToken();
         }
 

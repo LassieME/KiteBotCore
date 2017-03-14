@@ -37,11 +37,11 @@ namespace KiteBotCore.Modules
             {
                 if (!string.IsNullOrWhiteSpace(gameTitle))
                 {
-                    var search = await GetGamesEndpoint(gameTitle, 0);
+                    var search = await GetGamesEndpoint(gameTitle, 0).ConfigureAwait(false);
 
                     if (search.Results.Length == 1)
                     {
-                        await ReplyAsync("", embed: search.Results.FirstOrDefault().ToEmbed());
+                        await ReplyAsync("", embed: search.Results.FirstOrDefault().ToEmbed()).ConfigureAwait(false);
                     }
                     else if (search.Results.Length > 1)
                     {
@@ -62,19 +62,18 @@ namespace KiteBotCore.Modules
                             }
                         }
                         var messageToEdit =
-                            await ReplyAsync(reply +
-                                             "Just type the number you want, this command will self-destruct in 2 minutes if no action is taken.");
+                            await ReplyAsync(reply + "Just type the number you want, this command will self-destruct in 2 minutes if no action is taken.").ConfigureAwait(false);
                         FollowUpService.AddNewFollowUp(new FollowUp(_map, dict, Context.User.Id, Context.Channel.Id,
                             messageToEdit));
                     }
                     else
                     {
-                        await ReplyAsync("Giantbomb doesn\'t have any games that match that name.");
+                        await ReplyAsync("Giantbomb doesn\'t have any games that match that name.").ConfigureAwait(false);
                     }
                 }
                 else
                 {
-                    await ReplyAsync("Empty game name given, please specify a game title");
+                    await ReplyAsync("Empty game name given, please specify a game title").ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -85,23 +84,23 @@ namespace KiteBotCore.Modules
 
         private async Task<Search> GetGamesEndpoint(string gameTitle, int retry)
         {
-            await RateLimit.WaitAsync();
+            await RateLimit.WaitAsync().ConfigureAwait(false);
             var rateLimitTask = StartRatelimit();
             try
             {
                 using (var client = new HttpClient())
                 {
                     client.DefaultRequestHeaders.Add("User-Agent", $"KiteBotCore 1.1 GB Discord Bot for fetching wiki information");
-                    return JsonConvert.DeserializeObject<Search>(await client.GetStringAsync(Uri.EscapeUriString($@"{_apiCallUrl}""{gameTitle}""")));
+                    return JsonConvert.DeserializeObject<Search>(await client.GetStringAsync(Uri.EscapeUriString($@"{_apiCallUrl}""{gameTitle}""")).ConfigureAwait(false));
                 }
             }
             catch (Exception)
             {
                 if (++retry < 3)
                 {
-                    await Task.Delay(5000);
-                    await rateLimitTask;
-                    return await GetGamesEndpoint(gameTitle, retry);
+                    await Task.Delay(5000).ConfigureAwait(false);
+                    await rateLimitTask.ConfigureAwait(false);
+                    return await GetGamesEndpoint(gameTitle, retry).ConfigureAwait(false);
                 }
                 throw new TimeoutException();
             }
@@ -110,7 +109,7 @@ namespace KiteBotCore.Modules
         private static readonly SemaphoreSlim RateLimit = new SemaphoreSlim(1, 1);
         private static async Task StartRatelimit()
         {
-            await Task.Delay(1000);
+            await Task.Delay(1000).ConfigureAwait(false);
             RateLimit.Release();
         }
     }
