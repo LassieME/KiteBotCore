@@ -13,7 +13,7 @@ namespace KiteBotCore.Utils.FuzzyString
             {
                 for (int i = 0; i < source.Length; i++)
                 {
-                    if (!source[i].Equals(target[i]))
+                    if (source[i] != target[i])
                     {
                         distance++;
                     }

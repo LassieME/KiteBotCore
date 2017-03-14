@@ -111,7 +111,7 @@ namespace KiteBotCore
                 if (before.Guild.Id == 85814946004238336)
                 {
                     var channel = (ITextChannel)Client.GetChannel(85842104034541568);
-                    if (!before.Username.Equals(after.Username))
+                    if (before.Username != after.Username)
                     {
                         await channel.SendMessageAsync($"{before.Username} changed his name to {after.Username}.").ConfigureAwait(false);
                         WhoIsService.AddWhoIs(before, after);

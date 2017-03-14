@@ -22,7 +22,7 @@ namespace KiteBotCore.Utils.FuzzyString
             {
                 for (int j = 1; j < target.Length + 1; j++)
                 {
-                    if (source[i - 1].Equals(target[j - 1]))
+                    if (source[i - 1] == target[j - 1])
                     {
                         C[i, j] = C[i - 1, j - 1] + 1;
                     }
@@ -42,7 +42,7 @@ namespace KiteBotCore.Utils.FuzzyString
             {
                 return "";
             }
-            else if (source[i - 1].Equals(target[j - 1]))
+            else if (source[i - 1] == target[j - 1])
             {
                 return Backtrack(C, source, target, i - 1, j - 1) + source[i - 1];
             }

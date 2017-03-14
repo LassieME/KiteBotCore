@@ -209,7 +209,7 @@ namespace KiteBotCore.Modules
             string output = "";
             if (optional != null)
             {
-                var command = _handler.Commands.FirstOrDefault(x => x.Aliases.Any(y => y.Equals(optional.ToLower())));
+                var command = _handler.Commands.FirstOrDefault(x => x.Aliases.Any(y => y == optional.ToLower()));
                 if (command != null)
                 {
                     output += $"Command: {string.Join(", ", command.Aliases)}: {Environment.NewLine}";
