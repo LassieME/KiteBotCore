@@ -30,17 +30,12 @@ namespace KiteBotCore
             var downloadUserTask = socketGuild.DownloadUsersAsync();
             using (var dbContext = dbFactory.Create(new DbContextFactoryOptions()))
             {
-                //long id;
-                //unchecked { id = (long) socketGuild.Id; }
-                //Guild guild = await dbContext.FindAsync<Guild>(id);
-
-                List<Guild> guilds = await dbContext.Guilds
+                Guild guild = await dbContext.Guilds
                     .Include(g => g.Channels)
                     .Include(g => g.Users)
-                    .ToListAsync().ConfigureAwait(false);
-
-                Guild guild = guilds.FirstOrDefault(x => x.Id == socketGuild.Id);
-
+                    .FirstAsync(x => x.Id == socketGuild.Id)
+                    .ConfigureAwait(false);
+                    
                 if (guild == null)
                     //If guild does not exist, we create a new one and populate it with Users and Channels
                 {

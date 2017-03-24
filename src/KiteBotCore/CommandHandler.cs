@@ -10,7 +10,7 @@ namespace KiteBotCore
 {
     public class CommandHandler
     {
-        private CommandService _commands;
+        public CommandService Commands;
         private DiscordSocketClient _client;
         private IDependencyMap _map;
         private char _prefix;
@@ -19,8 +19,7 @@ namespace KiteBotCore
         public async Task InstallAsync(IDependencyMap map)
         {
             _map = map;
-            _commands = new CommandService();
-            map.Add(_commands);
+            Commands = new CommandService();
             _client = map.Get<DiscordSocketClient>();
            
             if (map.TryGet(out BotSettings botSettings))
@@ -29,7 +28,7 @@ namespace KiteBotCore
                 _prefix = botSettings.CommandPrefix;
             }
 
-            await _commands.AddModulesAsync(Assembly.GetEntryAssembly()).ConfigureAwait(false);
+            await Commands.AddModulesAsync(Assembly.GetEntryAssembly()).ConfigureAwait(false);
 
             _client.MessageReceived += HandleCommand;
         }
@@ -52,7 +51,7 @@ namespace KiteBotCore
                     var context = new CommandContext(_client, message);
 
                     // Execute the Command, store the result
-                    var result = await _commands.ExecuteAsync(context, argPos, _map).ConfigureAwait(false);
+                    var result = await Commands.ExecuteAsync(context, argPos, _map).ConfigureAwait(false);
 
                     // If the command failed, notify the user unless no command was found
                     if (!result.IsSuccess && result.Error != CommandError.UnknownCommand)

@@ -18,12 +18,12 @@ namespace KiteBotCore.Modules
 {
     public class Admin : CleansingModuleBase
     {
-        private readonly CommandService _handler;
+        private readonly CommandHandler _handler;
         private readonly IDependencyMap _map;
 
         public Admin(IDependencyMap map)
         {
-            _handler = map.Get<CommandService>();
+            _handler = map.Get<CommandHandler>();
             _map = map;
         }
 
@@ -33,20 +33,20 @@ namespace KiteBotCore.Modules
         public async Task ArchiveCommand(string guildName, string channelName, int amount = 10000)
         {
             var channelToArchive = (await
-                (await Context.Client.GetGuildsAsync())
+                (await Context.Client.GetGuildsAsync().ConfigureAwait(false))
                 .FirstOrDefault(x => x.Name == guildName)
-                .GetTextChannelsAsync())
+                .GetTextChannelsAsync().ConfigureAwait(false))
                 .FirstOrDefault(x => x.Name == channelName);
 
             if (channelToArchive != null)
             {
-                var listOfMessages = new List<IMessage>(await channelToArchive.GetMessagesAsync(amount).Flatten());
+                var listOfMessages = new List<IMessage>(await channelToArchive.GetMessagesAsync(amount).Flatten().ConfigureAwait(false));
                 List<Message> list = new List<Message>(listOfMessages.Capacity);
                 foreach (var message in listOfMessages)
                     list.Add(new Message { Author = message.Author.Username, Content = message.Content, Timestamp = message.Timestamp });
                 var jsonSettings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
                 var json = JsonConvert.SerializeObject(list, Formatting.Indented, jsonSettings);
-                await Context.Channel.SendFileAsync(GenerateStreamFromString(json), $"{channelName}.json");
+                await Context.Channel.SendFileAsync(GenerateStreamFromString(json), $"{channelName}.json").ConfigureAwait(false);
             }
         }
 
@@ -67,12 +67,12 @@ namespace KiteBotCore.Modules
         [RequireOwner]
         public async Task SaveCommand()
         {
-            var message = await ReplyAsync("OK");
+            var message = await ReplyAsync("OK").ConfigureAwait(false);
             var saveTask = KiteChat.MultiDeepMarkovChains.SaveAsync();
             await saveTask.ContinueWith(async (e) =>
             {
-                if (e.IsCompleted) await message.ModifyAsync(x => x.Content += ", Saved.");
-            });
+                if (e.IsCompleted) await message.ModifyAsync(x => x.Content += ", Saved.").ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
 
         [Command("saveexit")]
@@ -81,12 +81,12 @@ namespace KiteBotCore.Modules
         [RequireOwner]
         public async Task SaveExitCommand()
         {
-            var message = await ReplyAsync("OK");
+            var message = await ReplyAsync("OK").ConfigureAwait(false);
             var saveTask = KiteChat.MultiDeepMarkovChains.SaveAsync();
             await saveTask.ContinueWith(async (e) =>
             {
-                if (e.IsCompleted) await message.ModifyAsync(x => x.Content += ", Saved.");
-            });
+                if (e.IsCompleted) await message.ModifyAsync(x => x.Content += ", Saved.").ConfigureAwait(false);
+            }).ConfigureAwait(false);
             Environment.Exit(0);
         }
 
@@ -96,8 +96,8 @@ namespace KiteBotCore.Modules
         [RequireOwner]
         public async Task UpdateCommand()
         {
-            await KiteChat.StreamChecker.ForceUpdateChannel();
-            await ReplyAsync("updated?");
+            await KiteChat.StreamChecker.ForceUpdateChannel().ConfigureAwait(false);
+            await ReplyAsync("updated?").ConfigureAwait(false);
         }
 
         [Command("delete")]
@@ -106,7 +106,7 @@ namespace KiteBotCore.Modules
         [RequireOwner]
         public async Task DeleteCommand()
         {
-            if (KiteChat.BotMessages.Any()) await ((IUserMessage)KiteChat.BotMessages.Last()).DeleteAsync();
+            if (KiteChat.BotMessages.Any()) await ((IUserMessage)KiteChat.BotMessages.Last()).DeleteAsync().ConfigureAwait(false);
         }
 
         [Command("restart")]
@@ -117,7 +117,7 @@ namespace KiteBotCore.Modules
         {
             KiteChat.StreamChecker?.Restart();
             KiteChat.GbVideoChecker?.Restart();
-            await ReplyAsync("It might have done something, who knows.");
+            await ReplyAsync("It might have done something, who knows.").ConfigureAwait(false);
         }
 
         [Command("ignore")]
@@ -126,7 +126,7 @@ namespace KiteBotCore.Modules
         public async Task IgnoreCommand([Remainder] string input)
         {
             KiteChat.StreamChecker.IgnoreChannel(input);
-            await ReplyAsync("Added to ignore list.");
+            await ReplyAsync("Added to ignore list.").ConfigureAwait(false);
         }
 
         [Command("listchannels")]
@@ -135,7 +135,9 @@ namespace KiteBotCore.Modules
         public async Task ListChannelCommand()
         {
 
-            await ReplyAsync("Current livestreams channels are:" + Environment.NewLine + (await KiteChat.StreamChecker.ListChannels()));
+            await ReplyAsync("Current livestreams channels are:" + Environment.NewLine + await KiteChat.StreamChecker.ListChannelsAsync()
+                .ConfigureAwait(false))
+                .ConfigureAwait(false);
         }
 
         [Command("say")]
@@ -144,7 +146,7 @@ namespace KiteBotCore.Modules
         [RequireOwner]
         public async Task SayCommand([Remainder] string input)
         {
-            await ReplyAsync(input);
+            await ReplyAsync(input).ConfigureAwait(false);
         }
 
         [Command("embed")]
@@ -158,7 +160,7 @@ namespace KiteBotCore.Modules
                 Color = new Color(255, 0, 0),
                 Description = input
             };
-            await ReplyAsync("", false, embed);
+            await ReplyAsync("", false, embed).ConfigureAwait(false);
         }
 
         [Command("setgame")]
@@ -168,7 +170,7 @@ namespace KiteBotCore.Modules
         public async Task PlayingCommand([Remainder] string input)
         {
             var client = _map.Get<DiscordSocketClient>();
-            await client.SetGameAsync(input);
+            await client.SetGameAsync(input).ConfigureAwait(false);
         }
 
         [Command("setusername")]
@@ -178,7 +180,7 @@ namespace KiteBotCore.Modules
         public async Task UsernameCommand([Remainder] string input)
         {
             var client = _map.Get<DiscordSocketClient>();
-            await client.CurrentUser.ModifyAsync(x => x.Username = input);
+            await client.CurrentUser.ModifyAsync(x => x.Username = input).ConfigureAwait(false);
         }
 
         [Command("setnickname")]
@@ -187,7 +189,7 @@ namespace KiteBotCore.Modules
         [RequireOwner, RequireContext(ContextType.Guild)]
         public async Task NicknameCommand([Remainder] string input)
         {
-            await (await Context.Guild.GetCurrentUserAsync()).ModifyAsync(x => x.Nickname = input);
+            await (await Context.Guild.GetCurrentUserAsync().ConfigureAwait(false)).ModifyAsync(x => x.Nickname = input).ConfigureAwait(false);
         }
 
         [Command("setavatar", RunMode = RunMode.Sync)]
@@ -196,10 +198,10 @@ namespace KiteBotCore.Modules
         [RequireOwner]
         public async Task AvatarCommand([Remainder] string input)
         {
-            var avatarStream = await new HttpClient().GetByteArrayAsync(input);
+            var avatarStream = await new HttpClient().GetByteArrayAsync(input).ConfigureAwait(false);
             Stream stream = new MemoryStream(avatarStream);
-            await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(stream));
-            await ReplyAsync("👌");
+            await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(stream)).ConfigureAwait(false);
+            await ReplyAsync("👌").ConfigureAwait(false);
         }
 
         [Command("help")]
@@ -209,27 +211,27 @@ namespace KiteBotCore.Modules
             string output = "";
             if (optional != null)
             {
-                var command = _handler.Commands.FirstOrDefault(x => x.Aliases.Any(y => y == optional.ToLower()));
+                var command = _handler.Commands.Commands.FirstOrDefault(x => x.Aliases.Any(y => y == optional.ToLower()));
                 if (command != null)
                 {
                     output += $"Command: {string.Join(", ", command.Aliases)}: {Environment.NewLine}";
                     output += command.Summary;
-                    await ReplyAsync(output + ".");
+                    await ReplyAsync(output + ".").ConfigureAwait(false);
                     return;
                 }
                 output += "Couldn't find a command with that name, givng you the commandlist instead:" +
                           Environment.NewLine;
             }
-            foreach (CommandInfo cmdInfo in _handler.Commands.OrderBy(x => x.Aliases[0]))
+            foreach (CommandInfo cmdInfo in _handler.Commands.Commands.OrderBy(x => x.Aliases[0]))
             {
-                if ((await cmdInfo.CheckPreconditionsAsync(Context, _map)).IsSuccess)
+                if ((await cmdInfo.CheckPreconditionsAsync(Context, _map).ConfigureAwait(false)).IsSuccess)
                 {
                     if (!string.IsNullOrWhiteSpace(output)) output += ",";
                     output += "`" + cmdInfo.Aliases[0] + "`";
                 }
             }
             output += "." + Environment.NewLine;
-            await ReplyAsync("These are the commands you can use: " + Environment.NewLine + output + "Run help <command> for more information.");
+            await ReplyAsync("These are the commands you can use: " + Environment.NewLine + output + "Run help <command> for more information.").ConfigureAwait(false);
         }
 
         [Command("info")]
@@ -240,7 +242,7 @@ namespace KiteBotCore.Modules
 
             string GetHeapSize() => Math.Round(GC.GetTotalMemory(true) / (1024.0 * 1024.0), 2).ToString(CultureInfo.InvariantCulture);
 
-            var application = await Context.Client.GetApplicationInfoAsync();
+            var application = await Context.Client.GetApplicationInfoAsync().ConfigureAwait(false);
 
             await ReplyAsync(
                 $"{Format.Bold("Info")}\n" +
@@ -256,7 +258,8 @@ namespace KiteBotCore.Modules
                 $"- Guilds: {(Context.Client as DiscordSocketClient)?.Guilds.Count}\n" +
                 $"- Channels: {(Context.Client as DiscordSocketClient)?.Guilds.Sum(g => g.Channels.Count)}" +
                 $"- Users: {(Context.Client as DiscordSocketClient)?.Guilds.Sum(g => g.Users.Count)}"
-            );
+            ).ConfigureAwait(false);
         }
     }
 }
+ 

@@ -20,7 +20,7 @@ namespace KiteBotCore.Modules.Music
         [Command("play", RunMode = RunMode.Mixed)]
         [Summary("What is love")]
         [RequireOwner, RequireContext(ContextType.Guild)]
-        public async Task ArchiveCommand()
+        public async Task MusicTestCommand()
         {
             var channel = (Context.User as SocketGuildUser)?.VoiceChannel;
             Debug.Assert(channel != null);

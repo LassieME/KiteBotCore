@@ -219,7 +219,7 @@ namespace KiteBotCore
             File.WriteAllText(IgnoreFilePath, JsonConvert.SerializeObject(IgnoreList));
         }
 
-        public async Task<string> ListChannels()
+        public async Task<string> ListChannelsAsync()
         {
             var result = await GetChatsFromUrl(ApiCallUrl, 0).ConfigureAwait(false);
             var streams = result.Results;

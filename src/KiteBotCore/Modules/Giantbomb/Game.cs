@@ -16,7 +16,7 @@ namespace KiteBotCore.Modules
 {
     public class Game : ModuleBase
     {
-        private static string _apiCallUrl;
+        private readonly string _apiCallUrl;
         private readonly IDependencyMap _map;
 
         public Game(IDependencyMap map)
@@ -29,7 +29,7 @@ namespace KiteBotCore.Modules
             }
         }
 
-        [Command("game", RunMode = RunMode.Mixed)]
+        [Command("game", RunMode = RunMode.Mixed), Ratelimit(2, 1, Measure.Minutes)]
         [Summary("Finds a game in the Giantbomb games database")]
         public async Task GameCommand([Remainder] string gameTitle)
         {

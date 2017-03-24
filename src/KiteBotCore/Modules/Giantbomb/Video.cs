@@ -19,14 +19,14 @@ namespace KiteBotCore.Modules.Giantbomb
         private static Dictionary<int, Result> _allVideos;
         private static string _apiCallUrl;
         private readonly IDependencyMap _map;
-        private static bool isReady = false;
+        private static bool _isReady = false;
 
         public static string JsonVideoFileLocation => Directory.GetCurrentDirectory() + "/Content/videos.json";
 
-        Video(IDependencyMap map)
+        public Video(IDependencyMap map)//TODO: Make this entire thing not shit(static)
         {
             _map = map;
-            //Check once for new videos, maybe just make this a timer.
+            Console.WriteLine($"{((Func<string>) (() => { Console.WriteLine("hello"); return "world"; })).Invoke()}");
         }
 
         internal static async Task InitializeTask(string apiKey)
@@ -58,15 +58,15 @@ namespace KiteBotCore.Modules.Giantbomb
                     i += 100;
                 } while (latest.NumberOfPageResults == latest.Limit);
             }
-            isReady = true;
+            _isReady = true;
             File.WriteAllText(JsonVideoFileLocation, JsonConvert.SerializeObject(_allVideos));
         }
 
-        [Command("video", RunMode = RunMode.Mixed)]
+        [Command("video", RunMode = RunMode.Mixed), Ratelimit(2, 1, Measure.Minutes)]
         [Summary("Searches through GB videos for the 5 closest matches to the query")]
         public async Task VideoCommand([Remainder] string videoTitle)
         {
-            if (!isReady)
+            if (!_isReady)
             {
                 await ReplyAsync("Bot has not finished downloading all videos yet.");
                 return;
@@ -108,7 +108,7 @@ namespace KiteBotCore.Modules.Giantbomb
             {
                 using (var client = new HttpClient())
                 {
-                    client.DefaultRequestHeaders.Add("User-Agent", $"KiteBotCore 1.1 GB Discord Bot for fetching wiki information");
+                    client.DefaultRequestHeaders.Add("User-Agent", "KiteBotCore 1.1 GB Discord Bot for fetching wiki information");
                     return JsonConvert.DeserializeObject<Videos>(await client.GetStringAsync($@"{_apiCallUrl}&offset={offset}"));
                 }
             }

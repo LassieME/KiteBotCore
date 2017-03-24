@@ -4,9 +4,9 @@
     <TargetFramework>netcoreapp1.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Discord.Net" Version="1.0.0-rc-00617" />
-    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.21.0.760" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="2.3.0-beta1-61512-01" />
+    <PackageReference Include="Discord.Net" Version="1.0.0-rc-00649" />
+    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.22.0.760" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.0.0-beta1-61524-01" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="1.1.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite.Design" Version="1.1.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="1.1.0" />

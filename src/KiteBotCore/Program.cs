@@ -47,8 +47,7 @@ namespace KiteBotCore
             Client = new DiscordSocketClient(new DiscordSocketConfig
             {
                 LogLevel = LogSeverity.Verbose,
-                MessageCacheSize = 0,
-                AudioMode = AudioMode.Outgoing
+                MessageCacheSize = 0
             });
 
             _settings = File.Exists(SettingsPath) ?

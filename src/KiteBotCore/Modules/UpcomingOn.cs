@@ -61,14 +61,14 @@ namespace KiteBotCore.Modules
 
         [Command("upcoming")]
         [Summary("Lists upcoming content on Giant Bomb")]
-        public async Task UpcomingNewCommand([Remainder] string timeZone = null)
+        public async Task UpcomingNewCommand([Remainder] string inputTimeZone = null)
         {
             var json = await DownloadUpcomingJson().ConfigureAwait(false);
             string output = "";
-            
+
             EmbedBuilder embed = new EmbedBuilder();
             embed.WithTitle("Upcoming on Giant Bomb")
-                .WithDescription($"All dates are in {timeZone ?? "PST"}")
+                .WithDescription($"All dates are in {inputTimeZone ?? "PST"}")
                 .WithColor(new Color(0x660066))
                 .WithAuthor(x =>
                 {
@@ -78,30 +78,17 @@ namespace KiteBotCore.Modules
                 })
                 .WithThumbnailUrl("http://www.giantbomb.com/bundles/phoenixsite/images/core/loose/logo-gb-midsize.png");
 
-            if (timeZone == null)
+            foreach (var upcoming in json.Upcoming)
             {
-                foreach (var upcoming in json.Upcoming)
+                embed.AddField(x =>
                 {
-                    embed.AddField(x =>
-                    {
-                        x.Name = $"{(upcoming.Premium ? "Premium " + upcoming.Type : upcoming.Type)}: {upcoming.Title}";
-                        x.Value = $"on {upcoming.Date}";
-                    });
-                }
+                    x.Name = $"{(upcoming.Premium ? "Premium " + upcoming.Type : upcoming.Type)}: {upcoming.Title}";
+                    x.Value = $@"on {( inputTimeZone != null ? TimeZoneInfo.ConvertTime(upcoming.Date,
+                        TimeZoneInfo.FindSystemTimeZoneById(ShorthandTz["PST"]),
+                        TimeZoneInfo.FindSystemTimeZoneById(ShorthandTz.TryGetValue(inputTimeZone.ToUpper(), out string input) ? input : inputTimeZone)) : upcoming.Date)}";
+                });
             }
-            else
-            {
-                string input;
 
-                foreach (var upcoming in json.Upcoming)
-                {
-                    embed.AddField(x =>
-                    {
-                        x.Name = $"{(upcoming.Premium ? "Premium " + upcoming.Type : upcoming.Type)}: {upcoming.Title}";
-                        x.Value = $"on {TimeZoneInfo.ConvertTime(upcoming.Date, TimeZoneInfo.FindSystemTimeZoneById(ShorthandTz["PST"]), TimeZoneInfo.FindSystemTimeZoneById(ShorthandTz.TryGetValue(timeZone, out input) ? input : timeZone))}";
-                    });
-                }
-            }
             await ReplyAsync(output, embed: embed).ConfigureAwait(false);
         }
 
