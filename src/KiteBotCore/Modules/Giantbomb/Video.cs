@@ -62,7 +62,7 @@ namespace KiteBotCore.Modules.Giantbomb
             File.WriteAllText(JsonVideoFileLocation, JsonConvert.SerializeObject(_allVideos));
         }
 
-        [Command("video", RunMode = RunMode.Mixed), Ratelimit(2, 1, Measure.Minutes)]
+        [Command("video", RunMode = RunMode.Async), Ratelimit(2, 1, Measure.Minutes)]
         [Summary("Searches through GB videos for the 5 closest matches to the query")]
         public async Task VideoCommand([Remainder] string videoTitle)
         {

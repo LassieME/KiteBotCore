@@ -29,7 +29,7 @@ namespace KiteBotCore.Modules
             }
         }
 
-        [Command("game", RunMode = RunMode.Mixed), Ratelimit(2, 1, Measure.Minutes)]
+        [Command("game", RunMode = RunMode.Async), Ratelimit(2, 1, Measure.Minutes)]
         [Summary("Finds a game in the Giantbomb games database")]
         public async Task GameCommand([Remainder] string gameTitle)
         {

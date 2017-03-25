@@ -15,8 +15,9 @@ namespace KiteBotCore
 {
     public class DiscordContextFactory : IDbContextFactory<DiscordContext>
     {
+        //This is needed while doing Database migrations and updates
         private static string SettingsPath => Directory.GetCurrentDirectory().Replace(@"\bin\Debug\netcoreapp1.1\","") + "/Content/settings.json";
-        public DiscordContext Create(DbContextFactoryOptions options) //TODO: Make this actually use the options, whoops
+        public DiscordContext Create(DbContextFactoryOptions options)
         {
             var settings = JsonConvert.DeserializeObject<BotSettings>(File.ReadAllText(SettingsPath));
             return new DiscordContext(settings.DatabaseConnectionString);
@@ -35,9 +36,9 @@ namespace KiteBotCore
                     .Include(g => g.Users)
                     .FirstAsync(x => x.Id == socketGuild.Id)
                     .ConfigureAwait(false);
-                    
+
+                //If guild does not exist, we create a new one and populate it with Users and Channels
                 if (guild == null)
-                    //If guild does not exist, we create a new one and populate it with Users and Channels
                 {
                     guild = new Guild
                     {

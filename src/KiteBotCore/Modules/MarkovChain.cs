@@ -1,11 +1,7 @@
 ﻿using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Discord.Commands;
 using System.Linq;
-using KiteBotCore.Json;
-using Discord;
-using Discord.WebSocket;
 
 namespace KiteBotCore.Modules
 {
@@ -53,7 +49,7 @@ namespace KiteBotCore.Modules
             await ReplyAsync($"{i*100} messages downloaded.").ConfigureAwait(false);
         }
 
-        [Command("remove", RunMode = RunMode.Mixed)]
+        [Command("remove", RunMode = RunMode.Async)]
         [Summary("Removes a message from the remote database by messageId")]
         [RequireOwner, RequireServer(Server.KiteCo)]
         public async Task RemoveCommand(ulong messageId)
@@ -63,7 +59,7 @@ namespace KiteBotCore.Modules
             foreach (var item in list.Where(x => x.Id == messageId))
                 await KiteChat.MultiDeepMarkovChains.RemoveItemAsync(item).ConfigureAwait(false);
 
-            await ReplyAsync($"<:bop:230275292076179460>").ConfigureAwait(false);
+            await ReplyAsync("<:bop:230275292076179460>").ConfigureAwait(false);
         }
     }
 }

@@ -11,6 +11,8 @@ using KiteBotCore.Json;
 using MarkovChain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using MarkovSharp;
+using MarkovSharp.TokenisationStrategies;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -20,7 +22,8 @@ namespace KiteBotCore
     {
         private readonly IDiscordClient _client;
         private readonly DiscordContextFactory _dbFactory;
-        private readonly IMarkovChain _markovChain;
+        //private readonly IMarkovChain _markovChain;
+        private readonly StringMarkov _newMarkovChain;
 
         private readonly string _rootDirectory = Directory.GetCurrentDirectory();
         private readonly SemaphoreSlim _semaphore;
@@ -40,21 +43,23 @@ namespace KiteBotCore
             _db = _dbFactory.Create(new DbContextFactoryOptions());
             _client = client;
             Depth = depth;
-            switch (depth)
-            {
-                case 1:
-                    _markovChain = new TextMarkovChain();
-                    break;
-                case 2:
-                    _markovChain = new DeepMarkovChain();
-                    break;
-                default:
-                    if (depth < 2)
-                        _markovChain = new MultiDeepMarkovChain(Depth);
-                    else
-                        _markovChain = new TextMarkovChain();
-                    break;
-            }
+            if (depth > 0)
+                new StringMarkov(depth);
+            //switch (depth)
+            //{
+            //    case 1:
+            //        _markovChain = new TextMarkovChain();
+            //        break;
+            //    case 2:
+            //        _markovChain = new DeepMarkovChain();
+            //        break;
+            //    default:
+            //        if (depth < 2)
+            //            _markovChain = new MultiDeepMarkovChain(Depth);
+            //        else
+            //            _markovChain = new TextMarkovChain();
+            //        break;
+            //}
             _timer = new Timer(async e => await SaveAsync(), null, 600000, 600000);
         }
 

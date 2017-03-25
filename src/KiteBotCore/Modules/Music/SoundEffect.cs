@@ -17,7 +17,7 @@ namespace KiteBotCore.Modules.Music
             _client = client;
         }
 
-        [Command("play", RunMode = RunMode.Mixed)]
+        [Command("play", RunMode = RunMode.Async)]
         [Summary("What is love")]
         [RequireOwner, RequireContext(ContextType.Guild)]
         public async Task MusicTestCommand()
