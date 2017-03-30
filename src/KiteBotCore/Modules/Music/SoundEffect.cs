@@ -10,14 +10,9 @@ namespace KiteBotCore.Modules.Music
 {
     public class SoundEffect : CleansingModuleBase
     {
-        private readonly DiscordSocketClient _client;
+        public DiscordSocketClient Client { get; set; }
 
-        public SoundEffect(DiscordSocketClient client)
-        {
-            _client = client;
-        }
-
-        [Command("play", RunMode = RunMode.Async)]
+        [Command("play", RunMode = RunMode.Mixed)]
         [Summary("What is love")]
         [RequireOwner, RequireContext(ContextType.Guild)]
         public async Task MusicTestCommand()

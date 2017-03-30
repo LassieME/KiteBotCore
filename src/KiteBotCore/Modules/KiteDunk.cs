@@ -18,10 +18,9 @@ namespace KiteBotCore.Modules
 
         static KiteDunk()
         {
-            KiteDunkTimer = new Timer(async s => await UpdateKiteDunks(),null, 86400000, 86400000);//a day
+            KiteDunkTimer = new Timer(async s => await UpdateKiteDunks(),null, TimeSpan.FromHours(24), TimeSpan.FromHours(24));//a day
         }
 
-        // ~say hello -> hello
         [Command("kitedunk"), Summary("Posts a hot Kite Dunk"), Alias("dunk"),RequireServer(Server.KiteCo)]
         public async Task KiteDunkCommand()
         {
@@ -36,7 +35,7 @@ namespace KiteBotCore.Modules
             }
         }
         //Will currently throw an error the first time its run
-        [Command("KiteDunkAll"), Summary("Posts a hot Kite Dunk"), RequireContext(ContextType.DM),RequireServer(Server.KiteCo)]
+        [Command("KiteDunkAll"), Summary("Posts a hot Kite Dunk"), RequireContext(ContextType.DM), RequireServer(Server.KiteCo)]
         public async Task KiteDunkAllCommand()
         {
             var stringBuilder = new System.Text.StringBuilder(2000);

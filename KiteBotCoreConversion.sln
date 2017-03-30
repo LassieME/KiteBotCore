@@ -20,6 +20,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Discord.Net.Commands", "..\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Discord.Net.Core", "..\Discord.NetMine3\src\Discord.Net.Core\Discord.Net.Core.csproj", "{3AA6738A-A002-4DC1-BB0C-D606DF4AE6A9}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Discord.Net.WebSocket", "..\Discord.NetMine3\src\Discord.Net.WebSocket\Discord.Net.WebSocket.csproj", "{0FF8670B-6879-4736-A348-BFF1C427B267}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Discord.Net.Rest", "..\Discord.NetMine3\src\Discord.Net.Rest\Discord.Net.Rest.csproj", "{075374DB-88F2-4D56-931C-A4232BE21359}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -90,6 +94,30 @@ Global
 		{3AA6738A-A002-4DC1-BB0C-D606DF4AE6A9}.Release|x64.Build.0 = Release|Any CPU
 		{3AA6738A-A002-4DC1-BB0C-D606DF4AE6A9}.Release|x86.ActiveCfg = Release|Any CPU
 		{3AA6738A-A002-4DC1-BB0C-D606DF4AE6A9}.Release|x86.Build.0 = Release|Any CPU
+		{0FF8670B-6879-4736-A348-BFF1C427B267}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0FF8670B-6879-4736-A348-BFF1C427B267}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0FF8670B-6879-4736-A348-BFF1C427B267}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0FF8670B-6879-4736-A348-BFF1C427B267}.Debug|x64.Build.0 = Debug|Any CPU
+		{0FF8670B-6879-4736-A348-BFF1C427B267}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0FF8670B-6879-4736-A348-BFF1C427B267}.Debug|x86.Build.0 = Debug|Any CPU
+		{0FF8670B-6879-4736-A348-BFF1C427B267}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0FF8670B-6879-4736-A348-BFF1C427B267}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0FF8670B-6879-4736-A348-BFF1C427B267}.Release|x64.ActiveCfg = Release|Any CPU
+		{0FF8670B-6879-4736-A348-BFF1C427B267}.Release|x64.Build.0 = Release|Any CPU
+		{0FF8670B-6879-4736-A348-BFF1C427B267}.Release|x86.ActiveCfg = Release|Any CPU
+		{0FF8670B-6879-4736-A348-BFF1C427B267}.Release|x86.Build.0 = Release|Any CPU
+		{075374DB-88F2-4D56-931C-A4232BE21359}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{075374DB-88F2-4D56-931C-A4232BE21359}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{075374DB-88F2-4D56-931C-A4232BE21359}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{075374DB-88F2-4D56-931C-A4232BE21359}.Debug|x64.Build.0 = Debug|Any CPU
+		{075374DB-88F2-4D56-931C-A4232BE21359}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{075374DB-88F2-4D56-931C-A4232BE21359}.Debug|x86.Build.0 = Debug|Any CPU
+		{075374DB-88F2-4D56-931C-A4232BE21359}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{075374DB-88F2-4D56-931C-A4232BE21359}.Release|Any CPU.Build.0 = Release|Any CPU
+		{075374DB-88F2-4D56-931C-A4232BE21359}.Release|x64.ActiveCfg = Release|Any CPU
+		{075374DB-88F2-4D56-931C-A4232BE21359}.Release|x64.Build.0 = Release|Any CPU
+		{075374DB-88F2-4D56-931C-A4232BE21359}.Release|x86.ActiveCfg = Release|Any CPU
+		{075374DB-88F2-4D56-931C-A4232BE21359}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

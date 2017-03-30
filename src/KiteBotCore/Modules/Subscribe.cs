@@ -9,14 +9,12 @@ using Newtonsoft.Json;
 
 namespace KiteBotCore.Modules
 {
-    public class Subscribe : ModuleBase
+    public class Subscribe : ModuleBase //TODO: Decouple the module and the static service
     {
         private static string SubscriberFilePath => Directory.GetCurrentDirectory() + "/Content/subscriber.json";
 
         public static List<ulong> SubscriberList = File.Exists(SubscriberFilePath) ? JsonConvert.DeserializeObject<List<ulong>>(File.ReadAllText(SubscriberFilePath))
                 : new List<ulong>();
-
-        public static DiscordSocketClient Client = Program.Client;
 
         [Command("subscribe"), Alias("sub")]
         [Summary("Subscribes to livestream DMs")]
@@ -48,7 +46,7 @@ namespace KiteBotCore.Modules
             }
         }
 
-        internal static async Task PostLivestream(Result stream)
+        internal static async Task PostLivestream(Result stream, DiscordSocketClient client)
         {
             var title = stream.Title;
             var deck = stream.Deck;
@@ -58,7 +56,7 @@ namespace KiteBotCore.Modules
             {
                 try
                 {
-                    var channel = await Client.GetUser(user).CreateDMChannelAsync().ConfigureAwait(false);
+                    var channel = await client.GetUser(user).CreateDMChannelAsync().ConfigureAwait(false);
                     await channel.SendMessageAsync(title + ": " + deck + " is LIVE at <http://www.giantbomb.com/chat/> NOW, check it out!" +
                                                    Environment.NewLine + (image ?? "")).ConfigureAwait(false);
                 }

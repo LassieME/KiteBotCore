@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,14 +23,15 @@ namespace KiteBotCore
         private Chats _latestPromo;
         private bool _wasStreamRunning;
 
-        private static readonly DiscordSocketClient Client = Program.Client;
+        private readonly DiscordSocketClient _client;
         private static string IgnoreFilePath => Directory.GetCurrentDirectory() + "/Content/ignoredChannels.json";
         private static readonly List<string> IgnoreList = File.Exists(IgnoreFilePath) ? 
             JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(IgnoreFilePath))
             : new List<string>();
 
-        public LivestreamChecker(string gBapi, int streamRefresh, bool silentStartup)
+        public LivestreamChecker(DiscordSocketClient client, string gBapi, int streamRefresh, bool silentStartup)
         {
+            _client = client;
             if (gBapi.Length > 0)
             {
                 ApiCallUrl = $"http://www.giantbomb.com/api/chats/?api_key={gBapi}&format=json";
@@ -72,7 +74,7 @@ namespace KiteBotCore
         {
             try
             {
-                if (Program.Client.Guilds.Any())
+                if (_client.Guilds.Any())
                 {
                     try
                     {
@@ -84,7 +86,7 @@ namespace KiteBotCore
 
                         if (_wasStreamRunning == false && numberOfResults != 0 && stream != null)
                         {
-                            await Subscribe.PostLivestream(stream).ConfigureAwait(false);
+                            await Subscribe.PostLivestream(stream, _client).ConfigureAwait(false);
                             await UpdateTask(stream, postMessage).ConfigureAwait(false);
                             _wasStreamRunning = true;
                         }
@@ -104,7 +106,7 @@ namespace KiteBotCore
             catch (Exception ex)
             {
                 Console.WriteLine($"LivestreamChecker sucks: {ex} \n {ex.Message}");
-                var ownerDmChannel = await Program.Client.GetDMChannelAsync(85817630560108544).ConfigureAwait(false);
+                var ownerDmChannel = await _client.GetDMChannelAsync(85817630560108544).ConfigureAwait(false);
                 if (ownerDmChannel != null)
                     await ownerDmChannel.SendMessageAsync($"LivestreamChecker threw an {ex.GetType()}, check the logs").ConfigureAwait(false);
             }
@@ -112,13 +114,13 @@ namespace KiteBotCore
 
         private async Task UpdateTask(Result e, bool postMessage)
         {
-            var isGbServer = Client.Guilds.Any(x => x.Id == 106386929506873344);
+            var isGbServer = _client.Guilds.Any(x => x.Id == 106386929506873344);
             if (e != null)
             {
                 if (isGbServer)
                 {
                     const ulong channelId = 106390533974294528;
-                    SocketTextChannel channel = (SocketTextChannel)Client.GetChannel(channelId);
+                    SocketTextChannel channel = (SocketTextChannel)_client.GetChannel(channelId);
 
                     await channel.ModifyAsync(p =>
                     {
@@ -132,7 +134,7 @@ namespace KiteBotCore
                 else
                 {
                     const ulong channelId = 85842104034541568;
-                    SocketTextChannel channel = (SocketTextChannel)Client.GetChannel(channelId);
+                    SocketTextChannel channel = (SocketTextChannel)_client.GetChannel(channelId);
 
                     if (postMessage) await SendLivestreamMessageAsync(e, channel).ConfigureAwait(false);
                 }
@@ -142,7 +144,7 @@ namespace KiteBotCore
                 if (isGbServer)
                 {
                     const ulong channelId = 106390533974294528;
-                    SocketTextChannel channel = (SocketTextChannel)Client.GetChannel(channelId);
+                    SocketTextChannel channel = (SocketTextChannel)_client.GetChannel(channelId);
                     var nextLiveStream = (await UpcomingOn.DownloadUpcomingJson().ConfigureAwait(false)).Upcoming.FirstOrDefault(x => x.Type == "Live Show");
 
                     await channel.ModifyAsync(p =>
@@ -155,7 +157,7 @@ namespace KiteBotCore
                     if (postMessage)
                         await channel.SendMessageAsync(
                             "Show is over folks, if you need more Giant Bomb videos, check this out: " +
-                            await KiteChat.GetResponseUriFromRandomQlCrew()
+                            await GetResponseUriFromRandomQlCrew()
                             .ConfigureAwait(false))
                             .ConfigureAwait(false);
 
@@ -163,12 +165,12 @@ namespace KiteBotCore
                 else
                 {
                     const ulong channelId = 85842104034541568;
-                    SocketTextChannel channel = (SocketTextChannel)Client.GetChannel(channelId);
+                    SocketTextChannel channel = (SocketTextChannel)_client.GetChannel(channelId);
 
                     if (postMessage)
                         await channel.SendMessageAsync(
                             "Show is over folks, if you need more Giant Bomb videos, check this out: " +
-                            await KiteChat.GetResponseUriFromRandomQlCrew()
+                            await GetResponseUriFromRandomQlCrew()
                             .ConfigureAwait(false))
                             .ConfigureAwait(false);
                 }
@@ -229,6 +231,19 @@ namespace KiteBotCore
                 output += stream.ChannelName + Environment.NewLine;
             }
             return output;
+        }
+
+        public async Task<string> GetResponseUriFromRandomQlCrew()
+        {
+            string url = "http://qlcrew.com/main.php?anyone=anyone&inc%5B0%5D=&p=999&exc%5B0%5D=&per_page=15&random";
+
+            var request = (HttpWebRequest)WebRequest.Create(url);
+            if (request != null)
+            {
+                HttpWebResponse response = await request.GetResponseAsync() as HttpWebResponse;
+                return response?.ResponseUri.AbsoluteUri;
+            }
+            return "Couldn't load QLcrew's Random Link.";
         }
     }
 }

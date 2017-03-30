@@ -23,7 +23,7 @@ namespace KiteBotCore.Modules.Rank
 
         public async Task<DateTimeOffset> CheckUserJoinDate(IUser inputUser, IGuild guild)
         {
-            using (DiscordContext db = _discordFactory.Create(new DbContextFactoryOptions()))
+            using (KiteBotDbContext db = _discordFactory.Create(new DbContextFactoryOptions()))
             {
                 User user = await db.FindAsync<User>(inputUser.Id.ConvertToUncheckedLong()).ConfigureAwait(false);
 
@@ -35,7 +35,7 @@ namespace KiteBotCore.Modules.Rank
 
         internal async Task AddUser(SocketGuildUser userInput)
         {
-            using (DiscordContext db = _discordFactory.Create(new DbContextFactoryOptions()))
+            using (KiteBotDbContext db = _discordFactory.Create(new DbContextFactoryOptions()))
             {
                 Guild guild = await db.FindAsync<Guild>(userInput.Guild.Id.ConvertToUncheckedLong()).ConfigureAwait(false);
                 User user = await db.FindAsync<User>(userInput.Id.ConvertToUncheckedLong()).ConfigureAwait(false);
@@ -73,7 +73,7 @@ namespace KiteBotCore.Modules.Rank
             SocketGuildChannel messageChannel = (message.Channel as SocketGuildChannel);
             if (messageChannel != null)
             {
-                using (DiscordContext db = _discordFactory.Create(new DbContextFactoryOptions()))
+                using (KiteBotDbContext db = _discordFactory.Create(new DbContextFactoryOptions()))
                 {
                     await db.FindAsync<User>(message.Author.Id.ConvertToUncheckedLong()).ConfigureAwait(false);
                 }

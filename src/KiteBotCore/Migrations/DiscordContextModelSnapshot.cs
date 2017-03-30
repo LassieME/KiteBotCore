@@ -7,7 +7,7 @@ using KiteBotCore;
 
 namespace KiteBotCore.Migrations
 {
-    [DbContext(typeof(DiscordContext))]
+    [DbContext(typeof(KiteBotDbContext))]
     partial class DiscordContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

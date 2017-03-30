@@ -3,21 +3,23 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord.Commands;
+using KiteBotCore.Utils;
 
-namespace KiteBotCore.Modules.DiceRoller
+namespace KiteBotCore.Modules
 {
-	public class DiceRoller : ModuleBase
+    public class DiceRoller : ModuleBase
     {
-        public static CryptoRandom Random = new CryptoRandom();
+        public CryptoRandom Random { get; set; }
 
         [Command("roll")]
         [Alias("rolldice")]
         [Summary("rolls some dice, use 2d10 format")]
-        public async Task DiceRoll([Remainder]string text)
+        public async Task DiceRoll([Remainder] string text)
         {
-            Regex diceroll = new Regex(@"(?<dice>[0-9]+)d(?<sides>[0-9]+)(\+(?<constant>[0-9]+))?|d?(?<single>[0-9]+)");//roll 2d20+20
-            var matches = diceroll.Match(text);
-            int result = 0;
+            var diceroll = new Regex(
+                @"(?<dice>[0-9]+)d(?<sides>[0-9]+)(\+(?<constant>[0-9]+))?|d?(?<single>[0-9]+)"); //roll 2d20+20
+            Match matches = diceroll.Match(text);
+            var result = 0;
             try
             {
                 if (matches.Groups["dice"].Success && matches.Groups["sides"].Success)
@@ -26,19 +28,15 @@ namespace KiteBotCore.Modules.DiceRoller
                     int sides = int.Parse(matches.Groups["sides"].Value);
 
                     if (dice > 20)
-                    {
                         await ReplyAsync("Why are you doing this, too many dice.");
-                    }
 
-                    List<int> resultsHistory = new List<int>();
+                    var resultsHistory = new List<int>();
 
-                    for (int i = 0; i < dice; i++)
-                    {
+                    for (var i = 0; i < dice; i++)
                         resultsHistory.Add(Random.Next(1, sides));
-                    }
 
                     string resultsString = null;
-                    int counter = 0;
+                    var counter = 0;
                     foreach (int i in resultsHistory)
                     {
                         resultsString += i.ToString();
@@ -46,16 +44,14 @@ namespace KiteBotCore.Modules.DiceRoller
 
                         counter++;
                         if (counter < resultsHistory.Count)
-                        {
                             resultsString += " + ";
-                        }
                     }
 
                     resultsString += " = " + result;
                     if (matches.Groups["constant"].Success)
                     {
-                        var constant = int.Parse(matches.Groups["constant"].Value);
-                        await ReplyAsync(resultsString + $" + {constant} = {result+constant}");
+                        int constant = int.Parse(matches.Groups["constant"].Value);
+                        await ReplyAsync(resultsString + $" + {constant} = {result + constant}");
                     }
                     await ReplyAsync(resultsString);
                 }
@@ -67,7 +63,6 @@ namespace KiteBotCore.Modules.DiceRoller
                 {
                     await ReplyAsync("use the format 5d6, d6 or simply specify a positive integer");
                 }
-
             }
             catch (OverflowException)
             {

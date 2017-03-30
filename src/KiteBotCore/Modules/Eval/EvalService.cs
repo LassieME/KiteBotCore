@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Scripting;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Scripting;
 using System.Threading;
+using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
 
 namespace KiteBotCore.Modules.Eval
 {
@@ -29,11 +28,11 @@ namespace KiteBotCore.Modules.Eval
             "KiteBotCore"
         };
 
-        private readonly ScriptOptions _options;
-        private readonly CancellationTokenSource _token;
         private readonly DiscordSocketClient _client;
         private readonly CommandHandler _handler;
-        public void PopToken() => _token.Cancel();
+
+        private readonly ScriptOptions _options;
+        private readonly CancellationTokenSource _token;
 
         public EvalService(IDependencyMap map)
         {
@@ -45,21 +44,29 @@ namespace KiteBotCore.Modules.Eval
             _handler = map.Get<CommandHandler>();
         }
 
+        public void PopToken()
+        {
+            _token.Cancel();
+        }
+
         public async Task Evaluate(CommandContext context, string script)
         {
             using (context.Channel.EnterTypingState())
             {
-                var working = await context.Channel.SendMessageAsync("**Evaluating**, just a sec...").ConfigureAwait(false);
-                ScriptGlobals globals = new ScriptGlobals
+                IUserMessage working = await context.Channel.SendMessageAsync("**Evaluating**, just a sec...")
+                    .ConfigureAwait(false);
+                var globals = new ScriptGlobals
                 {
                     handler = _handler,
                     client = _client,
-                    context = context,
+                    context = context
                 };
                 script = script.Trim('`');
                 try
                 {
-                    var eval = await CSharpScript.EvaluateAsync(script, _options, globals, cancellationToken: _token.Token).ConfigureAwait(false);
+                    object eval = await CSharpScript
+                        .EvaluateAsync(script, _options, globals, cancellationToken: _token.Token)
+                        .ConfigureAwait(false);
                     await working.ModifyAsync(x => x.Content = eval.ToString()).ConfigureAwait(false);
                 }
                 catch (Exception e)
@@ -71,10 +78,10 @@ namespace KiteBotCore.Modules.Eval
 
         public IEnumerable<Assembly> GetAssemblies()
         {
-            var assemblies = Assembly.GetEntryAssembly().GetReferencedAssemblies();
-            foreach (var a in assemblies)
+            AssemblyName[] assemblies = Assembly.GetEntryAssembly().GetReferencedAssemblies();
+            foreach (AssemblyName a in assemblies)
             {
-                var asm = Assembly.Load(a);
+                Assembly asm = Assembly.Load(a);
                 yield return asm;
             }
             yield return Assembly.GetEntryAssembly();

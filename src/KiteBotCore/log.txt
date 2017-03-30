@@ -1,0 +1,112 @@
+2017-03-28 04:18:51.104 +02:00 [Warning] Are you sure you shouldn't be using the --silent argument?
+2017-03-28 04:18:52.007 +02:00 [Information] "Discord" "Discord.Net v1.0.0-rc-dev (API v6)" null
+2017-03-28 04:18:52.465 +02:00 [Information] "Gateway" "Connecting" null
+2017-03-28 04:18:53.274 +02:00 [Information] "Gateway" "Connected" null
+2017-03-28 04:18:53.765 +02:00 [Information] "Gateway" "Ready" null
+2017-03-28 04:18:54.581 +02:00 [Information] 1254 ms
+2017-03-28 04:18:57.098 +02:00 [Information] Ready: "Kite Co."
+2017-03-28 04:18:57.356 +02:00 [Warning] "Gateway" null "System.Exception: WebSocket connection was closed ---> System.Net.Http.WinHttpException: Tilkoblingen til serveren ble brutt på en unormal måte
+   at System.Net.WebSockets.WinHttpWebSocket.InternalReceiveAsync(ArraySegment`1 buffer)
+   at System.Net.WebSockets.WinHttpWebSocket.<ReceiveAsync>d__27.MoveNext()
+--- End of stack trace from previous location where exception was thrown ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()
+   at Discord.Net.WebSockets.DefaultWebSocketClient.<RunAsync>d__32.MoveNext() in C:\Users\sindr\Source\Repos\Discord.NetMine3\src\Discord.Net.WebSocket\Net\DefaultWebSocketClient.cs:line 186
+   --- End of inner exception stack trace ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()
+   at Discord.ConnectionManager.<>c__DisplayClass30_0.<<StartAsync>b__0>d.MoveNext() in C:\Users\sindr\Source\Repos\Discord.NetMine3\src\Discord.Net.WebSocket\ConnectionManager.cs:line 73"
+2017-03-28 04:18:57.359 +02:00 [Information] "Gateway" "Disconnecting" null
+2017-03-28 04:18:57.363 +02:00 [Information] "Gateway" "Disconnected" null
+2017-03-28 04:18:58.365 +02:00 [Information] "Gateway" "Connecting" null
+2017-03-28 04:18:58.864 +02:00 [Information] "Gateway" "Connected" null
+2017-03-28 04:18:58.995 +02:00 [Information] 131 ms
+2017-03-28 04:19:01.286 +02:00 [Information] Ready: "Kite Co."
+2017-03-28 04:19:01.287 +02:00 [Information] "Gateway" "Resumed previous session" null
+2017-03-29 15:12:31.385 +02:00 [Warning] Are you sure you shouldn't be using the --silent argument?
+2017-03-29 15:12:32.072 +02:00 [Information] "Discord" "Discord.Net v1.0.0-rc-dev (API v6)" null
+2017-03-29 15:12:32.559 +02:00 [Information] "Gateway" "Connecting" null
+2017-03-29 15:12:33.378 +02:00 [Information] "Gateway" "Connected" null
+2017-03-29 15:12:33.870 +02:00 [Information] "Gateway" "Ready" null
+2017-03-29 15:12:34.753 +02:00 [Information] 1324 ms
+2017-03-29 15:13:56.782 +02:00 [Warning] "Gateway" null "System.Exception: Server missed last heartbeat
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()
+   at Discord.ConnectionManager.<>c__DisplayClass30_0.<<StartAsync>b__0>d.MoveNext() in C:\Users\sindr\Source\Repos\Discord.NetMine3\src\Discord.Net.WebSocket\ConnectionManager.cs:line 73"
+2017-03-29 15:13:56.783 +02:00 [Information] "Gateway" "Disconnecting" null
+2017-03-29 15:13:57.920 +02:00 [Information] Ready: "Kite Co."
+2017-03-29 15:13:57.928 +02:00 [Information] "Gateway" "Disconnected" null
+2017-03-29 15:13:58.931 +02:00 [Information] "Gateway" "Connecting" null
+2017-03-29 15:13:59.447 +02:00 [Warning] "Gateway" "Failed to resume previous session" null
+2017-03-29 15:13:59.613 +02:00 [Information] "Gateway" "Connected" null
+2017-03-29 15:13:59.746 +02:00 [Information] 131 ms
+2017-03-29 15:14:00.115 +02:00 [Information] "Gateway" "Ready" null
+2017-03-29 15:14:02.140 +02:00 [Information] Ready: "Kite Co."
+2017-03-29 15:18:14.726 +02:00 [Warning] Are you sure you shouldn't be using the --silent argument?
+2017-03-29 15:18:15.249 +02:00 [Information] "Discord" "Discord.Net v1.0.0-rc-dev (API v6)" null
+2017-03-29 15:18:15.671 +02:00 [Information] "Gateway" "Connecting" null
+2017-03-29 15:18:16.453 +02:00 [Information] "Gateway" "Connected" null
+2017-03-29 15:18:16.947 +02:00 [Information] "Gateway" "Ready" null
+2017-03-29 15:18:17.698 +02:00 [Information] 1193 ms
+2017-03-29 15:18:19.715 +02:00 [Information] Ready: "Kite Co."
+2017-03-29 19:24:11.588 +02:00 [Warning] Are you sure you shouldn't be using the --silent argument?
+2017-03-29 19:24:12.211 +02:00 [Information] "Discord" "Discord.Net v1.0.0-rc-dev (API v6)" null
+2017-03-29 19:24:12.639 +02:00 [Information] "Gateway" "Connecting" null
+2017-03-29 19:24:13.432 +02:00 [Information] "Gateway" "Connected" null
+2017-03-29 19:24:13.925 +02:00 [Information] "Gateway" "Ready" null
+2017-03-29 19:24:14.634 +02:00 [Information] 1157 ms
+2017-03-29 19:24:20.101 +02:00 [Information] Ready: "Kite Co."
+2017-03-30 20:07:06.689 +02:00 [Warning] Are you sure you shouldn't be using the --silent argument?
+2017-03-30 20:07:07.394 +02:00 [Information] "Discord" "Discord.Net v1.0.0-rc-dev (API v6)" null
+2017-03-30 20:07:07.883 +02:00 [Information] "Gateway" "Connecting" null
+2017-03-30 20:07:08.821 +02:00 [Information] "Gateway" "Connected" null
+2017-03-30 20:07:09.314 +02:00 [Information] "Gateway" "Ready" null
+2017-03-30 20:07:10.145 +02:00 [Information] 1278 ms
+2017-03-30 20:08:38.334 +02:00 [Warning] "Gateway" null "System.Exception: Server missed last heartbeat
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   at Discord.ConnectionManager.<>c__DisplayClass30_0.<<StartAsync>b__0>d.MoveNext() in C:\Users\sindr\Source\Repos\Discord.NetMine3\src\Discord.Net.WebSocket\ConnectionManager.cs:line 73"
+2017-03-30 20:08:38.336 +02:00 [Information] "Gateway" "Disconnecting" null
+2017-03-30 20:08:55.428 +02:00 [Warning] Are you sure you shouldn't be using the --silent argument?
+2017-03-30 20:08:55.934 +02:00 [Information] "Discord" "Discord.Net v1.0.0-rc-dev (API v6)" null
+2017-03-30 20:08:56.403 +02:00 [Information] "Gateway" "Connecting" null
+2017-03-30 20:08:57.080 +02:00 [Information] "Gateway" "Connected" null
+2017-03-30 20:08:57.574 +02:00 [Information] "Gateway" "Ready" null
+2017-03-30 20:08:58.288 +02:00 [Information] 1161 ms
+2017-03-30 20:10:19.841 +02:00 [Warning] "Gateway" null "System.Exception: Server missed last heartbeat
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   at Discord.ConnectionManager.<>c__DisplayClass30_0.<<StartAsync>b__0>d.MoveNext() in C:\Users\sindr\Source\Repos\Discord.NetMine3\src\Discord.Net.WebSocket\ConnectionManager.cs:line 73"
+2017-03-30 20:10:19.843 +02:00 [Information] "Gateway" "Disconnecting" null
+2017-03-30 20:10:31.653 +02:00 [Information] Ready: "Kite Co."
+2017-03-30 20:10:31.662 +02:00 [Information] "Gateway" "Disconnected" null
+2017-03-30 20:10:32.665 +02:00 [Information] "Gateway" "Connecting" null
+2017-03-30 20:10:33.222 +02:00 [Warning] "Gateway" "Failed to resume previous session" null
+2017-03-30 20:10:33.375 +02:00 [Information] "Gateway" "Connected" null
+2017-03-30 20:10:33.511 +02:00 [Information] 129 ms
+2017-03-30 20:10:33.876 +02:00 [Information] "Gateway" "Ready" null
+2017-03-30 20:10:35.616 +02:00 [Information] Ready: "Kite Co."
+2017-03-30 20:14:37.761 +02:00 [Warning] Are you sure you shouldn't be using the --silent argument?
+2017-03-30 20:14:38.233 +02:00 [Information] "Discord" "Discord.Net v1.0.0-rc-dev (API v6)" null
+2017-03-30 20:14:38.671 +02:00 [Information] "Gateway" "Connecting" null
+2017-03-30 20:14:39.504 +02:00 [Information] "Gateway" "Connected" null
+2017-03-30 20:14:39.997 +02:00 [Information] "Gateway" "Ready" null
+2017-03-30 20:14:40.700 +02:00 [Information] 1151 ms
+2017-03-30 20:14:43.330 +02:00 [Information] Ready: "Kite Co."
+2017-03-30 20:18:31.512 +02:00 [Warning] Are you sure you shouldn't be using the --silent argument?
+2017-03-30 20:18:31.996 +02:00 [Information] "Discord" "Discord.Net v1.0.0-rc-dev (API v6)" null
+2017-03-30 20:18:32.311 +02:00 [Information] "Gateway" "Connecting" null
+2017-03-30 20:18:32.988 +02:00 [Information] "Gateway" "Connected" null
+2017-03-30 20:18:33.481 +02:00 [Information] "Gateway" "Ready" null
+2017-03-30 20:18:34.176 +02:00 [Information] 1142 ms
+2017-03-30 20:18:36.689 +02:00 [Information] Ready: "Kite Co."
+2017-03-30 20:24:17.750 +02:00 [Warning] Are you sure you shouldn't be using the --silent argument?
+2017-03-30 20:24:18.241 +02:00 [Information] "Discord" "Discord.Net v1.0.0-rc-dev (API v6)" null
+2017-03-30 20:24:18.687 +02:00 [Information] "Gateway" "Connecting" null
+2017-03-30 20:24:19.505 +02:00 [Information] "Gateway" "Connected" null
+2017-03-30 20:24:19.998 +02:00 [Information] "Gateway" "Ready" null
+2017-03-30 20:24:20.729 +02:00 [Information] 1177 ms
+2017-03-30 20:24:23.082 +02:00 [Information] Ready: "Kite Co."

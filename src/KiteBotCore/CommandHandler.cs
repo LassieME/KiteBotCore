@@ -39,6 +39,8 @@ namespace KiteBotCore
             var message = parameterMessage as SocketUserMessage;
             if (message == null) return;
             if (message.Author.IsBot) return;
+            if (message.Author is SocketSimpleUser)
+                return;
 
             // Mark where the prefix ends and the command begins
             int argPos = 0;

@@ -13,14 +13,14 @@ using Newtonsoft.Json;
 
 namespace KiteBotCore
 {
-    public class DiscordContextFactory : IDbContextFactory<DiscordContext>
+    public class DiscordContextFactory : IDbContextFactory<KiteBotDbContext>
     {
         //This is needed while doing Database migrations and updates
         private static string SettingsPath => Directory.GetCurrentDirectory().Replace(@"\bin\Debug\netcoreapp1.1\","") + "/Content/settings.json";
-        public DiscordContext Create(DbContextFactoryOptions options)
+        public KiteBotDbContext Create(DbContextFactoryOptions options)
         {
             var settings = JsonConvert.DeserializeObject<BotSettings>(File.ReadAllText(SettingsPath));
-            return new DiscordContext(settings.DatabaseConnectionString);
+            return new KiteBotDbContext(settings.DatabaseConnectionString);
         }
     }
 
@@ -127,7 +127,7 @@ namespace KiteBotCore
         }
     }
 
-    public class DiscordContext : DbContext
+    public class KiteBotDbContext : DbContext
     {
         public DbSet<User> Users { get; set; }
         public DbSet<Guild> Guilds { get; set; }
@@ -135,7 +135,7 @@ namespace KiteBotCore
         public DbSet<Message> Messages { get; set; }
         private string ConnectionString { get; }
 
-        public DiscordContext(string settingsDatabaseConnectionString)
+        public KiteBotDbContext(string settingsDatabaseConnectionString)
         {
             ConnectionString = settingsDatabaseConnectionString;
         }

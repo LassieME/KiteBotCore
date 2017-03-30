@@ -39,8 +39,8 @@ namespace KiteBotCore
             YoutubeModuleService.Init(ytApi, client);
             ReminderService.Init();
 
-            if (streamRefresh > 3000) StreamChecker = new LivestreamChecker(gBapi, streamRefresh, silentStartup);
-            if (videoRefresh > 3000) GbVideoChecker = new GiantBombVideoChecker(gBapi, videoRefresh);
+            if (streamRefresh > 3000) StreamChecker = new LivestreamChecker(client, gBapi, streamRefresh, silentStartup);
+            if (videoRefresh > 3000) GbVideoChecker = new GiantBombVideoChecker(client, gBapi, videoRefresh);
             if (StartMarkovChain && depth > 0)MultiDeepMarkovChains = new MultiTextMarkovChainHelper(client, db, depth);
         }
 
@@ -96,19 +96,6 @@ namespace KiteBotCore
                 }
             }
         }
-
-        public static async Task<string> GetResponseUriFromRandomQlCrew()
-		{
-            string url = "http://qlcrew.com/main.php?anyone=anyone&inc%5B0%5D=&p=999&exc%5B0%5D=&per_page=15&random";
-
-		    HttpWebRequest request = WebRequest.Create(url) as HttpWebRequest;
-            if (request != null)
-            {
-                HttpWebResponse response = await request.GetResponseAsync() as HttpWebResponse;
-                return response?.ResponseUri.AbsoluteUri;
-            }
-            return "Couldn't load QLcrew's Random Link.";
-		}
         
         //returns a greeting from the greetings.txt list on a per user or generic basis
 	    private string ParseGreeting(string userName)
@@ -137,41 +124,5 @@ namespace KiteBotCore
 	        //return a random response from the context provided, replacing the string "USER" with the appropriate username
 	        return possibleResponses[RandomSeed.Next(0, possibleResponses.Count)].Replace("USER", userName);
         }
-
-        //grabs random greetings for user bekenel from a reddit profile
-		//private async Task<bool> LoadBekGreetingsAsync()
-		//{
-		//	const string url = "https://www.reddit.com/user/UWotM8_SS";
-		//	string htmlCode = null;
-		//    try
-		//    {
-		//        using (HttpClient client = new HttpClient())
-		//        {
-		//            htmlCode = await client.GetStringAsync(url);
-		//        }
-		//    }
-		//    catch (Exception e)
-		//    {
-		//        Console.WriteLine("Could not load Bek greetings, server not found: " + e.Message);
-		//    }
-		//    finally
-		//    {
-		//        var regex1 = new Regex(@"<div class=""md""><p>(?<quote>.+)</p>");
-		//        if (htmlCode != null)
-		//        {
-		//            var matches = regex1.Matches(htmlCode);
-		//            var stringArray = new string[matches.Count];
-		//            var i = 0;
-		//            foreach (Match match in matches)
-		//            {
-		//                var s = match.Groups["quote"].Value.Replace("&#39;", "'").Replace("&quot;", "\"");
-		//                stringArray[i] = s;
-		//                i++;
-		//            }
-		//            _bekGreetings = stringArray;
-        //        }
-		//    }
-        //    return true;
-        //}
     }
 }

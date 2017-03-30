@@ -8,7 +8,7 @@ using Discord.WebSocket;
 
 namespace KiteBotCore.Modules
 {
-    public static class FollowUpService
+    public static class FollowUpService //TODO: Make this non-static
     {
         private static readonly List<FollowUp> FollowUps = new List<FollowUp>();
 

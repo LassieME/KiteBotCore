@@ -11,7 +11,6 @@ using System.Globalization;
 using System.Net.Http;
 using System.IO;
 using System.Text;
-using Discord.Rest;
 using Newtonsoft.Json;
 
 namespace KiteBotCore.Modules

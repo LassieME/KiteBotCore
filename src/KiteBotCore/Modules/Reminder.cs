@@ -83,7 +83,7 @@ namespace KiteBotCore.Modules
         }
     }
 
-    public static class ReminderService
+    public static class ReminderService //TODO: Make this non-static
     {
         public static string RootDirectory = Directory.GetCurrentDirectory();
         public static string ReminderPath => RootDirectory + "/Content/ReminderList.json";

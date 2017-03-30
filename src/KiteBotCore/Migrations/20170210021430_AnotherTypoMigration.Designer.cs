@@ -7,7 +7,7 @@ using KiteBotCore;
 
 namespace KiteBotCore.Migrations
 {
-    [DbContext(typeof(DiscordContext))]
+    [DbContext(typeof(KiteBotDbContext))]
     [Migration("20170210021430_AnotherTypoMigration")]
     partial class AnotherTypoMigration
     {

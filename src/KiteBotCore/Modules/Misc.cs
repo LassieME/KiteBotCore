@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -28,7 +29,20 @@ namespace KiteBotCore.Modules
         [Summary("Posts a random quick look.")]
         public async Task Command()
         {
-            await ReplyAsync(await KiteChat.GetResponseUriFromRandomQlCrew().ConfigureAwait(false)).ConfigureAwait(false);
+            await ReplyAsync(await GetResponseUriFromRandomQlCrew().ConfigureAwait(false)).ConfigureAwait(false);
+        }
+
+        public async Task<string> GetResponseUriFromRandomQlCrew()
+        {
+            string url = "http://qlcrew.com/main.php?anyone=anyone&inc%5B0%5D=&p=999&exc%5B0%5D=&per_page=15&random";
+
+            var request = (HttpWebRequest)WebRequest.Create(url);
+            if (request != null)
+            {
+                HttpWebResponse response = await request.GetResponseAsync() as HttpWebResponse;
+                return response?.ResponseUri.AbsoluteUri;
+            }
+            return "Couldn't load QLcrew's Random Link.";
         }
     }
 }

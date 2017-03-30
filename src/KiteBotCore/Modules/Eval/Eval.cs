@@ -5,19 +5,14 @@ namespace KiteBotCore.Modules.Eval
 {
     public class Eval : ModuleBase
     {
-        private readonly IDependencyMap _map;
-
-        public Eval(IDependencyMap map)
-        {
-            _map = map;
-        }
+        public IDependencyMap Map { get; set; }
 
         [Command("eval", RunMode = RunMode.Sync)]
         [Summary("evaluates C# script")]
         [RequireOwner]
         public async Task EvalCommand([Remainder]string script)
         {
-            var evalService = new EvalService(_map);
+            var evalService = new EvalService(Map);
             var scriptTask = evalService.Evaluate(Context, script);
             await Task.Delay(10000).ConfigureAwait(false);
             if (!scriptTask.IsCompleted) evalService.PopToken();

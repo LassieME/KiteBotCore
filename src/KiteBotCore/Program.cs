@@ -7,6 +7,8 @@ using Discord.Commands;
 using Discord.WebSocket;
 using KiteBotCore.Json;
 using KiteBotCore.Modules;
+using KiteBotCore.Utils;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -24,16 +26,14 @@ namespace KiteBotCore
         private static string SettingsPath => Directory.GetCurrentDirectory() + "/Content/settings.json";
 
         // ReSharper disable once UnusedMember.Local
-        private static void Main(string[] args)
-        {
-            MainAsync(args).GetAwaiter().GetResult();
-        }
+        private static void Main(string[] args) => MainAsync(args).GetAwaiter().GetResult();
 
         public static async Task MainAsync(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
+                .WriteTo.Async(a => a.File("log.txt").MinimumLevel.Information())
                 .WriteTo.LiterateConsole()
-                .MinimumLevel.Debug()
+                .MinimumLevel.Verbose()
                 .CreateLogger();
 
             if (args.Length != 0 && (args[0].Contains("--silent") || args[0].Contains("-s")))
@@ -143,6 +143,19 @@ namespace KiteBotCore
                     }
                 }
             };
+            int connections = 0;
+            Client.Connected += () =>
+            {
+                Console.WriteLine($"Connected for the {connections++} time.");
+                return Task.CompletedTask;
+            };
+
+            int disconnections = 0;
+            Client.Disconnected += (exception) =>
+            {
+                Console.WriteLine($"Disconnected for the {disconnections++} time.");
+                return Task.CompletedTask;
+            };
 
             Console.WriteLine("LoginAsync");
             await Client.LoginAsync(TokenType.Bot, _settings.DiscordToken).ConfigureAwait(false);
@@ -155,8 +168,10 @@ namespace KiteBotCore
             map.Add(_settings);
             map.Add(_kiteChat);
             map.Add(_handler);
-            map.Add(_dbFactory);
+            map.AddFactory(() => _dbFactory.Create(new DbContextFactoryOptions()));
             map.Add(new AnimeManga.SearchHelper(_settings.AnilistId, _settings.AnilistSecret));
+            map.Add(new Random());
+            map.Add(new CryptoRandom());
 
             await _handler.InstallAsync(map).ConfigureAwait(false);
             await Task.Delay(-1).ConfigureAwait(false);

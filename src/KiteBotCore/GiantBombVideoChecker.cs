@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
+using Discord.WebSocket;
 using KiteBotCore.Json.GiantBomb.Promos;
 using Newtonsoft.Json;
 using Serilog;
@@ -19,13 +20,15 @@ namespace KiteBotCore
 		private static Timer _chatTimer;//Garbage collection doesnt like local variables that only fire a couple times per hour.
         private DateTime _lastPublishTime;
         private bool _firstTime = true;
+	    private readonly DiscordSocketClient _client;
 
-        public GiantBombVideoChecker(string GBapi,int videoRefresh)
+        public GiantBombVideoChecker(DiscordSocketClient client, string GbAPI,int videoRefresh)
         {
-            if (GBapi.Length > 0)
+            _client = client;
+            if (GbAPI.Length > 0)
             {
                 ApiCallUrl =
-                    $"http://www.giantbomb.com/api/promos/?api_key={GBapi}&field_list=name,deck,date_added,link,user&format=json";
+                    $"http://www.giantbomb.com/api/promos/?api_key={GbAPI}&field_list=name,deck,date_added,link,user&format=json";
                 RefreshRate = videoRefresh;
                 _chatTimer = new Timer(RefreshVideosApi, null, videoRefresh, videoRefresh);
 
@@ -80,7 +83,7 @@ namespace KiteBotCore
                         var user = item.User;
                         _lastPublishTime = newPublishTime;
 
-                        ITextChannel channel = (ITextChannel) Program.Client.GetChannel(85842104034541568);
+                        ITextChannel channel = (ITextChannel) _client.GetChannel(85842104034541568);
                         await channel.SendMessageAsync(title + ": " + deck + Environment.NewLine + "by: " + user +
                                                        Environment.NewLine + link).ConfigureAwait(false);
                     }

@@ -4,27 +4,12 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using System.Runtime.InteropServices;
-using System.Diagnostics;
-using System.Globalization;
-using System.Net.Http;
-using System.Security.Cryptography.X509Certificates;
-using Discord.API;
 
 namespace KiteBotCore.Modules
 {
     [Group("inspect")]
-    public class Inspect : ModuleBase
+    public class Inspect : ModuleBase //TODO: Either expand this via more commands, or make one command that uses reflection to find properties
     {
-        private readonly CommandService _handler;
-        private readonly IDependencyMap _map;
-
-        public Inspect(IDependencyMap map)
-        {
-            _handler = map.Get<CommandService>();
-            _map = map;
-        }
-
         [Command("role")]        
         [Summary("Lists properties of a given role")]
         [RequireOwner]

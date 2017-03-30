@@ -28,7 +28,7 @@ namespace KiteBotCore.Modules
         }
     }
 
-    public static class WhoIsService
+    public static class WhoIsService //TODO: Move to a guild based solution
     {
         internal static string ChatDirectory = Directory.GetCurrentDirectory();
         internal static string WhoIsLocation = ChatDirectory + "/Content/Whois.json";

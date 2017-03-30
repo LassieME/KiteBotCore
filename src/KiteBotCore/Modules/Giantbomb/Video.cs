@@ -14,20 +14,15 @@ using Serilog;
 
 namespace KiteBotCore.Modules.Giantbomb
 {
-    public class Video : ModuleBase
+    public class Video : ModuleBase //TODO: Make this entire thing not shit(static)
     {
         private static Dictionary<int, Result> _allVideos;
         private static string _apiCallUrl;
-        private readonly IDependencyMap _map;
         private static bool _isReady = false;
+        public IDependencyMap Map { get; set; }
+        public Random Random { get; set; }
 
         public static string JsonVideoFileLocation => Directory.GetCurrentDirectory() + "/Content/videos.json";
-
-        public Video(IDependencyMap map)//TODO: Make this entire thing not shit(static)
-        {
-            _map = map;
-            Console.WriteLine($"{((Func<string>) (() => { Console.WriteLine("hello"); return "world"; })).Invoke()}");
-        }
 
         internal static async Task InitializeTask(string apiKey)
         {
@@ -80,12 +75,7 @@ namespace KiteBotCore.Modules.Giantbomb
             int i = 1;
 
             string reply = "Which of these videos did you mean?" + Environment.NewLine;
-            //foreach (
-            //    Result video in _allVideos.Values.OrderBy(x => x.Name.LevenshteinDistance(videoTitle)).Take(5))
-            //{
-            //    dict.Add(i.ToString(), Tuple.Create("", video.ToEmbed()));
-            //    reply += $"{i++}. {video.Name} {Environment.NewLine}";
-            //}
+
             string videoTitleToLower = videoTitle.ToLower();
             foreach (
                 Result video in _allVideos.Values.OrderByDescending(x => x.Name.ToLower().LongestCommonSubstring(videoTitleToLower).Length).Take(20).OrderBy(x => x.Name.LevenshteinDistance(videoTitle)).Take(10))
@@ -96,8 +86,21 @@ namespace KiteBotCore.Modules.Giantbomb
             var messageToEdit =
                 await ReplyAsync(reply +
                                  "Just type the number you want, this command will self-destruct in 2 minutes if no action is taken.");
-            FollowUpService.AddNewFollowUp(new FollowUp(_map, dict, Context.User.Id, Context.Channel.Id,
+            FollowUpService.AddNewFollowUp(new FollowUp(Map, dict, Context.User.Id, Context.Channel.Id,
                 messageToEdit));
+        }
+
+        [Command("randomvideo", RunMode = RunMode.Async), Ratelimit(4, 1, Measure.Minutes)]
+        [Summary("Searches through GB videos for the 5 closest matches to the query")]
+        public async Task RandomVideoCommand()
+        {
+            if (!_isReady)
+            {
+                await ReplyAsync("Bot has not finished downloading all videos yet.");
+                return;
+            }
+            
+            await ReplyAsync(_allVideos.Values.ToArray()[Random.Next(_allVideos.Count)].SiteDetailUrl);
         }
 
         private static async Task<Videos> GetVideosEndpoint(int offset, int retry)
@@ -125,6 +128,7 @@ namespace KiteBotCore.Modules.Giantbomb
         }
 
         private static readonly SemaphoreSlim RateLimit = new SemaphoreSlim(1, 1);
+
         private static async Task StartRatelimit()
         {
             await Task.Delay(1000);
