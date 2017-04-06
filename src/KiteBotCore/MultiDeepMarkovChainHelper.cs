@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using KiteBotCore.Json;
-using MarkovChain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using MarkovSharp.TokenisationStrategies;
@@ -83,9 +82,22 @@ namespace KiteBotCore
                             var list =
                                 new List<IMessage>(await GetMessagesFromChannelAsync(guilds.FirstOrDefault().Id, 1000));
                             _semaphore.Release();
+
+                            var dbGuilds = await _db.Guilds
+                                .Include(g => g.Channels)
+                                .Include(g => g.Users)
+                                .ToListAsync();
+
+                            List<Channel> channels = new List<Channel>();
+                            List<User > users = new List<User>();
+                            foreach (var guild in dbGuilds)
+                            {
+                                channels.AddRange(guild.Channels);
+                                users.AddRange(guild.Users);
+                            }
+                            
                             foreach (IMessage message in list)
-                                if (!string.IsNullOrWhiteSpace(message?.Content))
-                                    await FeedMarkovChain(message);
+                                    await FeedMarkovChain(message, channels, users);
                         }
                         catch (Exception ex)
                         {
@@ -122,7 +134,7 @@ namespace KiteBotCore
             return "I'm not ready yet Senpai!";
         }
 
-        private async Task FeedMarkovChain(IMessage message)
+        private async Task FeedMarkovChain(IMessage message, List<Channel> channels = null, List<User> users = null)
         {
             if (!message.Author.IsBot)
                 if (!string.IsNullOrWhiteSpace(message.Content) && !message.Content.Contains("http") &&
@@ -137,9 +149,14 @@ namespace KiteBotCore
 
                     try
                     {
-                        var channel = await _db.Channels.FirstAsync(x => x.Id == message.Channel.Id).ConfigureAwait(false);
-                        var user = await _db.Users.FirstAsync(x => x.Id == message.Author.Id).ConfigureAwait(false);
-                        //var channel = await channelTask.ConfigureAwait(false);
+                        Channel channel = channels == null
+                            ? await _db.Channels.FirstAsync(x => x.Id == message.Channel.Id)
+                                .ConfigureAwait(false)
+                            : channels.Find(x => x.Id == message.Channel.Id);
+
+                        User user = users == null
+                            ? await _db.Users.FirstAsync(x => x.Id == message.Author.Id).ConfigureAwait(false)
+                            : users.Find(x => x.Id == message.Author.Id);
 
                         var entityMessage = new Message
                         {

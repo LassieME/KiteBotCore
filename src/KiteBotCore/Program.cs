@@ -44,7 +44,8 @@ namespace KiteBotCore
             Client = new DiscordSocketClient(new DiscordSocketConfig
             {
                 LogLevel = LogSeverity.Verbose,
-                MessageCacheSize = 0
+                MessageCacheSize = 0,
+                HandlerTimeout = 1000
             });
 
             _settings = File.Exists(SettingsPath)
@@ -91,10 +92,7 @@ namespace KiteBotCore
                 sw.Start();
                 await _dbFactory.SyncGuild(server).ConfigureAwait(false);
                 sw.Stop();
-                Log.Information("{sw} ms", sw.ElapsedMilliseconds);
-                await _kiteChat.InitializeMarkovChainAsync().ConfigureAwait(false);
-
-                Log.Information("Ready: {Done}", server.Name);
+                Log.Information("GuildAvailible: {Done},({sw} ms)", server.Name, sw.ElapsedMilliseconds);
             };
 
             Client.JoinedGuild += server =>
@@ -162,18 +160,32 @@ namespace KiteBotCore
             Console.WriteLine("ConnectAsync");
             await Client.StartAsync().ConfigureAwait(false);
 
-            var map = new DependencyMap();
-            _handler = new CommandHandler();
-            map.Add(Client);
-            map.Add(_settings);
-            map.Add(_kiteChat);
-            map.Add(_handler);
-            map.AddFactory(() => _dbFactory.Create(new DbContextFactoryOptions()));
-            map.Add(new AnimeManga.SearchHelper(_settings.AnilistId, _settings.AnilistSecret));
-            map.Add(new Random());
-            map.Add(new CryptoRandom());
+            Client.Ready += async () =>
+            {
+                var map = new DependencyMap();
+                _handler = new CommandHandler();
+                map.Add(Client);
+                map.Add(_settings);
+                map.Add(_kiteChat);
+                map.Add(_handler);
+                map.AddFactory(() => _dbFactory.Create(new DbContextFactoryOptions()));
+                map.Add(new AnimeManga.SearchHelper(_settings.AnilistId, _settings.AnilistSecret));
+                map.Add(new Random());
+                map.Add(new CryptoRandom());
 
-            await _handler.InstallAsync(map).ConfigureAwait(false);
+                await _handler.InstallAsync(map).ConfigureAwait(false);
+
+                var initTask = TryRun(async () =>
+                {
+                    var sw = new Stopwatch();
+                    sw.Start();
+                    await _kiteChat.InitializeMarkovChainAsync();
+                    sw.Stop();
+                    Log.Information("Initialize Markov Chain: Done,({sw} ms)", sw.ElapsedMilliseconds);
+                });
+                Log.Information("Ready: Done");
+            };
+
             await Task.Delay(-1).ConfigureAwait(false);
         }
 
@@ -182,26 +194,56 @@ namespace KiteBotCore
             switch (msg.Severity)
             {
                 case LogSeverity.Critical:
-                    Log.Fatal("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString());
+                    Log.Fatal("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString() ?? "");
                     break;
                 case LogSeverity.Error:
-                    Log.Error("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString());
+                    Log.Error("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString() ?? "");
                     break;
                 case LogSeverity.Warning:
-                    Log.Warning("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString());
+                    Log.Warning("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString() ?? "");
                     break;
                 case LogSeverity.Info:
                     Log.Information("{Source} {Message} {Exception}", msg.Source, msg.Message,
                         msg.Exception?.ToString());
                     break;
                 case LogSeverity.Verbose: //Verbose and Debug are switched between Serilog and Discord.Net
-                    Log.Debug("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString());
+                    Log.Debug("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString() ?? "");
                     break;
                 case LogSeverity.Debug:
-                    Log.Verbose("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString());
+                    Log.Verbose("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString() ?? "");
                     break;
             }
             return Task.CompletedTask;
+        }
+
+        public static Task TryRun(Action action)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    action();
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, ex.Message);
+                }
+            });
+        }
+
+        public static Task TryRun(Func<Task> function)
+        {
+            return Task.Run(async () =>
+            {
+                try
+                {
+                    await function();
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, ex.Message);
+                }
+            });
         }
     }
 }

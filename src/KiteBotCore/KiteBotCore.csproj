@@ -4,6 +4,9 @@
     <TargetFramework>netcoreapp1.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="log.txt" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Google.Apis.YouTube.v3" Version="1.23.0.760" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.0.0-beta1-61524-04" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="1.1.1" />
