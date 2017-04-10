@@ -14,7 +14,7 @@ namespace KiteBotCore.Migrations
         {
             modelBuilder
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
-                .HasAnnotation("ProductVersion", "1.1.0-rtm-22752");
+                .HasAnnotation("ProductVersion", "1.1.1");
 
             modelBuilder.Entity("KiteBotCore.Channel", b =>
                 {

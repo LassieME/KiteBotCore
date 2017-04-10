@@ -12,6 +12,7 @@ using System.Net.Http;
 using System.IO;
 using System.Text;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace KiteBotCore.Modules
 {
@@ -81,10 +82,10 @@ namespace KiteBotCore.Modules
         public async Task SaveExitCommand()
         {
             var message = await ReplyAsync("OK").ConfigureAwait(false);
-            var saveTask = KiteChat.MultiDeepMarkovChains.SaveAsync();
+            var saveTask = KiteChat.MultiDeepMarkovChains?.SaveAsync();
             await saveTask.ContinueWith(async (e) =>
             {
-                if (e.IsCompleted) await message.ModifyAsync(x => x.Content += ", Saved.").ConfigureAwait(false);
+                if (e.IsCompleted) await message.ModifyAsync(x => x.Content = x.Content + ", Saved.").ConfigureAwait(false);
             }).ConfigureAwait(false);
             Environment.Exit(0);
         }
@@ -223,10 +224,18 @@ namespace KiteBotCore.Modules
             }
             foreach (CommandInfo cmdInfo in _handler.Commands.Commands.OrderBy(x => x.Aliases[0]))
             {
-                if ((await cmdInfo.CheckPreconditionsAsync(Context, _map).ConfigureAwait(false)).IsSuccess)
+                try
                 {
-                    if (!string.IsNullOrWhiteSpace(output)) output += ",";
-                    output += "`" + cmdInfo.Aliases[0] + "`";
+                    if ((await cmdInfo.CheckPreconditionsAsync(Context, _map).ConfigureAwait(false)).IsSuccess)
+                    {
+                        if (!string.IsNullOrWhiteSpace(output)) output += ",";
+                        output += "`" + cmdInfo.Aliases[0] + "`";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Exception in help command");
+                    throw ex;
                 }
             }
             output += "." + Environment.NewLine;

@@ -25,20 +25,13 @@ namespace KiteBotCore.Modules
             if (context.Guild != null)
             {
                 return Task.FromResult(_requiredServers.Any(x => (Server)context.Guild.Id == x) ?
-                    PreconditionResult.FromSuccess() : PreconditionResult.FromError("You must be in the right server."));
+                    PreconditionResult.FromSuccess() : PreconditionResult.FromError("You are in a server that does not have this command enabled."));
             }
-            else
+            else if(map.Get<DiscordSocketClient>().Guilds.Any(g => _requiredServers.Contains((Server)g.Id) && g.Users.Any(u => u.Id == context.User.Id)))
             {
-                foreach (var server in _requiredServers)
-                {
-                    var guild = map.Get<DiscordSocketClient>().GetGuild((ulong)server);
-                    bool isInGuild = guild.Users.Any(x => x.Id == context.User.Id);
-                    if (isInGuild)
-                        return Task.FromResult(PreconditionResult.FromSuccess());
-                }
-                
-                return Task.FromResult(PreconditionResult.FromError("You must be in a server that has this command enabled."));
+                return Task.FromResult(PreconditionResult.FromSuccess());
             }
+            return Task.FromResult(PreconditionResult.FromError("You must be in a server that has this command enabled."));
         }
     }
 

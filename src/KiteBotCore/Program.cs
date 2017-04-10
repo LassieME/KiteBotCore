@@ -21,9 +21,11 @@ namespace KiteBotCore
         private static KiteChat _kiteChat;
         private static BotSettings _settings;
         private static CommandHandler _handler;
+        private static CommandService _commandService;
         private static DiscordContextFactory _dbFactory;
         private static bool _silentStartup;
         private static string SettingsPath => Directory.GetCurrentDirectory() + "/Content/settings.json";
+        private static bool _isFirstTime = true;
 
         // ReSharper disable once UnusedMember.Local
         private static void Main(string[] args) => MainAsync(args).GetAwaiter().GetResult();
@@ -33,19 +35,20 @@ namespace KiteBotCore
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.Async(a => a.File("log.txt").MinimumLevel.Information())
                 .WriteTo.LiterateConsole()
-                .MinimumLevel.Verbose()
+                .MinimumLevel.Debug()
                 .CreateLogger();
 
             if (args.Length != 0 && (args[0].Contains("--silent") || args[0].Contains("-s")))
                 _silentStartup = true;
             else
-                Log.Warning("Are you sure you shouldn't be using the --silent argument?");
+                Log.Information("Are you sure you shouldn't be using the --silent argument?");
 
             Client = new DiscordSocketClient(new DiscordSocketConfig
             {
-                LogLevel = LogSeverity.Verbose,
+                LogLevel = LogSeverity.Debug,
                 MessageCacheSize = 0,
-                HandlerTimeout = 1000
+                AlwaysDownloadUsers = true,
+                HandlerTimeout = null
             });
 
             _settings = File.Exists(SettingsPath)
@@ -76,7 +79,17 @@ namespace KiteBotCore
                 _settings.GiantBombVideoRefreshRate,
                 _settings.MarkovChainDepth);
 
+            _commandService = new CommandService(new CommandServiceConfig
+            {
+                CaseSensitiveCommands = false,
+                DefaultRunMode = RunMode.Sync,
+                LogLevel = LogSeverity.Verbose,
+                SeparatorChar = ' ',
+                ThrowOnError = true //Throws exceptions up to the commandhandler in sync commands
+            });
+
             Client.Log += LogDiscordMessage;
+            _commandService.Log += LogDiscordMessage;
 
 
             Client.MessageReceived += msg =>
@@ -86,13 +99,12 @@ namespace KiteBotCore
                 return Task.CompletedTask;
             };
 
-            Client.GuildAvailable += async server =>
+            Client.GuildMembersDownloaded += async (guild) =>
             {
                 var sw = new Stopwatch();
                 sw.Start();
-                await _dbFactory.SyncGuild(server).ConfigureAwait(false);
+                await _dbFactory.SyncGuild(guild).ConfigureAwait(false);
                 sw.Stop();
-                Log.Information("GuildAvailible: {Done},({sw} ms)", server.Name, sw.ElapsedMilliseconds);
             };
 
             Client.JoinedGuild += server =>
@@ -162,28 +174,39 @@ namespace KiteBotCore
 
             Client.Ready += async () =>
             {
-                var map = new DependencyMap();
-                _handler = new CommandHandler();
-                map.Add(Client);
-                map.Add(_settings);
-                map.Add(_kiteChat);
-                map.Add(_handler);
-                map.AddFactory(() => _dbFactory.Create(new DbContextFactoryOptions()));
-                map.Add(new AnimeManga.SearchHelper(_settings.AnilistId, _settings.AnilistSecret));
-                map.Add(new Random());
-                map.Add(new CryptoRandom());
-
-                await _handler.InstallAsync(map).ConfigureAwait(false);
-
-                var initTask = TryRun(async () =>
+                try
                 {
-                    var sw = new Stopwatch();
-                    sw.Start();
-                    await _kiteChat.InitializeMarkovChainAsync();
-                    sw.Stop();
-                    Log.Information("Initialize Markov Chain: Done,({sw} ms)", sw.ElapsedMilliseconds);
-                });
-                Log.Information("Ready: Done");
+                    if (_isFirstTime)
+                    {
+                        var map = new DependencyMap();
+                        _handler = new CommandHandler();
+                        map.Add(Client);
+                        map.Add(_settings);
+                        map.Add(_kiteChat);
+                        map.Add(_handler);
+                        map.AddFactory(() => _dbFactory.Create(new DbContextFactoryOptions()));
+                        map.Add(new AnimeManga.SearchHelper(_settings.AnilistId, _settings.AnilistSecret));
+                        map.Add(new Random());
+                        map.Add(new CryptoRandom());
+
+                        await _handler.InstallAsync(_commandService, map).ConfigureAwait(false);
+
+                        var initTask = TryRun(async () =>
+                        {
+                            var sw = new Stopwatch();
+                            sw.Start();
+                            await _kiteChat.InitializeMarkovChainAsync();
+                            sw.Stop();
+                            Log.Information("Initialize Markov Chain: Done,({sw} ms)", sw.ElapsedMilliseconds);
+                        });
+                        _isFirstTime = false;
+                    }
+                    Log.Information("Ready: Done");
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Exception in Ready Event");
+                }
             };
 
             await Task.Delay(-1).ConfigureAwait(false);

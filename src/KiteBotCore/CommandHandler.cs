@@ -17,11 +17,11 @@ namespace KiteBotCore
         private char _prefix;
         private ulong _ownerId;
 
-        public async Task InstallAsync(IDependencyMap map)
+        public async Task InstallAsync(CommandService commandService, IDependencyMap map)
         {
             _map = map;
             _kiteChat = map.Get<KiteChat>();
-            Commands = new CommandService();
+            Commands = commandService;
             _client = map.Get<DiscordSocketClient>();
 
             if (map.TryGet(out BotSettings botSettings))

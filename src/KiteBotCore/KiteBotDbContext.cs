@@ -28,14 +28,13 @@ namespace KiteBotCore
     {
         internal static async Task SyncGuild(this DiscordContextFactory dbFactory, SocketGuild socketGuild)
         {
-            var downloadUserTask = socketGuild.DownloadUsersAsync();
+            //await socketGuild.DownloadUsersAsync();
             using (var dbContext = dbFactory.Create(new DbContextFactoryOptions()))
             {
                 Guild guild = await dbContext.Guilds
                     .Include(g => g.Channels)
                     .Include(g => g.Users)
-                    .FirstAsync(x => x.Id == socketGuild.Id)
-                    .ConfigureAwait(false);
+                    .FirstOrDefaultAsync(x => x.Id == socketGuild.Id);
 
                 //If guild does not exist, we create a new one and populate it with Users and Channels
                 if (guild == null)
@@ -60,7 +59,6 @@ namespace KiteBotCore
                         guild.Channels.Add(channel);
                     }
 
-                    await downloadUserTask.ConfigureAwait(false);
                     foreach (var socketUser in socketGuild.Users)
                         //For now, Users are unique for each guild, this will cause me problems later I'm sure
                     {
@@ -100,7 +98,6 @@ namespace KiteBotCore
                         dbContext.Update(guild);
                     }
 
-                    await downloadUserTask.ConfigureAwait(false);
                     var usersNotTracked = socketGuild.Users.Where(x => !guild.Users.Any(y => y.Id == x.Id));
                         //Any stops at the first occurence, All checks all elements
                     var socketGuildUsers = usersNotTracked as IList<SocketGuildUser> ?? usersNotTracked.ToList();
