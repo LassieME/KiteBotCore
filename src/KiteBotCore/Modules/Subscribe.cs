@@ -6,6 +6,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using KiteBotCore.Json.GiantBomb.Chats;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace KiteBotCore.Modules
 {
@@ -57,12 +58,26 @@ namespace KiteBotCore.Modules
                 try
                 {
                     var channel = await client.GetUser(user).CreateDMChannelAsync().ConfigureAwait(false);
-                    await channel.SendMessageAsync(title + ": " + deck + " is LIVE at <http://www.giantbomb.com/chat/> NOW, check it out!" +
-                                                   Environment.NewLine + (image ?? "")).ConfigureAwait(false);
+                    await channel.SendMessageAsync(title + ": " + deck +
+                                                   " is LIVE at <http://www.giantbomb.com/chat/> NOW, check it out!" +
+                                                   Environment.NewLine + (image ?? ""))
+                        .ConfigureAwait(false);
+                }
+                catch (Discord.Net.HttpException httpException)
+                {
+                    if (httpException.DiscordCode == 50007)
+                    {
+                        Log.Information(httpException, "couldn't send {user} a DM, removing", user);
+                        RemoveFromList(user);
+                    }
+                    else
+                    {
+                        Log.Warning(httpException, "A unhandled error happened in Subscribe.PostLivestream");
+                    }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex + Environment.NewLine + ex.Message);
+                    Log.Warning(ex, "A unhandled error happened in Subscribe.PostLivestream");
                 }
             }
         }

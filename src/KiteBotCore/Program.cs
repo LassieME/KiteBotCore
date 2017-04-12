@@ -9,6 +9,8 @@ using KiteBotCore.Json;
 using KiteBotCore.Modules;
 using KiteBotCore.Utils;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -113,46 +115,11 @@ namespace KiteBotCore
                 return Task.CompletedTask;
             };
 
-            Client.GuildMemberUpdated += async (before, after) =>
-            {
-                if (before.Guild.Id == 85814946004238336)
-                {
-                    var channel = (ITextChannel) Client.GetChannel(85842104034541568);
-                    if (before.Username != after.Username)
-                    {
-                        await channel.SendMessageAsync($"{before.Username} changed his name to {after.Username}.")
-                            .ConfigureAwait(false);
-                        WhoIsService.AddWhoIs(before, after);
-                    }
-                    try
-                    {
-                        if (before.Nickname != after.Nickname)
-                            if (before.Nickname != null && after.Nickname != null)
-                            {
-                                await channel.SendMessageAsync(
-                                        $"{before.Nickname} changed his nickname to {after.Nickname}.")
-                                    .ConfigureAwait(false);
-                                WhoIsService.AddWhoIs(before, after.Nickname);
-                            }
-                            else if (before.Nickname == null && after.Nickname != null)
-                            {
-                                await channel
-                                    .SendMessageAsync($"{before.Username} set his nickname to {after.Nickname}.")
-                                    .ConfigureAwait(false);
-                                WhoIsService.AddWhoIs(before, after.Nickname);
-                            }
-                            else
-                            {
-                                await channel.SendMessageAsync($"{before.Username} reset his nickname.")
-                                    .ConfigureAwait(false);
-                            }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex + "\r\n" + ex.Message);
-                    }
-                }
-            };
+
+            Client.UserUpdated += async (before, after) => await CheckUsername(before, after);
+
+            Client.GuildMemberUpdated += async (before, after) => await CheckNickname(before, after);
+
             int connections = 0;
             Client.Connected += () =>
             {
@@ -178,6 +145,13 @@ namespace KiteBotCore
                 {
                     if (_isFirstTime)
                     {
+                        using (var db = _dbFactory.Create())
+                        {
+                            var serviceProvider = db.GetInfrastructure<IServiceProvider>();
+                            var loggerFactory = serviceProvider.GetService<ILoggerFactory>();
+                            loggerFactory.AddProvider(new MyLoggerProvider());
+                        }
+
                         var map = new DependencyMap();
                         _handler = new CommandHandler();
                         map.Add(Client);
@@ -237,6 +211,94 @@ namespace KiteBotCore
                     break;
             }
             return Task.CompletedTask;
+        }
+
+        public static async Task CheckNickname(SocketGuildUser before, SocketGuildUser after)
+        {
+            try
+            {
+                if (before?.Guild.Id == 85814946004238336)
+                {
+                    var channel = (ITextChannel) Client.GetChannel(85842104034541568);
+                    if (channel != null && before.Nickname != after.Nickname)
+                    {
+                        if (before.Nickname != null && after.Nickname != null)
+                        {
+                            await channel.SendMessageAsync(
+                                    $"{before.Nickname} changed his nickname to {after.Nickname}.")
+                                .ConfigureAwait(false);
+                            WhoIsService.AddWhoIs(before, after.Nickname);
+                        }
+                        else if (before.Nickname == null && after.Nickname != null)
+                        {
+                            await channel
+                                .SendMessageAsync($"{before.Username} set his nickname to {after.Nickname}.")
+                                .ConfigureAwait(false);
+                            WhoIsService.AddWhoIs(before, after.Nickname);
+                        }
+                        else
+                        {
+                            await channel.SendMessageAsync($"{before.Username} reset his nickname.")
+                                .ConfigureAwait(false);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex + "\r\n" + ex.Message);
+            }
+        }
+
+        public static async Task CheckUsername(SocketUser before, SocketUser after)
+        {
+            try
+            {
+
+                if (before.Username != after.Username)
+                {
+                    var channel = (ITextChannel) Client.GetChannel(85842104034541568);
+                    if (channel != null)
+                    {
+                        await channel.SendMessageAsync($"{before.Username} changed his name to {after.Username}.")
+                            .ConfigureAwait(false);
+                        WhoIsService.AddWhoIs(before, after);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex + "\r\n" + ex.Message);
+            }
+        }
+
+        public class MyLoggerProvider : ILoggerProvider
+        {
+            public Microsoft.Extensions.Logging.ILogger CreateLogger(string categoryName)
+            {
+                return new MyLogger();
+            }
+
+            public void Dispose()
+            { }
+
+            public class MyLogger : Microsoft.Extensions.Logging.ILogger
+            {
+                public bool IsEnabled(LogLevel logLevel)
+                {
+                    return true;
+                }
+
+                public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+                {
+                    Console.WriteLine($"------------\n{formatter(state, exception)}\n------------");
+                }
+
+                public IDisposable BeginScope<TState>(TState state)
+                {
+                    return null;
+                }
+            }
         }
 
         public static Task TryRun(Action action)

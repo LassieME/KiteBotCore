@@ -23,7 +23,7 @@ namespace KiteBotCore.Modules.Music
             try
             {
                 using (var audioClient = await channel.ConnectAsync())
-                using (var stream = audioClient.CreatePCMStream(AudioApplication.Music, 2880, bitrate: channel.Bitrate))
+                using (var stream = audioClient.CreatePCMStream(AudioApplication.Music, bitrate: channel.Bitrate, bufferMillis: 2880))
                 {
                     var process = Process.Start(new ProcessStartInfo
                     {

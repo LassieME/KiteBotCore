@@ -17,7 +17,9 @@ namespace KiteBotCore
     {
         //This is needed while doing Database migrations and updates
         private static string SettingsPath => Directory.GetCurrentDirectory().Replace(@"\bin\Debug\netcoreapp1.1\","") + "/Content/settings.json";
-        public KiteBotDbContext Create(DbContextFactoryOptions options)
+        public KiteBotDbContext Create(DbContextFactoryOptions options) => Create();
+        
+        public KiteBotDbContext Create()
         {
             var settings = JsonConvert.DeserializeObject<BotSettings>(File.ReadAllText(SettingsPath));
             return new KiteBotDbContext(settings.DatabaseConnectionString);
@@ -28,13 +30,12 @@ namespace KiteBotCore
     {
         internal static async Task SyncGuild(this DiscordContextFactory dbFactory, SocketGuild socketGuild)
         {
-            //await socketGuild.DownloadUsersAsync();
             using (var dbContext = dbFactory.Create(new DbContextFactoryOptions()))
             {
                 Guild guild = await dbContext.Guilds
                     .Include(g => g.Channels)
                     .Include(g => g.Users)
-                    .FirstOrDefaultAsync(x => x.Id == socketGuild.Id);
+                    .SingleOrDefaultAsync(x => x.Id == socketGuild.Id);
 
                 //If guild does not exist, we create a new one and populate it with Users and Channels
                 if (guild == null)
@@ -77,7 +78,7 @@ namespace KiteBotCore
                 }
                 else
                 {
-                    //I should also probably track when channels no longer exist, but its probably not a big deal right now
+                    //This should also probably track when channels no longer exist, but its probably not a big deal right now
                     
                     var channelsNotTracked = socketGuild.TextChannels.Where(x => guild.Channels.All(y => y.Id != x.Id));
                     var socketTextChannels = channelsNotTracked as IList<SocketTextChannel> ??

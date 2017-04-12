@@ -49,7 +49,7 @@ namespace KiteBotCore.Modules.Eval
             _token.Cancel();
         }
 
-        public async Task Evaluate(CommandContext context, string script)
+        public async Task Evaluate(ICommandContext context, string script)
         {
             using (context.Channel.EnterTypingState())
             {
@@ -93,7 +93,7 @@ namespace KiteBotCore.Modules.Eval
     {
         public CommandHandler handler { get; internal set; }
         public DiscordSocketClient client { get; internal set; }
-        public CommandContext context { get; internal set; }
+        public ICommandContext context { get; internal set; }
         public SocketMessage msg => context.Message as SocketMessage;
         public SocketGuild guild => context.Guild as SocketGuild;
         public SocketGuildChannel channel => context.Channel as SocketGuildChannel;
