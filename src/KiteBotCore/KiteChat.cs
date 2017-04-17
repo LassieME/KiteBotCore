@@ -6,7 +6,6 @@ using System.Net;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
-using KiteBotCore.Modules;
 using KiteBotCore.Modules.Giantbomb;
 using KiteBotCore.Modules.Youtube;
 
@@ -37,22 +36,15 @@ namespace KiteBotCore
             _greetings = File.ReadAllLines(GreetingFileLocation);
             RandomSeed = new Random();
             YoutubeModuleService.Init(ytApi, client);
-            ReminderService.Init();
 
             if (streamRefresh > 3000) StreamChecker = new LivestreamChecker(client, gBapi, streamRefresh, silentStartup);
             if (videoRefresh > 3000) GbVideoChecker = new GiantBombVideoChecker(client, gBapi, videoRefresh);
             if (StartMarkovChain && depth > 0)MultiDeepMarkovChains = new MultiTextMarkovChainHelper(client, db, depth);
         }
 
-        public async Task<bool> InitializeMarkovChainAsync()
+        public async Task InitializeMarkovChainAsync()
         {
-            var videoTask = Video.InitializeTask(_gbApi).ConfigureAwait(false); //Could be a longrunning Task,
-            
             if (StartMarkovChain) await MultiDeepMarkovChains.InitializeAsync().ConfigureAwait(false); //This usually is a long running task, unless they bot has just recently been off
-
-            await videoTask;
-            
-            return true;
         }
 
         public async Task ParseChatAsync(SocketMessage msg, IDiscordClient client)
@@ -65,10 +57,6 @@ namespace KiteBotCore
             {
                 if(StartMarkovChain) await MultiDeepMarkovChains.Feed(msg);
 
-                if (msg.Content.Contains("Mistake") && msg.Channel.Id == 96786127238725632)
-                {
-                    await msg.Channel.SendMessageAsync("Anime is a mistake " + msg.Author.Mention +".");
-                }
                 else if (msg.MentionedUsers.Any(x => x.Id == client.CurrentUser.Id))
                 {
                     if (msg.Content.ToLower().Contains("fuck you") ||

@@ -7,6 +7,8 @@ using Discord.Commands;
 using Discord.WebSocket;
 using KiteBotCore.Json;
 using KiteBotCore.Modules;
+using KiteBotCore.Modules.Giantbomb;
+using KiteBotCore.Modules.Reminder;
 using KiteBotCore.Utils;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
@@ -159,7 +161,9 @@ namespace KiteBotCore
                         map.Add(_kiteChat);
                         map.Add(_handler);
                         map.AddFactory(() => _dbFactory.Create(new DbContextFactoryOptions()));
+                        map.Add(new VideoService(_settings.GiantBombApiKey));
                         map.Add(new AnimeManga.SearchHelper(_settings.AnilistId, _settings.AnilistSecret));
+                        map.Add(new ReminderService(Client));
                         map.Add(new Random());
                         map.Add(new CryptoRandom());
 

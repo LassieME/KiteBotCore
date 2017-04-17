@@ -51,10 +51,11 @@ namespace KiteBotCore
 
         public static int AmountOfFails { get => amountOfFails; set => amountOfFails = value; }
 
-        internal async Task<bool> InitializeAsync()
+        internal async Task InitializeAsync()
         {
             Console.WriteLine("Initialize");
             if (!_isInitialized)
+            {
                 try
                 {
                     if (File.Exists(JsonLastMessageLocation))
@@ -89,15 +90,15 @@ namespace KiteBotCore
                                 .ToListAsync();
 
                             List<Channel> channels = new List<Channel>();
-                            List<User > users = new List<User>();
+                            List<User> users = new List<User>();
                             foreach (var guild in dbGuilds)
                             {
                                 channels.AddRange(guild.Channels);
                                 users.AddRange(guild.Users);
                             }
-                            
+
                             foreach (IMessage message in list)
-                                    await FeedMarkovChain(message, channels, users);
+                                await FeedMarkovChain(message, channels, users);
                         }
                         catch (Exception ex)
                         {
@@ -105,13 +106,12 @@ namespace KiteBotCore
                         }
                     _isInitialized = true;
                     await SaveAsync();
-                    return _isInitialized;
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex + ex.Message);
                 }
-            return _isInitialized;
+            }
         }
 
         internal Task Feed(IMessage message)

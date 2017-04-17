@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace KiteBotCore.Json.GiantBomb.Videos
 {
-    internal class Videos
+    public class Videos
     {
         [JsonProperty("error")]
         public string Error { get; set; }
@@ -30,7 +30,7 @@ namespace KiteBotCore.Json.GiantBomb.Videos
         public string Version { get; set; }
     }
 
-    internal class Image
+    public class Image
     {
         [JsonProperty("icon_url")]
         public string IconUrl { get; set; }
@@ -54,7 +54,7 @@ namespace KiteBotCore.Json.GiantBomb.Videos
         public string TinyUrl { get; set; }
     }
 
-    internal class Result
+    public class Result
     {
         [JsonProperty("api_detail_url")]
         public string ApiDetailUrl { get; set; }
