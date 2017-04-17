@@ -98,7 +98,7 @@ namespace KiteBotCore.Modules
             {
                 if (++retry < 3)
                 {
-                    await Task.Delay(5000).ConfigureAwait(false);
+                    await Task.Delay(2000).ConfigureAwait(false);
                     await rateLimitTask.ConfigureAwait(false);
                     return await GetGamesEndpoint(gameTitle, retry).ConfigureAwait(false);
                 }

@@ -55,7 +55,6 @@ namespace KiteBotCore.Modules
                     { "MDT",  "Mountain Standard Time" },
                     { "PDT",  "Pacific Standard Time" },
                     { "PST",  "Pacific Standard Time" },
-                    { "TST",  "Tokyo Standard Time" },
                     { "JST",  "Tokyo Standard Time" }
                 };
             }

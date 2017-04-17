@@ -72,6 +72,7 @@ namespace KiteBotCore
                     GiantBombLiveStreamRefreshRate = 60000,
                     GiantBombVideoRefreshRate = 60000
                 };
+
             _dbFactory = new DiscordContextFactory();
 
             _kiteChat = new KiteChat(Client, _dbFactory,
@@ -96,7 +97,7 @@ namespace KiteBotCore
             _commandService.Log += LogDiscordMessage;
 
 
-            Client.MessageReceived += msg =>
+            Client.MessageReceived += (msg) =>
             {
                 Log.Verbose("MESSAGE {Channel}{tab}{User}: {Content}", msg.Channel.Name, "\t", msg.Author.Username,
                     msg.ToString());
@@ -111,7 +112,7 @@ namespace KiteBotCore
                 sw.Stop();
             };
 
-            Client.JoinedGuild += server =>
+            Client.JoinedGuild += (server) =>
             {
                 Log.Information("Connected to {Name}", server.Name);
                 return Task.CompletedTask;

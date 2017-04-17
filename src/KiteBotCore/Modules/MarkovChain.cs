@@ -8,7 +8,7 @@ namespace KiteBotCore.Modules
 {
     public class MarkovChain : CleansingModuleBase
     {
-        [Command("testMarkov")]
+        [Command("testMarkov", RunMode = RunMode.Mixed)]
         [Alias("tm")]
         [Summary("Creates a Markov Chain string based on user messages")]
         [RequireServer(Server.KiteCo)]

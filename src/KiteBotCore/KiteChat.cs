@@ -6,7 +6,6 @@ using System.Net;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
-using KiteBotCore.Modules.Giantbomb;
 using KiteBotCore.Modules.Youtube;
 
 namespace KiteBotCore
