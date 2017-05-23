@@ -1,14 +1,29 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using Discord;
 using Discord.Commands;
+using Serilog;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using Discord;
+using System.Threading.Tasks;
 
 namespace KiteBotCore.Modules
 {
     public class MarkovChain : CleansingModuleBase
     {
-        [Command("testMarkov", RunMode = RunMode.Mixed)]
+        private Stopwatch _stopwatch;
+        protected override void BeforeExecute()
+        {
+            _stopwatch = new Stopwatch();
+            _stopwatch.Start();
+        }
+
+        protected override void AfterExecute()
+        {
+            _stopwatch.Stop();
+            Log.Debug($"Markov Chain Command: {_stopwatch.ElapsedMilliseconds.ToString()} ms");
+        }
+
+        [Command("testMarkov", RunMode = RunMode.Async)]
         [Alias("tm")]
         [Summary("Creates a Markov Chain string based on user messages")]
         [RequireServer(Server.KiteCo)]
@@ -44,19 +59,19 @@ namespace KiteBotCore.Modules
                 }
             }
 
-            await KiteChat.MultiDeepMarkovChains.SaveAsync().ConfigureAwait(false);//TODO: Stare at this some more http://stackoverflow.com/questions/1930982/when-should-i-call-savechanges-when-creating-1000s-of-entity-framework-object
+            await KiteChat.MultiDeepMarkovChains.SaveAsync().ConfigureAwait(false);
             await ReplyAsync($"{i} messages downloaded.").ConfigureAwait(false);
         }
 
 
-        [Command("setdepth", RunMode = RunMode.Mixed)]
+        [Command("setdepth", RunMode = RunMode.Async)]
         [Summary("Downloads and feeds the markovchain")]
         [RequireOwner, RequireServer(Server.KiteCo)]
         public async Task SetDepthCommand(int depth)
         {
             KiteChat.MultiDeepMarkovChains.SetDepth(depth);
             
-            await ReplyAsync($"👌").ConfigureAwait(false);
+            await ReplyAsync("👌").ConfigureAwait(false);
         }
 
         [Command("remove", RunMode = RunMode.Async)]

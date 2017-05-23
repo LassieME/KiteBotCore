@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using KiteBotCore.Json.GiantBomb.Videos;
 using Newtonsoft.Json;
+using NuGet.Packaging;
 using Serilog;
 
 namespace KiteBotCore.Modules.Giantbomb
@@ -39,19 +40,23 @@ namespace KiteBotCore.Modules.Giantbomb
             else
             {
                 Log.Debug("Running full GB video list download");
-                AllVideos = new Dictionary<int, Result>(12500);
-                Videos latest;
-                int i = 0;
-                do
+
+                Videos latest = await GetVideosEndpoint(0, 3);
+                AllVideos = new Dictionary<int, Result>(latest.NumberOfTotalResults + 250);
+                for (int i = 0; i < latest.NumberOfPageResults; i++)
                 {
-                    latest = await GetVideosEndpoint(i, 3);
-                    Log.Verbose("Queried GB videos API {one}/{two}", latest.NumberOfPageResults + i * 100, latest.NumberOfTotalResults);
-                    foreach (var latestResult in latest.Results)
+                    AllVideos[latest.Results[i].Id] = latest.Results[i];
+                }
+
+                for (int offset = 100; offset < latest.NumberOfTotalResults; offset += 100)
+                {
+                    latest = await GetVideosEndpoint(offset, 3);
+                    Log.Verbose("Queried GB videos API {one}/{two}", latest.NumberOfPageResults + offset * 100, latest.NumberOfTotalResults);
+                    for (int i = 0; i < latest.NumberOfPageResults; i++)
                     {
-                        AllVideos[latestResult.Id] = latestResult;
+                        AllVideos[latest.Results[i].Id] = latest.Results[i];
                     }
-                    i += 100;
-                } while (latest.NumberOfPageResults == latest.Limit);
+                }
             }
             IsReady = true;
             File.WriteAllText(JsonVideoFileLocation, JsonConvert.SerializeObject(AllVideos));

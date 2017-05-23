@@ -45,11 +45,11 @@ namespace KiteBotCore.Modules
             GuildPermission = null;
         }
 
-        public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IDependencyMap map)
+        public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
         {
             var guildUser = context.User as IGuildUser;
             //If the user is the owner of the bot, skip checking for permissions
-            if ((await context.Client.GetApplicationInfoAsync()).Owner.Id == context.User.Id)
+            if ((await context.Client.GetApplicationInfoAsync().ConfigureAwait(false)).Owner.Id == context.User.Id)
                 return PreconditionResult.FromSuccess();
 
             if (GuildPermission.HasValue)

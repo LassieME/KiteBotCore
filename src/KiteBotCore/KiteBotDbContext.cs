@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using KiteBotCore.Json;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Newtonsoft.Json;
@@ -17,8 +18,9 @@ namespace KiteBotCore
     {
         //This is needed while doing Database migrations and updates
         private static string SettingsPath => Directory.GetCurrentDirectory().Replace(@"\bin\Debug\netcoreapp1.1\","") + "/Content/settings.json";
+
         public KiteBotDbContext Create(DbContextFactoryOptions options) => Create();
-        
+
         public KiteBotDbContext Create()
         {
             var settings = JsonConvert.DeserializeObject<BotSettings>(File.ReadAllText(SettingsPath));
@@ -35,7 +37,7 @@ namespace KiteBotCore
                 Guild guild = await dbContext.Guilds
                     .Include(g => g.Channels)
                     .Include(g => g.Users)
-                    .SingleOrDefaultAsync(x => x.Id == socketGuild.Id);
+                    .SingleOrDefaultAsync(x => x.Id == socketGuild.Id).ConfigureAwait(false);
 
                 //If guild does not exist, we create a new one and populate it with Users and Channels
                 if (guild == null)
@@ -131,15 +133,20 @@ namespace KiteBotCore
         public DbSet<Guild> Guilds { get; set; }
         public DbSet<Channel> Channels { get; set; }
         public DbSet<Message> Messages { get; set; }
-        private string ConnectionString { get; }
+        private string ConnectionString { get; set; }
 
         public KiteBotDbContext(string settingsDatabaseConnectionString)
         {
             ConnectionString = settingsDatabaseConnectionString;
         }
+        public KiteBotDbContext(DbContextOptions options) : base(options)
+        {
+        }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseNpgsql(ConnectionString);
+            if (ConnectionString != null)//this is wrong, but it works
+                optionsBuilder.UseNpgsql(ConnectionString).EnableSensitiveDataLogging();
+            base.OnConfiguring(optionsBuilder);
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -178,7 +185,7 @@ namespace KiteBotCore
         }
         public string Name { get; set; }
 
-        public virtual List<Channel> Channels { get; set; }
+        public List<Channel> Channels { get; set; }
         
         public virtual List<User> Users { get; set; }}
 
@@ -201,7 +208,7 @@ namespace KiteBotCore
         public DateTimeOffset? JoinedAt { get; set; }
 
         [ForeignKey("GuildForeignKey")]
-        public virtual Guild Guild { get; set; }
+        public Guild Guild { get; set; }
 
         public virtual List<Message> Messages { get; set; }
     }
@@ -220,7 +227,7 @@ namespace KiteBotCore
         public string Name { get; set; }
 
         [ForeignKey("GuildForeignKey")]
-        public virtual Guild Guild { get; set; }
+        public Guild Guild { get; set; }
 
         public virtual List<Message> Messages { get; set; }
     }

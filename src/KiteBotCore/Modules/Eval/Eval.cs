@@ -1,18 +1,34 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using Discord.Commands;
+using Serilog;
 
 namespace KiteBotCore.Modules.Eval
 {
     public class Eval : ModuleBase
     {
-        public IDependencyMap Map { get; set; }
+        public IServiceProvider Services { get; set; }
 
-        [Command("eval", RunMode = RunMode.Sync)]
+        private Stopwatch _stopwatch;
+        protected override void BeforeExecute()
+        {
+            _stopwatch = new Stopwatch();
+            _stopwatch.Start();
+        }
+
+        protected override void AfterExecute()
+        {
+            _stopwatch.Stop();
+            Log.Debug($"Eval Command: {_stopwatch.ElapsedMilliseconds.ToString()} ms");
+        }
+
+        [Command("eval", RunMode = RunMode.Mixed)]
         [Summary("evaluates C# script")]
         [RequireOwner]
         public async Task EvalCommand([Remainder]string script)
         {
-            var evalService = new EvalService(Map);
+            var evalService = new EvalService(Services);
             var scriptTask = evalService.Evaluate(Context, script);
             await Task.Delay(10000).ConfigureAwait(false);
             if (!scriptTask.IsCompleted) evalService.PopToken();

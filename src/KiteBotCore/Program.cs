@@ -1,8 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Threading.Tasks;
-using Discord;
+﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using KiteBotCore.Json;
@@ -10,15 +6,20 @@ using KiteBotCore.Modules;
 using KiteBotCore.Modules.Giantbomb;
 using KiteBotCore.Modules.Reminder;
 using KiteBotCore.Utils;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Serilog;
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace KiteBotCore
 {
-    public class Program
+    public partial class Program
     {
         public static DiscordSocketClient Client;
 
@@ -28,16 +29,13 @@ namespace KiteBotCore
         private static CommandService _commandService;
         private static DiscordContextFactory _dbFactory;
         private static bool _silentStartup;
-        private static string SettingsPath => Directory.GetCurrentDirectory() + "/Content/settings.json";
         private static bool _isFirstTime = true;
+        private static string SettingsPath => Directory.GetCurrentDirectory() + "/Content/settings.json";
 
-        // ReSharper disable once UnusedMember.Local
-        private static void Main(string[] args) => MainAsync(args).GetAwaiter().GetResult();
-
-        public static async Task MainAsync(string[] args)
+        public static async Task Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
-                .WriteTo.Async(a => a.File("log.txt").MinimumLevel.Information())
+                .WriteTo.Async(a => a.RollingFile("rollinglog.log", fileSizeLimitBytes: 50000000).MinimumLevel.Information())
                 .WriteTo.LiterateConsole()
                 .MinimumLevel.Debug()
                 .CreateLogger();
@@ -52,7 +50,7 @@ namespace KiteBotCore
                 LogLevel = LogSeverity.Debug,
                 MessageCacheSize = 0,
                 AlwaysDownloadUsers = true,
-                HandlerTimeout = null
+                HandlerTimeout = 2000
             });
 
             _settings = File.Exists(SettingsPath)
@@ -95,8 +93,7 @@ namespace KiteBotCore
 
             Client.Log += LogDiscordMessage;
             _commandService.Log += LogDiscordMessage;
-
-
+            
             Client.MessageReceived += (msg) =>
             {
                 Log.Verbose("MESSAGE {Channel}{tab}{User}: {Content}", msg.Channel.Name, "\t", msg.Author.Username,
@@ -118,10 +115,12 @@ namespace KiteBotCore
                 return Task.CompletedTask;
             };
 
-
-            Client.UserUpdated += async (before, after) => await CheckUsername(before, after);
-
-            Client.GuildMemberUpdated += async (before, after) => await CheckNickname(before, after);
+            Client.UserUnbanned += (user, guild) =>
+            {
+                Console.WriteLine($"{user.Username}#{user.Discriminator}");
+                Console.WriteLine(user);
+                return Task.CompletedTask;
+            };
 
             int connections = 0;
             Client.Connected += () =>
@@ -142,53 +141,61 @@ namespace KiteBotCore
             Console.WriteLine("ConnectAsync");
             await Client.StartAsync().ConfigureAwait(false);
 
-            Client.Ready += async () =>
-            {
-                try
-                {
-                    if (_isFirstTime)
-                    {
-                        using (var db = _dbFactory.Create())
-                        {
-                            var serviceProvider = db.GetInfrastructure<IServiceProvider>();
-                            var loggerFactory = serviceProvider.GetService<ILoggerFactory>();
-                            loggerFactory.AddProvider(new MyLoggerProvider());
-                        }
-
-                        var map = new DependencyMap();
-                        _handler = new CommandHandler();
-                        map.Add(Client);
-                        map.Add(_settings);
-                        map.Add(_kiteChat);
-                        map.Add(_handler);
-                        map.AddFactory(() => _dbFactory.Create(new DbContextFactoryOptions()));
-                        map.Add(new VideoService(_settings.GiantBombApiKey));
-                        map.Add(new AnimeManga.SearchHelper(_settings.AnilistId, _settings.AnilistSecret));
-                        map.Add(new ReminderService(Client));
-                        map.Add(new Random());
-                        map.Add(new CryptoRandom());
-
-                        await _handler.InstallAsync(_commandService, map).ConfigureAwait(false);
-
-                        var initTask = TryRun(async () =>
-                        {
-                            var sw = new Stopwatch();
-                            sw.Start();
-                            await _kiteChat.InitializeMarkovChainAsync();
-                            sw.Stop();
-                            Log.Information("Initialize Markov Chain: Done,({sw} ms)", sw.ElapsedMilliseconds);
-                        });
-                        _isFirstTime = false;
-                    }
-                    Log.Information("Ready: Done");
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Exception in Ready Event");
-                }
-            };
+            Client.Ready += OnReady;
+            
+            Client.UserUpdated += async (before, after) => await CheckUsername(before, after).ConfigureAwait(false);
+            Client.GuildMemberUpdated += async (before, after) => await CheckNickname(before, after).ConfigureAwait(false);
 
             await Task.Delay(-1).ConfigureAwait(false);
+        }
+
+        private static async Task OnReady()
+        {
+            try
+            {
+                if (_isFirstTime)
+                {
+                    using (var db = _dbFactory.Create())
+                    {
+                        var serviceProvider = db.GetInfrastructure();
+                        var loggerFactory = serviceProvider.GetService<ILoggerFactory>();
+                        loggerFactory.AddProvider(new MyLoggerProvider());
+                    }
+
+                    var services = new ServiceCollection();
+                    _handler = new CommandHandler();
+                    services.AddSingleton(Client);
+                    services.AddSingleton(_settings);
+                    services.AddSingleton(_kiteChat);
+                    services.AddSingleton(_handler);
+                    services.AddEntityFramework()
+                        .AddEntityFrameworkNpgsql()
+                        .AddDbContext<KiteBotDbContext>(options => options.UseNpgsql(_settings.DatabaseConnectionString));
+                    services.AddSingleton(new VideoService(_settings.GiantBombApiKey));
+                    services.AddSingleton(new SearchHelper(_settings.AnilistId, _settings.AnilistSecret));
+                    services.AddSingleton(new ReminderService(Client));
+                    services.AddSingleton(new FollowUpService());
+                    services.AddSingleton(new Random());
+                    services.AddSingleton(new CryptoRandom());
+
+                    await _handler.InstallAsync(_commandService, services.BuildServiceProvider()).ConfigureAwait(false);
+
+                    var _ = TryRun(async () =>
+                    {
+                        var sw = new Stopwatch();
+                        sw.Start();
+                        await _kiteChat.InitializeMarkovChainAsync().ConfigureAwait(false);
+                        sw.Stop();
+                        Log.Information("Initialize Markov Chain: Done,({sw} ms)", sw.ElapsedMilliseconds);
+                    });
+                    _isFirstTime = false;
+                }
+                Log.Information("Ready: Done");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Exception in Ready Event");
+            }
         }
 
         private static Task LogDiscordMessage(LogMessage msg)
@@ -205,8 +212,7 @@ namespace KiteBotCore
                     Log.Warning("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString() ?? "");
                     break;
                 case LogSeverity.Info:
-                    Log.Information("{Source} {Message} {Exception}", msg.Source, msg.Message,
-                        msg.Exception?.ToString());
+                    Log.Information("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString());
                     break;
                 case LogSeverity.Verbose: //Verbose and Debug are switched between Serilog and Discord.Net
                     Log.Debug("{Source} {Message} {Exception}", msg.Source, msg.Message, msg.Exception?.ToString() ?? "");
@@ -277,35 +283,6 @@ namespace KiteBotCore
             }
         }
 
-        public class MyLoggerProvider : ILoggerProvider
-        {
-            public Microsoft.Extensions.Logging.ILogger CreateLogger(string categoryName)
-            {
-                return new MyLogger();
-            }
-
-            public void Dispose()
-            { }
-
-            public class MyLogger : Microsoft.Extensions.Logging.ILogger
-            {
-                public bool IsEnabled(LogLevel logLevel)
-                {
-                    return true;
-                }
-
-                public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
-                {
-                    Console.WriteLine($"------------\n{formatter(state, exception)}\n------------");
-                }
-
-                public IDisposable BeginScope<TState>(TState state)
-                {
-                    return null;
-                }
-            }
-        }
-
         public static Task TryRun(Action action)
         {
             return Task.Run(() =>
@@ -327,7 +304,7 @@ namespace KiteBotCore
             {
                 try
                 {
-                    await function();
+                    await function().ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {

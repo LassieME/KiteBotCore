@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
@@ -26,11 +25,8 @@ namespace KiteBotCore
         public static string ChatDirectory = Directory.GetCurrentDirectory();
         public static string GreetingFileLocation = ChatDirectory + "/Content/Greetings.txt";
 
-        private readonly string _gbApi;
-
         public KiteChat(DiscordSocketClient client, DiscordContextFactory db, bool markovbool, string gBapi, string ytApi, int streamRefresh, bool silentStartup, int videoRefresh, int depth)
         {
-            _gbApi = gBapi;
             StartMarkovChain = markovbool;
             _greetings = File.ReadAllLines(GreetingFileLocation);
             RandomSeed = new Random();
@@ -52,9 +48,9 @@ namespace KiteBotCore
             {
                 BotMessages.Add(msg);
             }
-            if (msg.Author.Id != client.CurrentUser.Id)
+            else if (msg.Author.Id != client.CurrentUser.Id)
             {
-                if(StartMarkovChain) await MultiDeepMarkovChains.Feed(msg);
+                if(StartMarkovChain && msg.Channel is IGuildChannel) await MultiDeepMarkovChains.Feed(msg).ConfigureAwait(false);
 
                 else if (msg.MentionedUsers.Any(x => x.Id == client.CurrentUser.Id))
                 {
@@ -72,13 +68,13 @@ namespace KiteBotCore
                         await
                             msg.Channel.SendMessageAsync(
                                 possibleResponses[RandomSeed.Next(0, possibleResponses.Count)].Replace("USER",
-                                    msg.Author.Username));
+                                    msg.Author.Username)).ConfigureAwait(false);
                     }
                     else if (msg.Content.ToLower().Contains("hi") ||
                              msg.Content.ToLower().Contains("hey") ||
                              msg.Content.ToLower().Contains("hello"))
                     {
-                        await msg.Channel.SendMessageAsync(ParseGreeting(msg.Author.Username));
+                        await msg.Channel.SendMessageAsync(ParseGreeting(msg.Author.Username)).ConfigureAwait(false);
                     }
                 }
             }

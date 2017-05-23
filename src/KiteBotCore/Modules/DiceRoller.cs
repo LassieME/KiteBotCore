@@ -1,15 +1,30 @@
-﻿using System;
+﻿using Discord.Commands;
+using KiteBotCore.Utils;
+using Serilog;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Discord.Commands;
-using KiteBotCore.Utils;
 
 namespace KiteBotCore.Modules
 {
     public class DiceRoller : ModuleBase
     {
         public CryptoRandom Random { get; set; }
+
+        private Stopwatch _stopwatch;
+        protected override void BeforeExecute()
+        {
+            _stopwatch = new Stopwatch();
+            _stopwatch.Start();
+        }
+
+        protected override void AfterExecute()
+        {
+            _stopwatch.Stop();
+            Log.Debug($"Dice Command: {_stopwatch.ElapsedMilliseconds.ToString()} ms");
+        }
 
         [Command("roll")]
         [Alias("rolldice")]
@@ -28,7 +43,7 @@ namespace KiteBotCore.Modules
                     int sides = int.Parse(matches.Groups["sides"].Value);
 
                     if (dice > 20)
-                        await ReplyAsync("Why are you doing this, too many dice.");
+                        await ReplyAsync("Why are you doing this, too many dice.").ConfigureAwait(false);
 
                     var resultsHistory = new List<int>();
 
@@ -51,22 +66,22 @@ namespace KiteBotCore.Modules
                     if (matches.Groups["constant"].Success)
                     {
                         int constant = int.Parse(matches.Groups["constant"].Value);
-                        await ReplyAsync(resultsString + $" + {constant} = {result + constant}");
+                        await ReplyAsync(resultsString + $" + {constant} = {result + constant}").ConfigureAwait(false);
                     }
-                    await ReplyAsync(resultsString);
+                    await ReplyAsync(resultsString).ConfigureAwait(false);
                 }
                 else if (matches.Groups["single"].Success)
                 {
-                    await ReplyAsync(Random.Next(1, int.Parse(matches.Groups["single"].Value)).ToString());
+                    await ReplyAsync(Random.Next(1, int.Parse(matches.Groups["single"].Value)).ToString()).ConfigureAwait(false);
                 }
                 else
                 {
-                    await ReplyAsync("use the format 5d6, d6 or simply specify a positive integer");
+                    await ReplyAsync("use the format 5d6, d6 or simply specify a positive integer").ConfigureAwait(false);
                 }
             }
             catch (OverflowException)
             {
-                await ReplyAsync("Why are you doing this? You're on my shitlist now.");
+                await ReplyAsync("Why are you doing this? You're on my shitlist now.").ConfigureAwait(false);
             }
         }
     }

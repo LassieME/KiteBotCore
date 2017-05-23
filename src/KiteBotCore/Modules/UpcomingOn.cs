@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -10,14 +8,28 @@ using Discord.Commands;
 using KiteBotCore.Json.GiantBomb.GbUpcoming;
 using Newtonsoft.Json;
 using Discord;
+using Serilog;
 
 namespace KiteBotCore.Modules
 {
-    public class UpcomingOn : ModuleBase
+    public class UpcomingOn : ModuleBase, IDisposable
     {
         public static string UpcomingUrl = "http://www.giantbomb.com/upcoming_json";
         public static Dictionary<string, string> ShorthandTz;
+        private readonly HttpClient _client = new HttpClient();
 
+        private Stopwatch _stopwatch;
+        protected override void BeforeExecute()
+        {
+            _stopwatch = new Stopwatch();
+            _stopwatch.Start();
+        }
+
+        protected override void AfterExecute()
+        {
+            _stopwatch.Stop();
+            Log.Debug($"Upcoming Command: {_stopwatch.ElapsedMilliseconds.ToString()} ms");
+        }
         public UpcomingOn()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -93,15 +105,17 @@ namespace KiteBotCore.Modules
             await ReplyAsync(output, embed: embed).ConfigureAwait(false);
         }
 
-        internal static async Task<GbUpcoming> DownloadUpcomingJson()
+        internal async Task<GbUpcoming> DownloadUpcomingJson()
         {
-            using (HttpClient client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Add("User-Agent",
-                    "KiteBotCore 1.1 GB Discord Bot looking for upcoming content");
-                GbUpcoming json = JsonConvert.DeserializeObject<GbUpcoming>(await client.GetStringAsync(UpcomingUrl).ConfigureAwait(false));
-                return json;
-            }
+            _client.DefaultRequestHeaders.Add("User-Agent",
+                "KiteBotCore 1.1 GB Discord Bot looking for upcoming content");
+            GbUpcoming json = JsonConvert.DeserializeObject<GbUpcoming>(await _client.GetStringAsync(UpcomingUrl).ConfigureAwait(false));
+            return json;
+        }
+
+        public void Dispose()
+        {
+            _client.Dispose();
         }
     }
 }

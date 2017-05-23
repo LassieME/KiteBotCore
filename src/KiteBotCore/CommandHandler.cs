@@ -1,10 +1,11 @@
-﻿using System;
-using System.Threading.Tasks;
-using System.Reflection;
-using Discord.Commands;
+﻿using Discord.Commands;
 using Discord.WebSocket;
 using KiteBotCore.Json;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using System;
+using System.Reflection;
+using System.Threading.Tasks;
 
 namespace KiteBotCore
 {
@@ -13,22 +14,21 @@ namespace KiteBotCore
         public CommandService Commands;
         private DiscordSocketClient _client;
         private KiteChat _kiteChat;
-        private IDependencyMap _map;
+        private IServiceProvider _services;
         private char _prefix;
         private ulong _ownerId;
 
-        public async Task InstallAsync(CommandService commandService, IDependencyMap map)
+        public async Task InstallAsync(CommandService commandService, IServiceProvider map)
         {
-            _map = map;
-            _kiteChat = map.Get<KiteChat>();
+            _services = map;
             Commands = commandService;
-            _client = map.Get<DiscordSocketClient>();
+            _kiteChat = map.GetService<KiteChat>();
 
-            if (map.TryGet(out BotSettings botSettings))
-            {
-                _ownerId = botSettings.OwnerId;
-                _prefix = botSettings.CommandPrefix;
-            }
+            _client = map.GetService<DiscordSocketClient>();
+
+            var botSettings = map.GetService<BotSettings>();
+            _ownerId = botSettings.OwnerId;
+            _prefix = botSettings.CommandPrefix;
 
             await Commands.AddModulesAsync(Assembly.GetEntryAssembly()).ConfigureAwait(false);
             if (_client.CurrentUser.IsBot)
@@ -48,9 +48,12 @@ namespace KiteBotCore
             // Don't handle the command if it is a system message
             var message = parameterMessage as SocketUserMessage;
             if (message == null) return;
-            if (message.Author.IsBot) return;
-            if (message.Author is SocketUnknownUser)
+            if (message.Author is SocketUnknownUser) return;
+            if (message.Author.IsBot)
+            {
+                KiteChat.BotMessages.Add(parameterMessage);
                 return;
+            }
 
             // Mark where the prefix ends and the command begins
             int argPos = 0;
@@ -63,7 +66,7 @@ namespace KiteBotCore
                     var context = new CommandContext(_client, message);
 
                     // Execute the Command, store the result
-                    var result = await Commands.ExecuteAsync(context, argPos, _map).ConfigureAwait(false);
+                    var result = await Commands.ExecuteAsync(context, argPos, _services).ConfigureAwait(false);
 
                     // If the command failed, notify the user unless no command was found
                     if (!result.IsSuccess && result.Error != CommandError.UnknownCommand)
@@ -102,7 +105,7 @@ namespace KiteBotCore
                     var context = new CommandContext(_client, message);
 
                     // Execute the Command, store the result
-                    var result = await Commands.ExecuteAsync(context, argPos, _map).ConfigureAwait(false);
+                    var result = await Commands.ExecuteAsync(context, argPos, _services).ConfigureAwait(false);
 
                     // If the command failed, notify the user unless no command was found
                     if (!result.IsSuccess && result.Error != CommandError.UnknownCommand)

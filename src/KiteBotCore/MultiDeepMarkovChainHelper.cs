@@ -44,12 +44,12 @@ namespace KiteBotCore
             if (depth > 0)
                 _markovChain = new StringMarkov(depth);
 
-            _timer = new Timer(async e => await SaveAsync(), null, 600000, 600000);
+            _timer = new Timer(async e => await SaveAsync().ConfigureAwait(false), null, 600000, 600000);
         }
 
         private string JsonLastMessageLocation => _rootDirectory + "/Content/LastMessage.json";
 
-        public static int AmountOfFails { get => amountOfFails; set => amountOfFails = value; }
+        public static int AmountOfFails { get => _amountOfFails; set => _amountOfFails = value; }
 
         internal async Task InitializeAsync()
         {
@@ -66,11 +66,24 @@ namespace KiteBotCore
                             _semaphore.Release();
                             string s = File.ReadAllText(JsonLastMessageLocation);
                             _lastMessage = JsonConvert.DeserializeObject<JsonLastMessage>(s);
-                            var list =
-                                new List<IMessage>(await DownloadMessagesAfterIdAsync(_lastMessage.MessageId,
-                                    _lastMessage.ChannelId));
+
+                            var dbGuilds = await _db.Guilds
+                                .Include(g => g.Channels)
+                                .Include(g => g.Users)
+                                .ToListAsync().ConfigureAwait(false);
+
+                            List<Channel> channels = new List<Channel>();
+                            List<User> users = new List<User>();
+                            foreach (var guild in dbGuilds)
+                            {
+                                channels.AddRange(guild.Channels);
+                                users.AddRange(guild.Users);
+                            }
+
+                            var list = new List<IMessage>(await DownloadMessagesAfterIdAsync(_lastMessage.MessageId,
+                                    _lastMessage.ChannelId).ConfigureAwait(false));
                             foreach (IMessage message in list)
-                                await FeedMarkovChain(message);
+                                await FeedMarkovChain(message, channels, users).ConfigureAwait(false);
                         }
                         catch (Exception ex)
                         {
@@ -81,13 +94,13 @@ namespace KiteBotCore
                         {
                             var guilds = _client.Guilds;
                             var list =
-                                new List<IMessage>(await GetMessagesFromChannelAsync(guilds.FirstOrDefault().Id, 1000));
+                                new List<IMessage>(await GetMessagesFromChannelAsync(guilds.FirstOrDefault().Id, 1000).ConfigureAwait(false));
                             _semaphore.Release();
 
                             var dbGuilds = await _db.Guilds
                                 .Include(g => g.Channels)
                                 .Include(g => g.Users)
-                                .ToListAsync();
+                                .ToListAsync().ConfigureAwait(false);
 
                             List<Channel> channels = new List<Channel>();
                             List<User> users = new List<User>();
@@ -98,14 +111,14 @@ namespace KiteBotCore
                             }
 
                             foreach (IMessage message in list)
-                                await FeedMarkovChain(message, channels, users);
+                                await FeedMarkovChain(message, channels, users).ConfigureAwait(false);
                         }
                         catch (Exception ex)
                         {
                             Console.WriteLine(ex + ex.Message);
                         }
                     _isInitialized = true;
-                    await SaveAsync();
+                    await SaveAsync().ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -155,7 +168,8 @@ namespace KiteBotCore
                             : channels.Find(x => x.Id == message.Channel.Id);
 
                         User user = users == null
-                            ? await _db.Users.FirstAsync(x => x.Id == message.Author.Id).ConfigureAwait(false)
+                            ? await _db.Users.FirstAsync(x => x.Id == message.Author.Id)
+                            .ConfigureAwait(false)
                             : users.Find(x => x.Id == message.Author.Id);
 
                         var entityMessage = new Message
@@ -177,12 +191,12 @@ namespace KiteBotCore
                     }
                     catch (NullReferenceException ex)
                     {
-                        Log.Debug(ex + ex.Message + "\n" + amountOfFails++);
+                        Log.Debug(ex + ex.Message + "\n" + _amountOfFails++);
                     }
                 }
         }
 
-        private static int amountOfFails = 0;
+        private static int _amountOfFails;
 
         private void FeedMarkovChain(Message message)
         {
@@ -201,7 +215,7 @@ namespace KiteBotCore
         {
             Console.WriteLine("GetMessagesFromChannel");
             var channel = (SocketTextChannel) _client.GetChannel(channelId);
-            IEnumerable<IMessage> latestMessages = await channel.GetMessagesAsync(i).Flatten();
+            IEnumerable<IMessage> latestMessages = await channel.GetMessagesAsync(i).Flatten().ConfigureAwait(false);
             IMessage[] enumerable = latestMessages as IMessage[] ?? latestMessages.ToArray();
             return enumerable;
         }
@@ -210,7 +224,7 @@ namespace KiteBotCore
         {
             Console.WriteLine("DownloadMessagesAfterId");
             var channel = (SocketTextChannel)_client.GetChannel(channelId);
-            IEnumerable<IMessage> latestMessages = await channel.GetMessagesAsync(id, Direction.After, 10000).Flatten();
+            IEnumerable<IMessage> latestMessages = await channel.GetMessagesAsync(id, Direction.After, 10000).Flatten().ConfigureAwait(false);
             IMessage[] enumerable = latestMessages as IMessage[] ?? latestMessages.ToArray();
             return enumerable;
         }
@@ -223,8 +237,8 @@ namespace KiteBotCore
                 try
                 {
                     Log.Debug("_semaphore.WaitAsync() in SaveAsync");
-                    await _semaphore.WaitAsync();
-                    await _db.SaveChangesAsync();
+                    await _semaphore.WaitAsync().ConfigureAwait(false);
+                    await _db.SaveChangesAsync().ConfigureAwait(false);
 
                 }
                 catch (Exception ex)

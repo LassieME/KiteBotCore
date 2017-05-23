@@ -1,17 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Discord.Commands;
+using Serilog;
 
 namespace KiteBotCore.Modules
 {
-    public class KitePizza : ModuleBase
+    public class Pizza : ModuleBase
     {
-        readonly Random _randomSeed = new Random();
+        public Random _randomSeed { get; set; }
+
+        private Stopwatch _stopwatch;
+        protected override void BeforeExecute()
+        {
+            _stopwatch = new Stopwatch();
+            _stopwatch.Start();
+        }
+
+        protected override void AfterExecute()
+        {
+            _stopwatch.Stop();
+            Log.Debug($"Pizza Command: {_stopwatch.ElapsedMilliseconds.ToString()} ms");
+        }
 
         [Command("pizza")]
         [Summary("Makes a pizza suggestion.")]
-        public async Task Pizza(string optional = null)
+        public async Task PizzaCommand(string optional = null)
         {
             List<string> pizzaToppings = new List<string>();
 

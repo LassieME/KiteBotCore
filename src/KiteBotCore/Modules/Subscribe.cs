@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Discord.Commands;
@@ -16,6 +17,19 @@ namespace KiteBotCore.Modules
 
         public static List<ulong> SubscriberList = File.Exists(SubscriberFilePath) ? JsonConvert.DeserializeObject<List<ulong>>(File.ReadAllText(SubscriberFilePath))
                 : new List<ulong>();
+
+        private Stopwatch _stopwatch;
+        protected override void BeforeExecute()
+        {
+            _stopwatch = new Stopwatch();
+            _stopwatch.Start();
+        }
+
+        protected override void AfterExecute()
+        {
+            _stopwatch.Stop();
+            Log.Debug($"Subscribe Command: {_stopwatch.ElapsedMilliseconds.ToString()} ms");
+        }
 
         [Command("subscribe"), Alias("sub")]
         [Summary("Subscribes to livestream DMs")]
@@ -53,7 +67,7 @@ namespace KiteBotCore.Modules
             var deck = stream.Deck;
             var image = stream.Image.ScreenUrl;
             
-            foreach (ulong user in SubscriberList)
+            foreach (ulong user in SubscriberList.ToArray())
             {
                 try
                 {

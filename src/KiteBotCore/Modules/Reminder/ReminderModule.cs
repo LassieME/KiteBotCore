@@ -14,7 +14,7 @@ namespace KiteBotCore.Modules.Reminder
 {
     public class ReminderModule : ModuleBase
     {
-        public ReminderService ReminderService;
+        public ReminderService ReminderService { get; set; }
         private static readonly Regex Regex = new Regex(@"(?<digits>\d+)\s+?(?<unit>\w+)(?:\s+(?<reason>[\w\d\s':/`\\\.,!?]+))?");
 
         [Command("reminder")]

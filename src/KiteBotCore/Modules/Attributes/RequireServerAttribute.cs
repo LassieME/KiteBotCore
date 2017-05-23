@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Discord.Commands;
 using Discord.WebSocket;
 using KiteBotCore.Json;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace KiteBotCore.Modules
 {
@@ -20,14 +21,14 @@ namespace KiteBotCore.Modules
         }
 
         // Override the CheckPermissions method
-        public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo executingCommand, IDependencyMap map)
+        public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo executingCommand, IServiceProvider services)
         {
             if (context.Guild != null)
             {
                 return Task.FromResult(_requiredServers.Any(x => (Server)context.Guild.Id == x) ?
                     PreconditionResult.FromSuccess() : PreconditionResult.FromError("You are in a server that does not have this command enabled."));
             }
-            else if(map.Get<DiscordSocketClient>().Guilds.Any(g => _requiredServers.Contains((Server)g.Id) && g.Users.Any(u => u.Id == context.User.Id)))
+            else if(services.GetService<DiscordSocketClient>().Guilds.Any(g => _requiredServers.Contains((Server)g.Id) && g.Users.Any(u => u.Id == context.User.Id)))
             {
                 return Task.FromResult(PreconditionResult.FromSuccess());
             }

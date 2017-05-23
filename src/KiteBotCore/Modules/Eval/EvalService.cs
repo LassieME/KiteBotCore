@@ -9,6 +9,8 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace KiteBotCore.Modules.Eval
 {
@@ -30,18 +32,29 @@ namespace KiteBotCore.Modules.Eval
 
         private readonly DiscordSocketClient _client;
         private readonly CommandHandler _handler;
+        private readonly KiteBotDbContext _dbContext;
 
         private readonly ScriptOptions _options;
         private readonly CancellationTokenSource _token;
 
-        public EvalService(IDependencyMap map)
+        public EvalService(IServiceProvider services)
         {
             _options = ScriptOptions.Default
                 .AddReferences(GetAssemblies().ToArray())
                 .AddImports(Imports);
             _token = new CancellationTokenSource();
-            _client = map.Get<DiscordSocketClient>();
-            _handler = map.Get<CommandHandler>();
+            _client = services.GetService<DiscordSocketClient>();
+            try
+            {
+                _dbContext = services.GetService<KiteBotDbContext>();
+                var list = _dbContext.Messages.ToList();
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex + ex.Message);
+            }
+            _handler = services.GetService<CommandHandler>();
         }
 
         public void PopToken()
@@ -59,7 +72,8 @@ namespace KiteBotCore.Modules.Eval
                 {
                     handler = _handler,
                     client = _client,
-                    context = context
+                    context = context,
+                    dbContext = _dbContext
                 };
                 script = script.Trim('`');
                 try
@@ -92,6 +106,7 @@ namespace KiteBotCore.Modules.Eval
     public class ScriptGlobals
     {
         public CommandHandler handler { get; internal set; }
+        public KiteBotDbContext dbContext { get; internal set; }
         public DiscordSocketClient client { get; internal set; }
         public ICommandContext context { get; internal set; }
         public SocketMessage msg => context.Message as SocketMessage;

@@ -19,7 +19,7 @@ namespace KiteBotCore.Modules.Rank
         [Summary("Shows you your current rank, based on the amount of time since your first tracked GuildJoin")]
         public async Task RankCommand()
         {
-            var result = await _rankService.CheckUserJoinDate(Context.User, Context.Guild);
+            var result = await _rankService.CheckUserJoinDate(Context.User, Context.Guild).ConfigureAwait(false);
         }
     }
 }

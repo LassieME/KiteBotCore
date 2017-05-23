@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Net.Http;
 using System.IO;
 using System.Text;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -19,12 +20,12 @@ namespace KiteBotCore.Modules
     public class Admin : CleansingModuleBase
     {
         private readonly CommandHandler _handler;
-        private readonly IDependencyMap _map;
+        private readonly IServiceProvider _services;
 
-        public Admin(IDependencyMap map)
+        public Admin(IServiceProvider services)
         {
-            _handler = map.Get<CommandHandler>();
-            _map = map;
+            _handler = services.GetService<CommandHandler>();
+            _services = services;
         }
 
         [Command("archive")]
@@ -156,10 +157,21 @@ namespace KiteBotCore.Modules
         {
             var embed = new EmbedBuilder
             {
-                Title = "Test",
+                Title = input,
                 Color = new Color(255, 0, 0),
                 Description = input
-            };
+            }.AddField(x =>
+            {
+                x.Name = input;
+                x.Value = input;
+            }).WithAuthor(x =>
+            {
+                x.Name = input;
+            })
+            .WithFooter(x =>
+            {
+                x.Text = input;
+            });
             await ReplyAsync("", false, embed).ConfigureAwait(false);
         }
 
@@ -169,7 +181,7 @@ namespace KiteBotCore.Modules
         [RequireOwner]
         public async Task PlayingCommand([Remainder] string input)
         {
-            var client = _map.Get<DiscordSocketClient>();
+            var client = _services.GetService<DiscordSocketClient>();
             await client.SetGameAsync(input).ConfigureAwait(false);
         }
 
@@ -179,7 +191,7 @@ namespace KiteBotCore.Modules
         [RequireOwner]
         public async Task UsernameCommand([Remainder] string input)
         {
-            var client = _map.Get<DiscordSocketClient>();
+            var client = _services.GetService<DiscordSocketClient>();
             await client.CurrentUser.ModifyAsync(x => x.Username = input).ConfigureAwait(false);
         }
 
@@ -226,7 +238,7 @@ namespace KiteBotCore.Modules
             {
                 try
                 {
-                    if ((await cmdInfo.CheckPreconditionsAsync(Context, _map).ConfigureAwait(false)).IsSuccess)
+                    if ((await cmdInfo.CheckPreconditionsAsync(Context, _services).ConfigureAwait(false)).IsSuccess)
                     {
                         if (!string.IsNullOrWhiteSpace(output)) output += ",";
                         output += "`" + cmdInfo.Aliases[0] + "`";
@@ -255,6 +267,7 @@ namespace KiteBotCore.Modules
             await ReplyAsync(
                 $"{Format.Bold("Info")}\n" +
                 $"- Author: {application.Owner.Username}#{application.Owner.DiscriminatorValue} (ID {application.Owner.Id})\n" +
+                $"- Avatar by: UberX#6974\n" +
                 $"- Source Code: <https://github.com/LassieME/KiteBotCore>\n" +
                 $"- Library: Discord.Net ({DiscordConfig.Version})\n" +
                 $"- Runtime: {RuntimeInformation.FrameworkDescription} {RuntimeInformation.OSArchitecture}\n" +

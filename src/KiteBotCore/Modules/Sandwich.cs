@@ -1,13 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Discord.Commands;
+using Serilog;
 
 namespace KiteBotCore.Modules
 {
-    public class KiteSandwich : ModuleBase
+    public class Sandwich : ModuleBase
     {
-        internal readonly Random RandomSeed = new Random();
+        public Random RandomSeed { get; set; }
+
+        private Stopwatch _stopwatch;
+        protected override void BeforeExecute()
+        {
+            _stopwatch = new Stopwatch();
+            _stopwatch.Start();
+        }
+
+        protected override void AfterExecute()
+        {
+            _stopwatch.Stop();
+            Log.Debug($"Sandwich Command: {_stopwatch.ElapsedMilliseconds.ToString()} ms");
+        }
 
         internal readonly List<string> BreadTypes = new List<string>
         {
@@ -42,7 +57,7 @@ namespace KiteBotCore.Modules
 
         [Command("sandwich")]
         [Summary("Makes a sandwich suggestion.")]
-        public async Task Sandwich()
+        public async Task SandwichCommand()
         {
             var nl = Environment.NewLine;
             string builtSandwich = Context.User.Username + " check out this sandwich:" + nl;

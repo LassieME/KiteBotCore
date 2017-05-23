@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace KiteBotCore.Modules.Reminder
 {
@@ -85,11 +86,23 @@ namespace KiteBotCore.Modules.Reminder
             {
                 if (reminder.RequestedTime.CompareTo(DateTime.Now) <= 0)
                 {
-                    var channel = await _client.GetUser(reminder.UserId).CreateDMChannelAsync().ConfigureAwait(false);
+                    try
+                    {
+                        var channel = await _client.GetUser(reminder.UserId)
+                            .CreateDMChannelAsync()
+                            .ConfigureAwait(false);
 
-                    await channel.SendMessageAsync($"Reminder: {reminder.Reason}").ConfigureAwait(false);
+                        await channel.SendMessageAsync($"Reminder: {reminder.Reason}").ConfigureAwait(false);
+                    }
+                    catch(Exception ex)
+                    {
+                        Log.Warning(ex, ex.Message);
+                    }
+                    finally
+                    {
+                        deleteBuffer.Add(reminder);
+                    }
 
-                    deleteBuffer.Add(reminder);
                     if (_reminderList.Count == 0)
                     {
                         _reminderTimer.Dispose();

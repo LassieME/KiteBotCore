@@ -9,7 +9,7 @@ using System.Diagnostics;
 
 namespace KiteBotCore.Modules.Rank
 {
-    class RankService
+    internal class RankService
     {
         private readonly DiscordContextFactory _discordFactory;
 
@@ -28,6 +28,7 @@ namespace KiteBotCore.Modules.Rank
                 User user = await db.FindAsync<User>(inputUser.Id.ConvertToUncheckedLong()).ConfigureAwait(false);
 
                 Debug.Assert(user != null);
+                Debug.Assert(user.JoinedAt != null, "user.JoinedAt != null");
                 return user.JoinedAt.Value;
 
             }
@@ -59,23 +60,24 @@ namespace KiteBotCore.Modules.Rank
                 }
                 await db.SaveChangesAsync().ConfigureAwait(false);
                 await UpdateUserRoles(userInput).ConfigureAwait(false);
-
             }
         }
 
         internal Task UpdateUserRoles(SocketGuildUser user)
         {
-            return Task.CompletedTask;
+            throw new NotImplementedException();
         }
 
         internal async Task UpdateLastActivity(SocketMessage message)
         {
-            SocketGuildChannel messageChannel = (message.Channel as SocketGuildChannel);
-            if (messageChannel != null)
+            SocketGuildChannel messageGuildChannel = (message.Channel as SocketGuildChannel);
+            if (messageGuildChannel != null)
             {
                 using (KiteBotDbContext db = _discordFactory.Create(new DbContextFactoryOptions()))
                 {
-                    await db.FindAsync<User>(message.Author.Id.ConvertToUncheckedLong()).ConfigureAwait(false);
+                    var user = await db.FindAsync<User>(message.Author.Id.ConvertToUncheckedLong()).ConfigureAwait(false);
+                    user.LastActivityAt = DateTimeOffset.UtcNow;
+                    await db.SaveChangesAsync().ConfigureAwait(false);
                 }
             }
         }

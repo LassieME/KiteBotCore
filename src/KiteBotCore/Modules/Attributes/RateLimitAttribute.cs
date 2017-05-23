@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Discord;
+using Discord.Commands;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Discord;
-using Discord.Commands;
 
 namespace KiteBotCore.Modules
 {
@@ -53,13 +53,13 @@ namespace KiteBotCore.Modules
         //}
 
         /// <inheritdoc />
-        public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IDependencyMap map)
+        public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
             if (context.Channel is IPrivateChannel && _noLimitInDMs)
                 return Task.FromResult(PreconditionResult.FromSuccess());
 
             var now = DateTime.UtcNow;
-            var timeout = _invokeTracker.TryGetValue(context.User.Id, out var t)
+            CommandTimeout timeout = _invokeTracker.TryGetValue(context.User.Id, out var t)
                            && now - t.FirstInvoke < _invokeLimitPeriod
                 ? t : new CommandTimeout(now);
 
@@ -72,7 +72,7 @@ namespace KiteBotCore.Modules
             }
             else
             {
-                return Task.FromResult(PreconditionResult.FromError("You are currently in Timeout."));
+                return Task.FromResult(PreconditionResult.FromError($"You are currently in Timeout for another {Math.Round((_invokeLimitPeriod - (now - timeout.FirstInvoke)).TotalSeconds, 1)}s."));
             }
         }
 
