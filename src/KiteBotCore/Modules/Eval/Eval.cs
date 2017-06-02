@@ -23,7 +23,7 @@ namespace KiteBotCore.Modules.Eval
             Log.Debug($"Eval Command: {_stopwatch.ElapsedMilliseconds.ToString()} ms");
         }
 
-        [Command("eval", RunMode = RunMode.Mixed)]
+        [Command("eval", RunMode = RunMode.Sync)]
         [Summary("evaluates C# script")]
         [RequireOwner]
         public async Task EvalCommand([Remainder]string script)

@@ -1,21 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using Discord.Commands;
-using Discord.WebSocket;
-using Newtonsoft.Json;
 
 namespace KiteBotCore.Modules.Reminder
 {
     public class ReminderModule : ModuleBase
     {
         public ReminderService ReminderService { get; set; }
-        private static readonly Regex Regex = new Regex(@"(?<digits>\d+)\s+?(?<unit>\w+)(?:\s+(?<reason>[\w\d\s':/`\\\.,!?]+))?");
+        private static readonly Regex Regex = new Regex(@"(?<digits>\d+)\s+?(?<unit>\w+)(?:\s+(?<reason>[\w\d\s':/`\\\.,!?]+))?", RegexOptions.Compiled);
 
         [Command("reminder")]
         [Alias("remindme")]

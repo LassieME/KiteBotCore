@@ -51,7 +51,8 @@ namespace KiteBotCore
             if (message.Author is SocketUnknownUser) return;
             if (message.Author.IsBot)
             {
-                KiteChat.BotMessages.Add(parameterMessage);
+                if(message.Author.Id == _client.CurrentUser.Id)
+                    KiteChat.BotMessages.Add(parameterMessage);
                 return;
             }
 
@@ -89,7 +90,6 @@ namespace KiteBotCore
 
         public async Task HandleSelfBotCommand(SocketMessage parameterMessage)
         {
-            // Don't handle the command if it is a system message
             var message = parameterMessage as SocketUserMessage;
             if (message == null || message.Author.Id != _ownerId || message.Author is SocketUnknownUser)
                 return;

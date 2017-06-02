@@ -17,7 +17,7 @@ namespace KiteBotCore.Modules.Youtube
         [RequireOwnerOrUserPermission(GuildPermission.ManageGuild)]
         public async Task YoutubeCommand()
         {
-            await ReplyAsync("Use this command + `list` to list youtube channels that are currently subscribed to in this channel, or use this command + `video` or `livestream` + `add` or `remove`");
+            await ReplyAsync("Use this command + `list` to list youtube channels that are currently subscribed to in this channel, or use this command + `video` or `livestream` + `add` or `remove`").ConfigureAwait(false);
         }
 
         [Command("list")]
@@ -25,7 +25,7 @@ namespace KiteBotCore.Modules.Youtube
         [RequireOwnerOrUserPermission(GuildPermission.ManageGuild)]
         public async Task YoutubeListCommand()
         {
-            await ReplyAsync(YoutubeModuleService.List(Context.Channel.Id));
+            await ReplyAsync(YoutubeModuleService.List(Context.Channel.Id)).ConfigureAwait(false);
         }
 
         [Group("livestream")]
@@ -36,7 +36,7 @@ namespace KiteBotCore.Modules.Youtube
             [RequireOwnerOrUserPermission(GuildPermission.ManageGuild)]
             public async Task LivestreamCommand()
             {
-                await ReplyAsync("Use this command + `add` or `remove` to subscribe or unsubscribe a channel from posting new content in the discord channel the command is ran in.");
+                await ReplyAsync("Use this command + `add` or `remove` to subscribe or unsubscribe a channel from posting new content in the discord channel the command is ran in.").ConfigureAwait(false);
             }
 
             [Command("add")]
@@ -45,9 +45,9 @@ namespace KiteBotCore.Modules.Youtube
             public async Task AddCommand([Remainder]string channelUrl)
             {
                 (bool, string) isValidAndChannelName = ValidateChannelId(channelUrl);
-                var msg = await ReplyAsync(isValidAndChannelName.Item1 ? "OK" : "That is not a valid channelId, please use http://johnnythetank.github.io/youtube-channel-name-converter/");
+                var msg = await ReplyAsync(isValidAndChannelName.Item1 ? "OK" : "That is not a valid channelId, please use http://johnnythetank.github.io/youtube-channel-name-converter/").ConfigureAwait(false);
                 bool wasAdded = YoutubeModuleService.TryAdd(Context.Channel.Id, channelUrl, isValidAndChannelName.Item2, WatchType.Livestream);
-                await msg.ModifyAsync(x => x.Content = wasAdded ? $"OK, {isValidAndChannelName.Item2} added to Livestream-watchlist." : "OK, Channel already added.");
+                await msg.ModifyAsync(x => x.Content = wasAdded ? $"OK, {isValidAndChannelName.Item2} added to Livestream-watchlist." : "OK, Channel already added.").ConfigureAwait(false);
             }
 
             [Command("remove")]
@@ -56,7 +56,7 @@ namespace KiteBotCore.Modules.Youtube
             public async Task RemoveCommand([Remainder]string channelUrl)
             {
                 bool wasAdded = YoutubeModuleService.TryRemove(Context.Channel.Id, channelUrl, WatchType.Livestream);
-                await ReplyAsync(wasAdded ? "OK, Channel removed." : "Channel is not subscribed to this channel.");
+                await ReplyAsync(wasAdded ? "OK, Channel removed." : "Channel is not subscribed to this channel.").ConfigureAwait(false);
             }
         }
 
@@ -68,7 +68,7 @@ namespace KiteBotCore.Modules.Youtube
             [RequireOwnerOrUserPermission(GuildPermission.ManageGuild)]
             public async Task VideoCommand()
             {
-                await ReplyAsync("Use this command + \"add\" or \"remove\" to subscribe or unsubscribe a channel from posting new content in the discord channel the command is ran in.");
+                await ReplyAsync("Use this command + \"add\" or \"remove\" to subscribe or unsubscribe a channel from posting new content in the discord channel the command is ran in.").ConfigureAwait(false);
             }
 
             [Command("add")]
@@ -77,9 +77,9 @@ namespace KiteBotCore.Modules.Youtube
             public async Task AddCommand([Remainder]string channelUrl)
             {
                 (bool, string) isValidAndChannelName = ValidateChannelId(channelUrl);
-                var msg = await ReplyAsync(isValidAndChannelName.Item1 ? "OK" : "That is not a valid channelId, please use http://johnnythetank.github.io/youtube-channel-name-converter/");
+                var msg = await ReplyAsync(isValidAndChannelName.Item1 ? "OK" : "That is not a valid channelId, please use http://johnnythetank.github.io/youtube-channel-name-converter/").ConfigureAwait(false);
                 bool wasAdded = YoutubeModuleService.TryAdd(Context.Channel.Id, channelUrl, isValidAndChannelName.Item2, WatchType.Video);
-                await msg.ModifyAsync(x => x.Content = wasAdded ? $"OK, {isValidAndChannelName.Item2} added to Video-watchlist." : "OK, Channel already added.");
+                await msg.ModifyAsync(x => x.Content = wasAdded ? $"OK, {isValidAndChannelName.Item2} added to Video-watchlist." : "OK, Channel already added.").ConfigureAwait(false);
             }
 
             [Command("remove")]
@@ -88,7 +88,7 @@ namespace KiteBotCore.Modules.Youtube
             public async Task RemoveCommand([Remainder]string channelUrl)
             {
                 bool wasAdded = YoutubeModuleService.TryRemove(Context.Channel.Id, channelUrl, WatchType.Video);
-                await ReplyAsync(wasAdded ? "OK, Channel removed." : "Channel is not subscribed to this channel.");
+                await ReplyAsync(wasAdded ? "OK, Channel removed." : "Channel is not subscribed to this channel.").ConfigureAwait(false);
             }
         }
 
@@ -109,7 +109,7 @@ namespace KiteBotCore.Modules.Youtube
             string currentVideo = data.Id.VideoId;
             if (_latestVideo != currentVideo)
             {
-                await ReplyAsync($"https://youtu.be/{data.Id.VideoId}");
+                await ReplyAsync($"https://youtu.be/{data.Id.VideoId}").ConfigureAwait(false);
             }
             _latestVideo = currentVideo;
         }

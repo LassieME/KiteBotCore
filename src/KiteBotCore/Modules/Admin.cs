@@ -84,10 +84,12 @@ namespace KiteBotCore.Modules
         {
             var message = await ReplyAsync("OK").ConfigureAwait(false);
             var saveTask = KiteChat.MultiDeepMarkovChains?.SaveAsync();
-            await saveTask.ContinueWith(async (e) =>
-            {
-                if (e.IsCompleted) await message.ModifyAsync(x => x.Content = x.Content + ", Saved.").ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            if (saveTask != null)
+                await saveTask.ContinueWith(async (e) =>
+                {
+                    if (e.IsCompleted)
+                        await message.ModifyAsync(x => x.Content = x.Content + ", Saved.").ConfigureAwait(false);
+                }).ConfigureAwait(false);
             Environment.Exit(0);
         }
 
@@ -144,7 +146,7 @@ namespace KiteBotCore.Modules
         [Command("say")]
         [Alias("echo")]
         [Summary("Echos the provided input")]
-        [RequireOwner]
+        [RequireOwner, RequireUserPermission(GuildPermission.Administrator)]
         public async Task SayCommand([Remainder] string input)
         {
             await ReplyAsync(input).ConfigureAwait(false);

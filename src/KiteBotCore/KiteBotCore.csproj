@@ -5,6 +5,7 @@
     <LangVersion>Latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Content\kitesettings.json" />
     <None Remove="log.txt" />
   </ItemGroup>
   <ItemGroup>

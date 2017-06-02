@@ -13,9 +13,11 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Serilog;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using KiteBotCore.Modules.Rank;
 
 namespace KiteBotCore
 {
@@ -28,9 +30,11 @@ namespace KiteBotCore
         private static CommandHandler _handler;
         private static CommandService _commandService;
         private static DiscordContextFactory _dbFactory;
+        private static RankConfigs _rankConfigs;
         private static bool _silentStartup;
         private static bool _isFirstTime = true;
         private static string SettingsPath => Directory.GetCurrentDirectory() + "/Content/settings.json";
+        private static string RankConfigPath => Directory.GetCurrentDirectory() + "/Content/rankconfig.json";
 
         public static async Task Main(string[] args)
         {
@@ -71,6 +75,13 @@ namespace KiteBotCore
                     GiantBombVideoRefreshRate = 60000
                 };
 
+            _rankConfigs = File.Exists(RankConfigPath)
+                ? JsonConvert.DeserializeObject<RankConfigs>(File.ReadAllText(RankConfigPath))
+                : new RankConfigs
+                {
+                    GuildConfigs = new Dictionary<ulong, RankConfigs.GuildRanks>()
+                };
+
             _dbFactory = new DiscordContextFactory();
 
             _kiteChat = new KiteChat(Client, _dbFactory,
@@ -86,6 +97,7 @@ namespace KiteBotCore
             {
                 CaseSensitiveCommands = false,
                 DefaultRunMode = RunMode.Sync,
+                DefaultPreconditionsMode = PreconditionsMode.RequireAll,
                 LogLevel = LogSeverity.Verbose,
                 SeparatorChar = ' ',
                 ThrowOnError = true //Throws exceptions up to the commandhandler in sync commands
@@ -166,6 +178,7 @@ namespace KiteBotCore
                     _handler = new CommandHandler();
                     services.AddSingleton(Client);
                     services.AddSingleton(_settings);
+                    services.AddSingleton(new RankService(_rankConfigs, configs => File.WriteAllText(RankConfigPath,JsonConvert.SerializeObject(_rankConfigs,Formatting.Indented)), _dbFactory, Client));
                     services.AddSingleton(_kiteChat);
                     services.AddSingleton(_handler);
                     services.AddEntityFramework()
