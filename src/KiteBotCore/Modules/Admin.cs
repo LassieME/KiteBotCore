@@ -28,9 +28,9 @@ namespace KiteBotCore.Modules
             _services = services;
         }
 
-        [Command("archive")]
+        [Command("archive channel")]
         [Summary("archives a channel and uploads a JSON")]
-        [RequireOwner]
+        [RequireOwnerOrUserPermission(GuildPermission.Administrator)]
         public async Task ArchiveCommand(string guildName, string channelName, int amount = 10000)
         {
             var channelToArchive = (await
@@ -65,7 +65,7 @@ namespace KiteBotCore.Modules
 
         [Command("save")]
         [Summary("saves markov chain messages")]
-        [RequireOwner]
+        [RequireBotOwner]
         public async Task SaveCommand()
         {
             var message = await ReplyAsync("OK").ConfigureAwait(false);
@@ -79,7 +79,7 @@ namespace KiteBotCore.Modules
         [Command("saveexit")]
         [Alias("se")]
         [Summary("saves and exits")]
-        [RequireOwner]
+        [RequireBotOwner]
         public async Task SaveExitCommand()
         {
             var message = await ReplyAsync("OK").ConfigureAwait(false);
@@ -96,7 +96,7 @@ namespace KiteBotCore.Modules
         [Command("update")]
         [Alias("up")]
         [Summary("Updates the livestream channel, and probably crashes if there is no chat")]
-        [RequireOwner]
+        [RequireBotOwner]
         public async Task UpdateCommand()
         {
             await KiteChat.StreamChecker.ForceUpdateChannel().ConfigureAwait(false);
@@ -106,7 +106,7 @@ namespace KiteBotCore.Modules
         [Command("delete")]
         [Alias("del")]
         [Summary("Deletes the last message the bot has written")]
-        [RequireOwner]
+        [RequireBotOwner]
         public async Task DeleteCommand()
         {
             if (KiteChat.BotMessages.Any()) await ((IUserMessage)KiteChat.BotMessages.Last()).DeleteAsync().ConfigureAwait(false);
@@ -115,7 +115,7 @@ namespace KiteBotCore.Modules
         [Command("restart")]
         [Alias("re")]
         [Summary("restarts the video and livestream checkers")]
-        [RequireOwner]
+        [RequireBotOwner]
         public async Task RestartCommand()
         {
             KiteChat.StreamChecker?.Restart();
@@ -125,7 +125,7 @@ namespace KiteBotCore.Modules
 
         [Command("ignore")]
         [Summary("ignore a gb chat channelname")]
-        [RequireOwner]
+        [RequireBotOwner]
         public async Task IgnoreCommand([Remainder] string input)
         {
             KiteChat.StreamChecker.IgnoreChannel(input);
@@ -134,7 +134,7 @@ namespace KiteBotCore.Modules
 
         [Command("listchannels")]
         [Summary("Lists names of GB chats")]
-        [RequireOwner]
+        [RequireBotOwner]
         public async Task ListChannelCommand()
         {
 
@@ -146,7 +146,7 @@ namespace KiteBotCore.Modules
         [Command("say")]
         [Alias("echo")]
         [Summary("Echos the provided input")]
-        [RequireOwner, RequireUserPermission(GuildPermission.Administrator)]
+        [RequireBotOwner, RequireUserPermission(GuildPermission.Administrator)]
         public async Task SayCommand([Remainder] string input)
         {
             await ReplyAsync(input).ConfigureAwait(false);
@@ -154,7 +154,7 @@ namespace KiteBotCore.Modules
 
         [Command("embed")]
         [Summary("Echos the provided input")]
-        [RequireOwner]
+        [RequireBotOwner]
         public async Task EmbedCommand([Remainder] string input)
         {
             var embed = new EmbedBuilder
@@ -180,7 +180,7 @@ namespace KiteBotCore.Modules
         [Command("setgame")]
         [Alias("playing")]
         [Summary("Sets a game in discord")]
-        [RequireOwner]
+        [RequireBotOwner]
         public async Task PlayingCommand([Remainder] string input)
         {
             var client = _services.GetService<DiscordSocketClient>();
@@ -190,7 +190,7 @@ namespace KiteBotCore.Modules
         [Command("setusername")]
         [Alias("username")]
         [Summary("Sets a new username for discord")]
-        [RequireOwner]
+        [RequireBotOwner]
         public async Task UsernameCommand([Remainder] string input)
         {
             var client = _services.GetService<DiscordSocketClient>();
@@ -200,7 +200,7 @@ namespace KiteBotCore.Modules
         [Command("setnickname")]
         [Alias("nickname")]
         [Summary("Sets a game in discord")]
-        [RequireOwner, RequireContext(ContextType.Guild)]
+        [RequireBotOwner, RequireContext(ContextType.Guild)]
         public async Task NicknameCommand([Remainder] string input)
         {
             await (await Context.Guild.GetCurrentUserAsync().ConfigureAwait(false)).ModifyAsync(x => x.Nickname = input).ConfigureAwait(false);
@@ -209,7 +209,7 @@ namespace KiteBotCore.Modules
         [Command("setavatar", RunMode = RunMode.Sync)]
         [Alias("avatar")]
         [Summary("Sets a new avatar image for this bot")]
-        [RequireOwner]
+        [RequireBotOwner]
         public async Task AvatarCommand([Remainder] string input)
         {
             var avatarStream = await new HttpClient().GetByteArrayAsync(input).ConfigureAwait(false);

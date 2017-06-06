@@ -12,10 +12,9 @@ namespace KiteBotCore.Modules
     {
         [Command("role")]        
         [Summary("Lists properties of a given role")]
-        [RequireOwner]
-        public async Task RoleCommand([Remainder] string input)
+        [RequireBotOwner]
+        public async Task RoleCommand([Remainder] IRole role)
         {
-            var role = Context.Guild.Roles.FirstOrDefault(x => x.Name == input);
             var output = $"Name: {role.Name}\n" +
                 $"Position: {role.Position}\n" +
                 $"Color: R:{role.Color.R}, G:{role.Color.G}, B:{role.Color.B}, Raw:{role.Color.RawValue:X}\n" +
@@ -24,7 +23,7 @@ namespace KiteBotCore.Modules
                 $"IsMentionable: {role.IsMentionable}\n" +
                 $"Permissions: {string.Join(",",role.Permissions.ToList())}";
 
-            await ReplyAsync(output);
+            await ReplyAsync(output).ConfigureAwait(false);
         }
     }
 }

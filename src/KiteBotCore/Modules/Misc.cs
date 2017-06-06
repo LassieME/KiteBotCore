@@ -17,6 +17,14 @@ namespace KiteBotCore.Modules
             await ReplyAsync("http://420.moe/").ConfigureAwait(false);
         }
 
+        [Command("archive")]
+        [Alias("gbarchive")]
+        [Summary("Links you the GB livestream archive")]
+        public async Task GBArchiveCommand()
+        {
+            await ReplyAsync("http://www.giantbomb.com/videos/embed/8635/?allow_gb=yes").ConfigureAwait(false);
+        }
+
         [Command("hi")]
         [Summary("Mentions you and says hello")]
         public async Task HiCommand()
@@ -39,7 +47,7 @@ namespace KiteBotCore.Modules
             var request = (HttpWebRequest)WebRequest.Create(url);
             if (request != null)
             {
-                HttpWebResponse response = await request.GetResponseAsync() as HttpWebResponse;
+                HttpWebResponse response = await request.GetResponseAsync().ConfigureAwait(false) as HttpWebResponse;
                 return response?.ResponseUri.AbsoluteUri;
             }
             return "Couldn't load QLcrew's Random Link.";

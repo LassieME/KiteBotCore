@@ -15,7 +15,7 @@ namespace KiteBotCore.Modules.Music
 
         [Command("play", RunMode = RunMode.Async)]
         [Summary("What is love")]
-        [RequireOwner, RequireContext(ContextType.Guild)]
+        [RequireBotOwner, RequireContext(ContextType.Guild)]
         public async Task MusicTestCommand(IChannel channel)
         {
             //var channel = (Context.User as SocketGuildUser)?.VoiceChannel;

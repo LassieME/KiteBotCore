@@ -43,7 +43,7 @@ namespace KiteBotCore.Modules
 
         [Command("feed", RunMode = RunMode.Async)]
         [Summary("Downloads and feeds the markovchain")]
-        [RequireOwner, RequireServer(Server.KiteCo)]
+        [RequireBotOwner, RequireServer(Server.KiteCo)]
         public async Task FeedCommand(int amount)
         {
             var messagesTask = Context.Channel.GetMessagesAsync(amount).Flatten().ConfigureAwait(false);
@@ -66,7 +66,7 @@ namespace KiteBotCore.Modules
 
         [Command("setdepth", RunMode = RunMode.Async)]
         [Summary("Downloads and feeds the markovchain")]
-        [RequireOwner, RequireServer(Server.KiteCo)]
+        [RequireBotOwner, RequireServer(Server.KiteCo)]
         public async Task SetDepthCommand(int depth)
         {
             KiteChat.MultiDeepMarkovChains.SetDepth(depth);
@@ -76,7 +76,7 @@ namespace KiteBotCore.Modules
 
         [Command("remove", RunMode = RunMode.Async)]
         [Summary("Removes a message from the remote database by messageId")]
-        [RequireOwner, RequireServer(Server.KiteCo)]
+        [RequireBotOwner, RequireServer(Server.KiteCo)]
         public async Task RemoveCommand(ulong messageId)
         {
             List<Message> list = await KiteChat.MultiDeepMarkovChains.GetFullDatabase(0).ConfigureAwait(false);

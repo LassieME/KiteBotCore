@@ -8,7 +8,7 @@ namespace KiteBotCore.Modules
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
     // Inherit from PreconditionAttribute
-    public class RequireOwnerAttribute : PreconditionAttribute
+    public class RequireBotOwnerAttribute : PreconditionAttribute
     {
         public static ulong OwnerId;
 

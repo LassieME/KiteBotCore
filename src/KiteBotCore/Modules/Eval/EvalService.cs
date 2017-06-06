@@ -21,6 +21,7 @@ namespace KiteBotCore.Modules.Eval
             "System",
             "System.Collections.Generic",
             "System.Linq",
+            "System.Threading",
             "System.Threading.Tasks",
             "System.Diagnostics",
             "System.IO",

@@ -95,7 +95,7 @@ namespace KiteBotCore.Modules.Youtube
         private static string _latestVideo;
         [Command("latestexample")]
         [Summary("posts a video if a new video exists since the last time this command was ran")]
-        [RequireOwner]
+        [RequireBotOwner]
         public async Task YoutubeTestCommand()
         {
             SearchResource.ListRequest listRequest = YoutubeModuleService.YoutubeS.Search.List("snippet");

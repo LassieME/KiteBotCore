@@ -25,7 +25,7 @@ namespace KiteBotCore.Modules.Eval
 
         [Command("eval", RunMode = RunMode.Sync)]
         [Summary("evaluates C# script")]
-        [RequireOwner]
+        [RequireBotOwner]
         public async Task EvalCommand([Remainder]string script)
         {
             var evalService = new EvalService(Services);
