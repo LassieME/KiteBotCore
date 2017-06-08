@@ -11,41 +11,43 @@ using System.Globalization;
 using System.Net.Http;
 using System.IO;
 using System.Text;
-using Discord.Rest;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace KiteBotCore.Modules
 {
     public class Admin : CleansingModuleBase
     {
-        private readonly CommandService _handler;
-        private readonly IDependencyMap _map;
+        private readonly CommandHandler _handler;
+        private readonly IServiceProvider _services;
 
-        public Admin(IDependencyMap map)
+        public Admin(IServiceProvider services)
         {
-            _handler = map.Get<CommandService>();
-            _map = map;
+            _handler = services.GetService<CommandHandler>();
+            _services = services;
         }
 
-        [Command("archive")]
+        [Command("archive channel")]
         [Summary("archives a channel and uploads a JSON")]
-        [RequireOwner]
+        [RequireOwnerOrUserPermission(GuildPermission.Administrator)]
         public async Task ArchiveCommand(string guildName, string channelName, int amount = 10000)
         {
             var channelToArchive = (await
-                (await Context.Client.GetGuildsAsync())
+                (await Context.Client.GetGuildsAsync().ConfigureAwait(false))
                 .FirstOrDefault(x => x.Name == guildName)
-                .GetTextChannelsAsync())
+                .GetTextChannelsAsync().ConfigureAwait(false))
                 .FirstOrDefault(x => x.Name == channelName);
+
             if (channelToArchive != null)
             {
-                var listOfMessages = new List<IMessage>(await channelToArchive.GetMessagesAsync(amount).Flatten());
+                var listOfMessages = new List<IMessage>(await channelToArchive.GetMessagesAsync(amount).Flatten().ConfigureAwait(false));
                 List<Message> list = new List<Message>(listOfMessages.Capacity);
                 foreach (var message in listOfMessages)
                     list.Add(new Message { Author = message.Author.Username, Content = message.Content, Timestamp = message.Timestamp });
                 var jsonSettings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
                 var json = JsonConvert.SerializeObject(list, Formatting.Indented, jsonSettings);
-                await Context.Channel.SendFileAsync(GenerateStreamFromString(json), $"{channelName}.json");
+                await Context.Channel.SendFileAsync(GenerateStreamFromString(json), $"{channelName}.json").ConfigureAwait(false);
             }
         }
 
@@ -63,142 +65,157 @@ namespace KiteBotCore.Modules
 
         [Command("save")]
         [Summary("saves markov chain messages")]
-        [RequireOwner]
+        [RequireBotOwner]
         public async Task SaveCommand()
         {
-            var message = await ReplyAsync("OK");
+            var message = await ReplyAsync("OK").ConfigureAwait(false);
             var saveTask = KiteChat.MultiDeepMarkovChains.SaveAsync();
             await saveTask.ContinueWith(async (e) =>
             {
-                if (e.IsCompleted) await message.ModifyAsync(x => x.Content += ", Saved.");
-            });
+                if (e.IsCompleted) await message.ModifyAsync(x => x.Content += ", Saved.").ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
 
         [Command("saveexit")]
         [Alias("se")]
         [Summary("saves and exits")]
-        [RequireOwner]
+        [RequireBotOwner]
         public async Task SaveExitCommand()
         {
-            var message = await ReplyAsync("OK");
-            var saveTask = KiteChat.MultiDeepMarkovChains.SaveAsync();
-            await saveTask.ContinueWith(async (e) =>
-            {
-                if (e.IsCompleted) await message.ModifyAsync(x => x.Content += ", Saved.");
-            });
+            var message = await ReplyAsync("OK").ConfigureAwait(false);
+            var saveTask = KiteChat.MultiDeepMarkovChains?.SaveAsync();
+            if (saveTask != null)
+                await saveTask.ContinueWith(async (e) =>
+                {
+                    if (e.IsCompleted)
+                        await message.ModifyAsync(x => x.Content = x.Content + ", Saved.").ConfigureAwait(false);
+                }).ConfigureAwait(false);
             Environment.Exit(0);
         }
 
         [Command("update")]
         [Alias("up")]
         [Summary("Updates the livestream channel, and probably crashes if there is no chat")]
-        [RequireOwner]
+        [RequireBotOwner]
         public async Task UpdateCommand()
         {
-            await KiteChat.StreamChecker.ForceUpdateChannel();
-            await ReplyAsync("updated?");
+            await KiteChat.StreamChecker.ForceUpdateChannel().ConfigureAwait(false);
+            await ReplyAsync("updated?").ConfigureAwait(false);
         }
 
         [Command("delete")]
         [Alias("del")]
         [Summary("Deletes the last message the bot has written")]
-        [RequireOwner]
+        [RequireBotOwner]
         public async Task DeleteCommand()
         {
-            if (KiteChat.BotMessages.Any()) await ((IUserMessage)KiteChat.BotMessages.Last()).DeleteAsync();
+            if (KiteChat.BotMessages.Any()) await ((IUserMessage)KiteChat.BotMessages.Last()).DeleteAsync().ConfigureAwait(false);
         }
 
         [Command("restart")]
         [Alias("re")]
         [Summary("restarts the video and livestream checkers")]
-        [RequireOwner]
+        [RequireBotOwner]
         public async Task RestartCommand()
         {
             KiteChat.StreamChecker?.Restart();
             KiteChat.GbVideoChecker?.Restart();
-            await ReplyAsync("It might have done something, who knows.");
+            await ReplyAsync("It might have done something, who knows.").ConfigureAwait(false);
         }
 
         [Command("ignore")]
         [Summary("ignore a gb chat channelname")]
-        [RequireOwner]
+        [RequireBotOwner]
         public async Task IgnoreCommand([Remainder] string input)
         {
             KiteChat.StreamChecker.IgnoreChannel(input);
-            await ReplyAsync("Added to ignore list.");
+            await ReplyAsync("Added to ignore list.").ConfigureAwait(false);
         }
 
         [Command("listchannels")]
         [Summary("Lists names of GB chats")]
-        [RequireOwner]
+        [RequireBotOwner]
         public async Task ListChannelCommand()
         {
 
-            await ReplyAsync("Current livestreams channels are:" + Environment.NewLine + (await KiteChat.StreamChecker.ListChannels()));
+            await ReplyAsync("Current livestreams channels are:" + Environment.NewLine + await KiteChat.StreamChecker.ListChannelsAsync()
+                .ConfigureAwait(false))
+                .ConfigureAwait(false);
         }
 
         [Command("say")]
         [Alias("echo")]
         [Summary("Echos the provided input")]
-        [RequireOwner]
+        [RequireBotOwner, RequireUserPermission(GuildPermission.Administrator)]
         public async Task SayCommand([Remainder] string input)
         {
-            await ReplyAsync(input);
+            await ReplyAsync(input).ConfigureAwait(false);
         }
 
         [Command("embed")]
         [Summary("Echos the provided input")]
-        [RequireOwner]
+        [RequireBotOwner]
         public async Task EmbedCommand([Remainder] string input)
         {
             var embed = new EmbedBuilder
             {
-                Title = "Test",
+                Title = input,
                 Color = new Color(255, 0, 0),
                 Description = input
-            };
-            await ReplyAsync("", false, embed);
+            }.AddField(x =>
+            {
+                x.Name = input;
+                x.Value = input;
+            }).WithAuthor(x =>
+            {
+                x.Name = input;
+            })
+            .WithFooter(x =>
+            {
+                x.Text = input;
+            });
+            await ReplyAsync("", false, embed).ConfigureAwait(false);
         }
 
         [Command("setgame")]
         [Alias("playing")]
         [Summary("Sets a game in discord")]
-        [RequireOwner]
+        [RequireBotOwner]
         public async Task PlayingCommand([Remainder] string input)
         {
-            var client = _map.Get<DiscordSocketClient>();
-            await client.SetGameAsync(input);
+            var client = _services.GetService<DiscordSocketClient>();
+            await client.SetGameAsync(input).ConfigureAwait(false);
         }
 
         [Command("setusername")]
         [Alias("username")]
         [Summary("Sets a new username for discord")]
-        [RequireOwner]
+        [RequireBotOwner]
         public async Task UsernameCommand([Remainder] string input)
         {
-            var client = _map.Get<DiscordSocketClient>();
-            await client.CurrentUser.ModifyAsync(x => x.Username = input);
+            var client = _services.GetService<DiscordSocketClient>();
+            await client.CurrentUser.ModifyAsync(x => x.Username = input).ConfigureAwait(false);
         }
 
         [Command("setnickname")]
         [Alias("nickname")]
         [Summary("Sets a game in discord")]
-        [RequireOwner, RequireContext(ContextType.Guild)]
+        [RequireBotOwner, RequireContext(ContextType.Guild)]
         public async Task NicknameCommand([Remainder] string input)
         {
-            await (await Context.Guild.GetCurrentUserAsync()).ModifyAsync(x => x.Nickname = input);
+            await (await Context.Guild.GetCurrentUserAsync().ConfigureAwait(false)).ModifyAsync(x => x.Nickname = input).ConfigureAwait(false);
         }
 
         [Command("setavatar", RunMode = RunMode.Sync)]
         [Alias("avatar")]
         [Summary("Sets a new avatar image for this bot")]
-        [RequireOwner]
+        [RequireBotOwner]
         public async Task AvatarCommand([Remainder] string input)
         {
-            var avatarStream = await new HttpClient().GetByteArrayAsync(input);
+            var avatarStream = await new HttpClient().GetByteArrayAsync(input).ConfigureAwait(false);
             Stream stream = new MemoryStream(avatarStream);
-            await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(stream));
-            await ReplyAsync("👌");
+            await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(stream)).ConfigureAwait(false);
+            await ReplyAsync("👌").ConfigureAwait(false);
         }
 
         [Command("help")]
@@ -208,27 +225,35 @@ namespace KiteBotCore.Modules
             string output = "";
             if (optional != null)
             {
-                var command = _handler.Commands.FirstOrDefault(x => x.Aliases.Any(y => y.Equals(optional.ToLower())));
+                var command = _handler.Commands.Commands.FirstOrDefault(x => x.Aliases.Any(y => y == optional.ToLower()));
                 if (command != null)
                 {
                     output += $"Command: {string.Join(", ", command.Aliases)}: {Environment.NewLine}";
                     output += command.Summary;
-                    await ReplyAsync(output + ".");
+                    await ReplyAsync(output + ".").ConfigureAwait(false);
                     return;
                 }
                 output += "Couldn't find a command with that name, givng you the commandlist instead:" +
                           Environment.NewLine;
             }
-            foreach (CommandInfo cmdInfo in _handler.Commands.OrderBy(x => x.Aliases[0]))
+            foreach (CommandInfo cmdInfo in _handler.Commands.Commands.OrderBy(x => x.Aliases[0]))
             {
-                if ((await cmdInfo.CheckPreconditionsAsync(Context, _map)).IsSuccess)
+                try
                 {
-                    if (!string.IsNullOrWhiteSpace(output)) output += ",";
-                    output += "`" + cmdInfo.Aliases[0] + "`";
+                    if ((await cmdInfo.CheckPreconditionsAsync(Context, _services).ConfigureAwait(false)).IsSuccess)
+                    {
+                        if (!string.IsNullOrWhiteSpace(output)) output += ",";
+                        output += "`" + cmdInfo.Aliases[0] + "`";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Exception in help command");
+                    throw ex;
                 }
             }
             output += "." + Environment.NewLine;
-            await ReplyAsync("These are the commands you can use: " + Environment.NewLine + output + "Run help <command> for more information.");
+            await ReplyAsync("These are the commands you can use: " + Environment.NewLine + output + "Run help <command> for more information.").ConfigureAwait(false);
         }
 
         [Command("info")]
@@ -239,11 +264,12 @@ namespace KiteBotCore.Modules
 
             string GetHeapSize() => Math.Round(GC.GetTotalMemory(true) / (1024.0 * 1024.0), 2).ToString(CultureInfo.InvariantCulture);
 
-            var application = await Context.Client.GetApplicationInfoAsync();
+            var application = await Context.Client.GetApplicationInfoAsync().ConfigureAwait(false);
 
             await ReplyAsync(
                 $"{Format.Bold("Info")}\n" +
                 $"- Author: {application.Owner.Username}#{application.Owner.DiscriminatorValue} (ID {application.Owner.Id})\n" +
+                $"- Avatar by: UberX#6974\n" +
                 $"- Source Code: <https://github.com/LassieME/KiteBotCore>\n" +
                 $"- Library: Discord.Net ({DiscordConfig.Version})\n" +
                 $"- Runtime: {RuntimeInformation.FrameworkDescription} {RuntimeInformation.OSArchitecture}\n" +
@@ -255,7 +281,8 @@ namespace KiteBotCore.Modules
                 $"- Guilds: {(Context.Client as DiscordSocketClient)?.Guilds.Count}\n" +
                 $"- Channels: {(Context.Client as DiscordSocketClient)?.Guilds.Sum(g => g.Channels.Count)}" +
                 $"- Users: {(Context.Client as DiscordSocketClient)?.Guilds.Sum(g => g.Users.Count)}"
-            );
+            ).ConfigureAwait(false);
         }
     }
 }
+ 

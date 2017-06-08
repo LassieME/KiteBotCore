@@ -1,16 +1,29 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Threading.Tasks;
+﻿using Discord;
 using Discord.Commands;
+using Serilog;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using KiteBotCore.Json;
-using Discord;
+using System.Threading.Tasks;
 
 namespace KiteBotCore.Modules
 {
     public class MarkovChain : CleansingModuleBase
     {
-        [Command("testMarkov")]
+        private Stopwatch _stopwatch;
+        protected override void BeforeExecute()
+        {
+            _stopwatch = new Stopwatch();
+            _stopwatch.Start();
+        }
+
+        protected override void AfterExecute()
+        {
+            _stopwatch.Stop();
+            Log.Debug($"Markov Chain Command: {_stopwatch.ElapsedMilliseconds.ToString()} ms");
+        }
+
+        [Command("testMarkov", RunMode = RunMode.Async)]
         [Alias("tm")]
         [Summary("Creates a Markov Chain string based on user messages")]
         [RequireServer(Server.KiteCo)]
@@ -20,48 +33,58 @@ namespace KiteBotCore.Modules
             {
                 await ReplyAsync(KiteChat.MultiDeepMarkovChains.GetSequence() + "\n" +
                                  KiteChat.MultiDeepMarkovChains.GetSequence() + "\n" +
-                                 KiteChat.MultiDeepMarkovChains.GetSequence() + "\n");
+                                 KiteChat.MultiDeepMarkovChains.GetSequence() + "\n").ConfigureAwait(false);
             }
             else
             {
-                await ReplyAsync(KiteChat.MultiDeepMarkovChains.GetSequence());
+                await ReplyAsync(KiteChat.MultiDeepMarkovChains.GetSequence()).ConfigureAwait(false);
             }
         }
 
         [Command("feed", RunMode = RunMode.Async)]
         [Summary("Downloads and feeds the markovchain")]
-        [RequireOwner, RequireServer(Server.KiteCo)]
+        [RequireBotOwner, RequireServer(Server.KiteCo)]
         public async Task FeedCommand(int amount)
         {
-            var messages = Context.Channel.GetMessagesAsync(amount);
+            var messagesTask = Context.Channel.GetMessagesAsync(amount).Flatten().ConfigureAwait(false);
             int i = 0;
-            ImmutableList<MarkovMessage> list = KiteChat.MultiDeepMarkovChains.GetFullDatabase();
-            await messages.ForEachAsync( collection =>
+            List<Message> list = await KiteChat.MultiDeepMarkovChains.GetFullDatabase(Context.Channel.Id).ConfigureAwait(false);
+            var messages = await messagesTask;
+            foreach(var msg in messages)
             {
                 i++;
-                foreach (var msg in collection)
+                if (list.All(x => x.Id != msg.Id))
                 {
-                    if (list.All(x => x.Id != msg.Id))
-                    {
-                        KiteChat.MultiDeepMarkovChains.Feed(msg);
-                    }
+                    await KiteChat.MultiDeepMarkovChains.Feed(msg).ConfigureAwait(false);
                 }
-            });
-            await KiteChat.MultiDeepMarkovChains.SaveAsync();//TODO: Stare at this some more http://stackoverflow.com/questions/1930982/when-should-i-call-savechanges-when-creating-1000s-of-entity-framework-object
-            await ReplyAsync($"{i*100} messages downloaded.");
+            }
+
+            await KiteChat.MultiDeepMarkovChains.SaveAsync().ConfigureAwait(false);
+            await ReplyAsync($"{i} messages downloaded.").ConfigureAwait(false);
+        }
+
+
+        [Command("setdepth", RunMode = RunMode.Async)]
+        [Summary("Downloads and feeds the markovchain")]
+        [RequireBotOwner, RequireServer(Server.KiteCo)]
+        public async Task SetDepthCommand(int depth)
+        {
+            KiteChat.MultiDeepMarkovChains.SetDepth(depth);
+            
+            await ReplyAsync("👌").ConfigureAwait(false);
         }
 
         [Command("remove", RunMode = RunMode.Async)]
-        [Summary("Downloads and feeds the markovchain")]
-        [RequireOwner, RequireServer(Server.KiteCo)]
+        [Summary("Removes a message from the remote database by messageId")]
+        [RequireBotOwner, RequireServer(Server.KiteCo)]
         public async Task RemoveCommand(ulong messageId)
         {
-            ImmutableList<MarkovMessage> list = KiteChat.MultiDeepMarkovChains.GetFullDatabase();
+            List<Message> list = await KiteChat.MultiDeepMarkovChains.GetFullDatabase(0).ConfigureAwait(false);
 
             foreach (var item in list.Where(x => x.Id == messageId))
-                await KiteChat.MultiDeepMarkovChains.RemoteItemAsync(item);
+                await KiteChat.MultiDeepMarkovChains.RemoveItemAsync(item).ConfigureAwait(false);
 
-            await ReplyAsync($"<:bop:230275292076179460>");
+            await ReplyAsync("<:bop:230275292076179460>").ConfigureAwait(false);
         }
     }
 }

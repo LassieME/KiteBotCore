@@ -4,33 +4,17 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using System.Runtime.InteropServices;
-using System.Diagnostics;
-using System.Globalization;
-using System.Net.Http;
-using System.Security.Cryptography.X509Certificates;
-using Discord.API;
 
 namespace KiteBotCore.Modules
 {
     [Group("inspect")]
-    public class Inspect : ModuleBase
+    public class Inspect : ModuleBase //TODO: Either expand this via more commands, or make one command that uses reflection to find properties
     {
-        private readonly CommandService _handler;
-        private readonly IDependencyMap _map;
-
-        public Inspect(IDependencyMap map)
-        {
-            _handler = map.Get<CommandService>();
-            _map = map;
-        }
-
         [Command("role")]        
         [Summary("Lists properties of a given role")]
-        [RequireOwner]
-        public async Task RoleCommand([Remainder] string input)
+        [RequireBotOwner]
+        public async Task RoleCommand([Remainder] IRole role)
         {
-            var role = Context.Guild.Roles.FirstOrDefault(x => x.Name == input);
             var output = $"Name: {role.Name}\n" +
                 $"Position: {role.Position}\n" +
                 $"Color: R:{role.Color.R}, G:{role.Color.G}, B:{role.Color.B}, Raw:{role.Color.RawValue:X}\n" +
@@ -39,7 +23,7 @@ namespace KiteBotCore.Modules
                 $"IsMentionable: {role.IsMentionable}\n" +
                 $"Permissions: {string.Join(",",role.Permissions.ToList())}";
 
-            await ReplyAsync(output);
+            await ReplyAsync(output).ConfigureAwait(false);
         }
     }
 }

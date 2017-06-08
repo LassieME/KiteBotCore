@@ -22,6 +22,15 @@ namespace KiteBotCore.Json
         [JsonProperty("YoutubeApiKey")]
         public string YoutubeApiKey { get; set; }
 
+        [JsonProperty("AnilistClientId")]
+        public string AnilistId { get; set; }
+
+        [JsonProperty("AnilistClientSecret")]
+        public string AnilistSecret { get; set; }
+
+        [JsonProperty("DatabaseConnectionString")]
+        public string DatabaseConnectionString { get; set; }
+
         [JsonProperty("OwnerId")]
         public ulong OwnerId { get; set; }
 

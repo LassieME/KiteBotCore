@@ -2,14 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Scripting;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Scripting;
 using System.Threading;
+using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace KiteBotCore.Modules.Eval
 {
@@ -20,6 +21,7 @@ namespace KiteBotCore.Modules.Eval
             "System",
             "System.Collections.Generic",
             "System.Linq",
+            "System.Threading",
             "System.Threading.Tasks",
             "System.Diagnostics",
             "System.IO",
@@ -29,58 +31,72 @@ namespace KiteBotCore.Modules.Eval
             "KiteBotCore"
         };
 
-        private readonly ScriptOptions _options;
-        private readonly CancellationTokenSource _token;
         private readonly DiscordSocketClient _client;
         private readonly CommandHandler _handler;
-        public void PopToken() => _token.Cancel();
+        private readonly KiteBotDbContext _dbContext;
 
-        public EvalService(IDependencyMap map)
+        private readonly ScriptOptions _options;
+        private readonly CancellationTokenSource _token;
+
+        public EvalService(IServiceProvider services)
         {
             _options = ScriptOptions.Default
                 .AddReferences(GetAssemblies().ToArray())
                 .AddImports(Imports);
             _token = new CancellationTokenSource();
-            _client = map.Get<DiscordSocketClient>();
-            _handler = map.Get<CommandHandler>();
+            _client = services.GetService<DiscordSocketClient>();
+            try
+            {
+                _dbContext = services.GetService<KiteBotDbContext>();
+                var list = _dbContext.Messages.ToList();
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex + ex.Message);
+            }
+            _handler = services.GetService<CommandHandler>();
         }
 
-        public async Task Evaluate(CommandContext context, string script)
+        public void PopToken()
+        {
+            _token.Cancel();
+        }
+
+        public async Task Evaluate(ICommandContext context, string script)
         {
             using (context.Channel.EnterTypingState())
             {
-                var working = await context.Channel.SendMessageAsync("**Evaluating**, just a sec...");
-                ScriptGlobals globals = new ScriptGlobals
+                IUserMessage working = await context.Channel.SendMessageAsync("**Evaluating**, just a sec...")
+                    .ConfigureAwait(false);
+                var globals = new ScriptGlobals
                 {
                     handler = _handler,
                     client = _client,
                     context = context,
+                    dbContext = _dbContext
                 };
                 script = script.Trim('`');
                 try
                 {
-                    var eval =
-                        await
-                            CSharpScript.EvaluateAsync(script, _options, globals, cancellationToken: _token.Token);
-                    await context.Channel.SendMessageAsync(eval.ToString());
+                    object eval = await CSharpScript
+                        .EvaluateAsync(script, _options, globals, cancellationToken: _token.Token)
+                        .ConfigureAwait(false);
+                    await working.ModifyAsync(x => x.Content = eval.ToString()).ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {
-                    await context.Channel.SendMessageAsync($"**Script Failed**\n{e.Message}");
-                }
-                finally
-                {
-                    await working.DeleteAsync();
+                    await working.ModifyAsync(x => x.Content = $"**Script Failed**\n{e.Message}").ConfigureAwait(false);
                 }
             }
         }
 
         public IEnumerable<Assembly> GetAssemblies()
         {
-            var assemblies = Assembly.GetEntryAssembly().GetReferencedAssemblies();
-            foreach (var a in assemblies)
+            AssemblyName[] assemblies = Assembly.GetEntryAssembly().GetReferencedAssemblies();
+            foreach (AssemblyName a in assemblies)
             {
-                var asm = Assembly.Load(a);
+                Assembly asm = Assembly.Load(a);
                 yield return asm;
             }
             yield return Assembly.GetEntryAssembly();
@@ -91,8 +107,9 @@ namespace KiteBotCore.Modules.Eval
     public class ScriptGlobals
     {
         public CommandHandler handler { get; internal set; }
+        public KiteBotDbContext dbContext { get; internal set; }
         public DiscordSocketClient client { get; internal set; }
-        public CommandContext context { get; internal set; }
+        public ICommandContext context { get; internal set; }
         public SocketMessage msg => context.Message as SocketMessage;
         public SocketGuild guild => context.Guild as SocketGuild;
         public SocketGuildChannel channel => context.Channel as SocketGuildChannel;

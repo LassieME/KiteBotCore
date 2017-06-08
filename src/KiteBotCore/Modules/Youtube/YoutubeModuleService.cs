@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -54,8 +55,8 @@ namespace KiteBotCore.Modules.Youtube
         {
             var watched = _queue.Dequeue();
             _queue.Enqueue(watched);
-            Log.Information("YoutubeChecker just ran.");
-            await CheckForNewContentAsync(watched);
+            Log.Verbose("YoutubeChecker just ran.");
+            await CheckForNewContentAsync(watched).ConfigureAwait(false);
         }
 
         private static async Task CheckForNewContentAsync(WatchedChannel watched)
@@ -68,7 +69,17 @@ namespace KiteBotCore.Modules.Youtube
             if(watched.WatchedType == WatchType.Livestream)
                 listRequest.EventType = SearchResource.ListRequest.EventTypeEnum.Live;
 
-            SearchListResponse searchResponse = await listRequest.ExecuteAsync();
+            SearchListResponse searchResponse;
+            try
+            {
+                searchResponse = await listRequest.ExecuteAsync();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "YoutubeService threw an error");
+                return;
+            }
+
             SearchResult data = searchResponse.Items.FirstOrDefault(v => v.Id.Kind == "youtube#video");
 
             if (data != null && (watched.LastVideoId != null || watched.WatchedType == WatchType.Livestream) && data.Id.VideoId != watched.LastVideoId)

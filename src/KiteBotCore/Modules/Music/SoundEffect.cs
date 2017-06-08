@@ -2,6 +2,8 @@
 using System.IO;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Discord;
+using Discord.Audio;
 using Discord.Commands;
 using Discord.WebSocket;
 
@@ -9,25 +11,20 @@ namespace KiteBotCore.Modules.Music
 {
     public class SoundEffect : CleansingModuleBase
     {
-        private readonly DiscordSocketClient _client;
+        public DiscordSocketClient Client { get; set; }
 
-        public SoundEffect(DiscordSocketClient client)
-        {
-            _client = client;
-        }
-
-        [Command("play", RunMode = RunMode.Mixed)]
+        [Command("play", RunMode = RunMode.Async)]
         [Summary("What is love")]
-        [RequireOwner, RequireContext(ContextType.Guild)]
-        public async Task ArchiveCommand()
+        [RequireBotOwner, RequireContext(ContextType.Guild)]
+        public async Task MusicTestCommand(IChannel channel)
         {
-            var channel = (Context.User as SocketGuildUser)?.VoiceChannel;
+            //var channel = (Context.User as SocketGuildUser)?.VoiceChannel;
             Debug.Assert(channel != null);
             const string path = @"D:\Users\sindr\Downloads\MarkovChristmas.mp3";
             try
             {
-                using (var audioClient = await channel.ConnectAsync())
-                using (var stream = audioClient.CreatePCMStream(2880, bitrate: channel.Bitrate))
+                using (var audioClient = await (channel as IVoiceChannel)?.ConnectAsync())
+                using (var stream = audioClient.CreatePCMStream(AudioApplication.Music, bitrate: (channel as IVoiceChannel)?.Bitrate, bufferMillis: 2880))
                 {
                     var process = Process.Start(new ProcessStartInfo
                     {
@@ -38,10 +35,10 @@ namespace KiteBotCore.Modules.Music
                         RedirectStandardError = true
                     });
                     Task flush = process.StandardError.BaseStream.CopyToAsync(Stream.Null);
-                    await process.StandardOutput.BaseStream.CopyToAsync(stream);
-                    await flush;
+                    await process.StandardOutput.BaseStream.CopyToAsync(stream).ConfigureAwait(false);
+                    await flush.ConfigureAwait(false);
                     process.WaitForExit();
-                    await ReplyAsync("👌");
+                    await ReplyAsync("👌").ConfigureAwait(false);
                 }
             }
             catch (Exception ex)

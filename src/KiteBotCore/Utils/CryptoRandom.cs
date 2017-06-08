@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 
-namespace KiteBotCore.Modules.DiceRoller
+namespace KiteBotCore.Utils
 {
 	///<summary>
 	/// Represents a pseudo-random number generator, a device that produces random data.

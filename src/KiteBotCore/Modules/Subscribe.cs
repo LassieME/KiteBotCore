@@ -1,22 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Discord.Commands;
 using Discord.WebSocket;
 using KiteBotCore.Json.GiantBomb.Chats;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace KiteBotCore.Modules
 {
-    public class Subscribe : ModuleBase
+    public class Subscribe : ModuleBase //TODO: Decouple the module and the static service
     {
         private static string SubscriberFilePath => Directory.GetCurrentDirectory() + "/Content/subscriber.json";
 
         public static List<ulong> SubscriberList = File.Exists(SubscriberFilePath) ? JsonConvert.DeserializeObject<List<ulong>>(File.ReadAllText(SubscriberFilePath))
                 : new List<ulong>();
 
-        public static DiscordSocketClient Client = Program.Client;
+        private Stopwatch _stopwatch;
+        protected override void BeforeExecute()
+        {
+            _stopwatch = new Stopwatch();
+            _stopwatch.Start();
+        }
+
+        protected override void AfterExecute()
+        {
+            _stopwatch.Stop();
+            Log.Debug($"Subscribe Command: {_stopwatch.ElapsedMilliseconds.ToString()} ms");
+        }
 
         [Command("subscribe"), Alias("sub")]
         [Summary("Subscribes to livestream DMs")]
@@ -24,12 +37,12 @@ namespace KiteBotCore.Modules
         {
             if (SubscriberList.Contains(Context.User.Id) )
             {
-                await ReplyAsync("You're already subscribed, to unsubscribe use \"~unsubscribe\"");
+                await ReplyAsync("You're already subscribed, to unsubscribe use \"~unsubscribe\"").ConfigureAwait(false);
             }
             else
             {
                 AddToList(Context.User.Id);
-                await ReplyAsync("You are now subscribed, to unsubscribe use \"~unsubscribe\". You have to stay in the server to continue to get messages.");
+                await ReplyAsync("You are now subscribed, to unsubscribe use \"~unsubscribe\". You have to stay in the server to continue to get messages.").ConfigureAwait(false);
             }
         }
         [Command("unsubscribe"), Alias("unsub")]
@@ -39,33 +52,46 @@ namespace KiteBotCore.Modules
             if (SubscriberList.Contains(Context.User.Id))
             {
                 RemoveFromList(Context.User.Id);
-                await
-                    ReplyAsync("You are now unsubscribed, thanks for trying it out.");
+
+                await ReplyAsync("You are now unsubscribed, thanks for trying it out.").ConfigureAwait(false);
             }
             else
             {
-                await
-                    ReplyAsync("You are already unsubscribed.");
+                await ReplyAsync("You are already unsubscribed.").ConfigureAwait(false);
             }
         }
 
-        internal static async Task PostLivestream(Result stream)
+        internal static async Task PostLivestream(Result stream, DiscordSocketClient client)
         {
             var title = stream.Title;
             var deck = stream.Deck;
             var image = stream.Image.ScreenUrl;
             
-            foreach (ulong user in SubscriberList)
+            foreach (ulong user in SubscriberList.ToArray())
             {
                 try
                 {
-                    var channel = await Client.GetUser(user).CreateDMChannelAsync();
-                    await channel.SendMessageAsync(title + ": " + deck + " is LIVE at <http://www.giantbomb.com/chat/> NOW, check it out!" +
-                                Environment.NewLine + image);
+                    var channel = await client.GetUser(user).CreateDMChannelAsync().ConfigureAwait(false);
+                    await channel.SendMessageAsync(title + ": " + deck +
+                                                   " is LIVE at <http://www.giantbomb.com/chat/> NOW, check it out!" +
+                                                   Environment.NewLine + (image ?? ""))
+                        .ConfigureAwait(false);
+                }
+                catch (Discord.Net.HttpException httpException)
+                {
+                    if (httpException.DiscordCode == 50007)
+                    {
+                        Log.Information(httpException, "couldn't send {user} a DM, removing", user);
+                        RemoveFromList(user);
+                    }
+                    else
+                    {
+                        Log.Warning(httpException, "A unhandled error happened in Subscribe.PostLivestream");
+                    }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex + Environment.NewLine + ex.Message);
+                    Log.Warning(ex, "A unhandled error happened in Subscribe.PostLivestream");
                 }
             }
         }

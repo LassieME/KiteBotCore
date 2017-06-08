@@ -115,16 +115,16 @@ namespace KiteBotCore.Json.GiantBomb.Search
         public string Description { get; set; }
 
         [JsonProperty("expected_release_day")]
-        public object ExpectedReleaseDay { get; set; }
+        public int? ExpectedReleaseDay { get; set; }
 
         [JsonProperty("expected_release_month")]
-        public object ExpectedReleaseMonth { get; set; }
+        public int? ExpectedReleaseMonth { get; set; }
 
         [JsonProperty("expected_release_quarter")]
-        public object ExpectedReleaseQuarter { get; set; }
+        public int? ExpectedReleaseQuarter { get; set; }
 
         [JsonProperty("expected_release_year")]
-        public object ExpectedReleaseYear { get; set; }
+        public int? ExpectedReleaseYear { get; set; }
 
         [JsonProperty("id")]
         public int Id { get; set; }
@@ -255,12 +255,33 @@ namespace KiteBotCore.Json.GiantBomb.Search
                 .WithCurrentTimestamp();
 
             if (OriginalReleaseDate != null)
+            {
                 embedBuilder.AddField(x =>
                 {
                     x.Name = "First release date";
                     x.Value = OriginalReleaseDate?.Replace(" 00:00:00", "");
                     x.IsInline = true;
                 });
+            }
+            else if (ExpectedReleaseDay != null && ExpectedReleaseMonth != null && ExpectedReleaseYear != null)
+            {
+                embedBuilder.AddField(x =>
+                {
+                    x.Name = "Expected release date";
+                    x.Value =
+                        $"{ExpectedReleaseYear}-{(ExpectedReleaseMonth < 10 ? "0" + ExpectedReleaseMonth : ExpectedReleaseMonth.ToString())}-{ExpectedReleaseDay}";
+                    x.IsInline = true;
+                });
+            }
+            else if (ExpectedReleaseQuarter != null && ExpectedReleaseYear != null)
+            {
+                embedBuilder.AddField(x =>
+                {
+                    x.Name = "Expected release quarter";
+                    x.Value = $"Q{ExpectedReleaseQuarter} {ExpectedReleaseYear}";
+                    x.IsInline = true;
+                });
+            }
 
             if (Platforms != null && Platforms.Any())
                 embedBuilder.AddField(x =>

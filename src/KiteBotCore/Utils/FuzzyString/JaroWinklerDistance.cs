@@ -34,7 +34,7 @@ namespace KiteBotCore.Utils.FuzzyString
 
             for (int i = 0; i < maximumPrefixLength; i++)
             {
-                if (source[i].Equals(target[i])) { commonPrefixLength++; }
+                if (source[i] == target[i]) { commonPrefixLength++; }
                 else { return commonPrefixLength; }
             }
 

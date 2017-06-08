@@ -5,21 +5,23 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 
 namespace KiteBotCore.Modules
 {
-    public static class FollowUpService
+    public class FollowUpService //TODO: Make this non-static
     {
-        private static readonly List<FollowUp> FollowUps = new List<FollowUp>();
+        private readonly List<FollowUp> _followUps = new List<FollowUp>();
 
-        public static void AddNewFollowUp(FollowUp followUp)
+        public void AddNewFollowUp(FollowUp followUp)
         {
-            FollowUps.Add(followUp);
+            _followUps.Add(followUp);
         }
 
-        internal static void RemoveFollowUp(FollowUp followUp)
+        internal void RemoveFollowUp(FollowUp followUp)
         {
-            FollowUps.Remove(followUp);
+            _followUps.Remove(followUp);
             followUp.Dispose();
         }
     }
@@ -28,16 +30,18 @@ namespace KiteBotCore.Modules
     {
         bool _disposed;
 
-        private readonly Dictionary<string, Tuple<string, EmbedBuilder>> _dictionary;
+        private readonly Dictionary<string, Tuple<string, Func<EmbedBuilder>>> _dictionary;
         private readonly DiscordSocketClient _client;
+        private readonly FollowUpService _followUpService;
         private readonly DateTime _creationTime;
         public readonly ulong User;
         private readonly ulong _channel;
         private readonly IUserMessage _messageToEdit;
 
-        public FollowUp(IDependencyMap map, Dictionary<string, Tuple<string, EmbedBuilder>> dictionary, ulong user, ulong channel, IUserMessage messageToEdit)
+        public FollowUp(IServiceProvider map, Dictionary<string, Tuple<string, Func<EmbedBuilder>>> dictionary, ulong user, ulong channel, IUserMessage messageToEdit)
         {
-            _client = map.Get<DiscordSocketClient>();
+            _client = map.GetService<DiscordSocketClient>();
+            _followUpService = map.GetService<FollowUpService>();
             _dictionary = dictionary;
             _creationTime = DateTime.Now;
             User = user;
@@ -47,30 +51,54 @@ namespace KiteBotCore.Modules
             _client.MessageReceived += messageEventHandler;
         }
 
-        private async Task messageEventHandler(SocketMessage parameterMessage)
+        private Task messageEventHandler(SocketMessage parameterMessage)
         {
-            var any = parameterMessage.Content.Split().Intersect(_dictionary.Keys);
-            var enumerable = any as string[] ?? any.ToArray();
-            if (parameterMessage.Author.Id == User && parameterMessage.Channel.Id == _channel && enumerable.Any())
-            {
-                var outputString = _dictionary[enumerable.FirstOrDefault()].Item1;
-                var outputEmbed = _dictionary[enumerable.FirstOrDefault()].Item2;
-                if (outputEmbed != null)
-                {
-                    await _messageToEdit.ModifyAsync(x => { x.Content = outputString; x.Embed = outputEmbed.Build(); });
-                }
-                else
-                {
-                    await _messageToEdit.ModifyAsync(x => x.Content = outputString);
-                }
+            if (parameterMessage.Author.Id != User || parameterMessage.Channel.Id != _channel)
+                return Task.CompletedTask;
 
-                FollowUpService.RemoveFollowUp(this);
-            }
-            else if(DateTime.Now.Subtract(_creationTime) > TimeSpan.FromMinutes(2))
+            var _ = Task.Run(async () =>
             {
-                await _messageToEdit.ModifyAsync(x => x.Content = "Command timed out.");
-                FollowUpService.RemoveFollowUp(this);
-            }
+                try
+                {
+                    var any = parameterMessage.Content.Split().Intersect(_dictionary.Keys);
+                    var enumerable = any as string[] ?? any.ToArray();
+                    Task post;
+
+                    if (enumerable.Any())
+                    {
+                        var outputString = _dictionary[enumerable.FirstOrDefault()].Item1;
+                        var outputEmbed = _dictionary[enumerable.FirstOrDefault()].Item2;
+
+                        
+                        if (outputEmbed != null)
+                        {
+                            post = _messageToEdit.ModifyAsync(x =>
+                            {
+                                x.Content = outputString;
+                                x.Embed = outputEmbed().Build();
+                            });
+
+                        }
+                        else
+                        {
+                            post = _messageToEdit.ModifyAsync(x => x.Content = outputString);
+                        }
+                        _followUpService.RemoveFollowUp(this);
+                        await post.ConfigureAwait(false);
+                    }
+                    else if (DateTime.Now.Subtract(_creationTime) > TimeSpan.FromMinutes(2))
+                    {
+                        post = _messageToEdit.ModifyAsync(x => x.Content = "Command timed out.");
+                        _followUpService.RemoveFollowUp(this);
+                        await post.ConfigureAwait(false);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, ex.Message);
+                }
+            });
+            return Task.CompletedTask;
         }
 
         public void Dispose()
