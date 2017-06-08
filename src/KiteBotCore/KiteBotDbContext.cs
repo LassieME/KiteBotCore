@@ -101,8 +101,7 @@ namespace KiteBotCore
                         dbContext.Update(guild);
                     }
 
-                    var usersNotTracked = socketGuild.Users.Where(x => !guild.Users.Any(y => y.Id == x.Id));
-                        //Any stops at the first occurence, All checks all elements
+                    var usersNotTracked = socketGuild.Users.Where(x => guild.Users.All(y => y.Id != x.Id));
                     var socketGuildUsers = usersNotTracked as IList<SocketGuildUser> ?? usersNotTracked.ToList();
                     if (socketGuildUsers.Any())
                     {

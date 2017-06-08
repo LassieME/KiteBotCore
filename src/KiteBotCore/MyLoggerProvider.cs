@@ -40,10 +40,10 @@ namespace KiteBotCore
                             Serilog.Log.Information($"------------\n{formatter(state, exception)}\n------------");
                             break;
                         case LogLevel.Debug:
-                            Serilog.Log.Debug($"------------\n{formatter(state, exception)}\n------------");
+                            //Serilog.Log.Debug($"------------\n{formatter(state, exception)}\n------------");
                             break;
                         case LogLevel.Trace:
-                            Serilog.Log.Verbose($"------------\n{formatter(state, exception)}\n------------");
+                            //Serilog.Log.Verbose($"------------\n{formatter(state, exception)}\n------------");
                             break;
                     }
                 }
