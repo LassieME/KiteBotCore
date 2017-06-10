@@ -97,7 +97,6 @@ namespace KiteBotCore
             {
                 CaseSensitiveCommands = false,
                 DefaultRunMode = RunMode.Sync,
-                DefaultPreconditionsMode = PreconditionsMode.RequireAll,
                 LogLevel = LogSeverity.Verbose,
                 SeparatorChar = ' ',
                 ThrowOnError = true //Throws exceptions up to the commandhandler in sync commands

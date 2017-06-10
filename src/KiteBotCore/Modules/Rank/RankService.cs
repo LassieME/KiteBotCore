@@ -35,35 +35,38 @@ namespace KiteBotCore.Modules.Rank
 
             client.UserJoined += AddUser;
             client.MessageReceived += UpdateLastActivity;
-            _roleTimer = new Timer(async e => await Task.Run(async () => await RoleTimerTask().ConfigureAwait(false)).ConfigureAwait(false), null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(5));
+            _roleTimer = new Timer(async e => await Task.Run(async () => await RoleTimerTask().ConfigureAwait(false)).ConfigureAwait(false), null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(2));
 
-            _activityTimer = new Timer(async e => await Task.Run(async () => await ActivityTimerTask().ConfigureAwait(false)).ConfigureAwait(false), null, TimeSpan.FromMinutes(2), TimeSpan.FromMinutes(2));
+            _activityTimer = new Timer(async e => await Task.Run(async () => await ActivityTimerTask().ConfigureAwait(false)).ConfigureAwait(false), null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
         }
 
         private async Task ActivityTimerTask()
         {
-            using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
+            if (!_activityQueue.IsEmpty)
             {
-                while (!_activityQueue.IsEmpty)
-                    if (_activityQueue.TryDequeue(out var item))
-                    {
-                        try
+                using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
+                {
+                    while (!_activityQueue.IsEmpty)
+                        if (_activityQueue.TryDequeue(out var item))
                         {
-                            var user = await db.FindAsync<User>(item.user.Id.ConvertToUncheckedLong())
-                                .ConfigureAwait(false);
-                            if (user == null)
+                            try
                             {
-                                Log.Information("Found a non-tracked user, adding...");
-                                user = await AddUser(item.user).ConfigureAwait(false);
+                                var user = await db.FindAsync<User>(item.user.Id.ConvertToUncheckedLong())
+                                    .ConfigureAwait(false);
+                                if (user == null)
+                                {
+                                    Log.Information("Found a non-tracked user, adding...");
+                                    user = await AddUser(item.user).ConfigureAwait(false);
+                                }
+                                user.LastActivityAt = DateTimeOffset.UtcNow;
                             }
-                            user.LastActivityAt = DateTimeOffset.UtcNow;
+                            catch (Exception ex)
+                            {
+                                Log.Error(ex, "Something Happened in ActivityTimerTask");
+                            }
                         }
-                        catch (Exception ex)
-                        {
-                            Log.Error(ex, "Something Happened in ActivityTimerTask");
-                        }
-                    }
-                await db.SaveChangesAsync().ConfigureAwait(false);
+                    await db.SaveChangesAsync().ConfigureAwait(false);
+                }
             }
         }
 
@@ -77,7 +80,7 @@ namespace KiteBotCore.Modules.Rank
                     using (KiteBotDbContext db = _discordFactory.Create(new DbContextFactoryOptions()))
                     {
                         var users = db.Users.ToList();
-                        foreach (var socketGuildUser in guild.Users)
+                        foreach (var socketGuildUser in guild.Users.Where(x => !x.IsBot))
                         {
                             try
                             {
@@ -101,7 +104,7 @@ namespace KiteBotCore.Modules.Rank
                     {
                         var userRoles = item.user.RoleIds.ToList();
                         var newRoles = userRoles.Where(x => !item.rolesToRemove.Contains(x)).Union(item.rolesToAdd).ToArray();
-                        await item.user.ModifyAsync(x => x.RoleIds = newRoles)
+                        await item.user.ModifyAsync(x => x.RoleIds = newRoles) //Race-condition, might change it later
                             .ConfigureAwait(false);
                     }
                 }
@@ -113,10 +116,11 @@ namespace KiteBotCore.Modules.Rank
             }
             finally
             {
-                _roleTimer.Change(TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
+                _roleTimer.Change(TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(2));
             }
         }
 
+        //This should probably not be here TODO
         internal async Task<User> AddUser(IGuildUser userInput)
         {
             using (var db = _discordFactory.Create(new DbContextFactoryOptions()))

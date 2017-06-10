@@ -19,32 +19,7 @@ namespace KiteBotCore.Modules.Rank
         [Alias("colors", "colours")]
         [Summary("Shows you your current rank, based on the amount of time since you joined this server")]
         [RequireChannel(213359477162770433, 319557542562889729)]
-        public async Task RanksCommand()
-        {
-            bool debug = true;
-            var sb = new StringBuilder("You currently have these ranks:\n");
-
-            foreach (RankConfigs.GuildRanks.Rank rank in await RankService.GetAwardedRoles(Context.User as SocketGuildUser, Context.Guild).ConfigureAwait(false))
-            {
-                sb.AppendLine($"{Context.Guild.Roles.First(x => x.Id == rank.RoleId).Name} rewarded by {rank.RequiredTimeSpan.ToPrettyFormat()} in the server");
-            }
-
-            var (nextRole, timeSpan) = await RankService.GetNextRole(Context.User as SocketGuildUser, Context.Guild).ConfigureAwait(false);
-            if (nextRole != null)
-                sb.AppendLine($"Your next rank is {nextRole.Name} in another {timeSpan.ToPrettyFormat()}");
-
-            var guildColors = (await RankService.GetAvailableColors(Context.User as SocketGuildUser, Context.Guild).ConfigureAwait(false)).ToList();
-            if (guildColors.Any())
-            {
-                sb.AppendLine($"You currently have these colors available: {string.Join(", ", Context.Guild.Roles.Where(x => guildColors.Contains(x.Id)).OrderBy(x => x.Position).Select(x => x.Mention))}.");
-            }
-            if (debug)
-            {
-                sb.AppendLine($"debug info: last activity at {await RankService.GetUserLastActivity(Context.User as SocketGuildUser, Context.Guild).ConfigureAwait(false)}");
-                sb.AppendLine($"Joindate used : {await RankService.GetUserJoinDate(Context.User as SocketGuildUser,Context.Guild).ConfigureAwait(false)}");
-            }
-            await ReplyAsync(sb.ToString()).ConfigureAwait(false);
-        }
+        public Task RanksCommand() => RanksCommand(Context.User);
 
         [Command("ranks")]
         [Alias("colors", "colours")]
@@ -67,11 +42,12 @@ namespace KiteBotCore.Modules.Rank
             var guildColors = (await RankService.GetAvailableColors(user as SocketGuildUser, Context.Guild).ConfigureAwait(false)).ToList();
             if (guildColors.Any())
             {
-                sb.AppendLine($"You currently have these colors available: {string.Join(", ", Context.Guild.Roles.Where(x => guildColors.Contains(x.Id)).Select(x => x.Mention))}.");
+                sb.AppendLine($"You currently have these colors available: {string.Join(", ", Context.Guild.Roles.Where(x => guildColors.Contains(x.Id)).OrderBy(x => x.Position).Select(x => x.Mention))}.");
             }
             if (debug)
             {
                 sb.AppendLine($"debug info: last activity recorded at {await RankService.GetUserLastActivity(user as SocketGuildUser, Context.Guild).ConfigureAwait(false)}");
+                sb.AppendLine($"Joindate used : {await RankService.GetUserJoinDate(Context.User as SocketGuildUser, Context.Guild).ConfigureAwait(false)}");
             }
             await ReplyAsync(sb.ToString()).ConfigureAwait(false);
         }
@@ -80,7 +56,13 @@ namespace KiteBotCore.Modules.Rank
         [Alias("color", "colour")]
         [Summary("Select a rank available to you, as shown in the ranks command")]
         [RequireChannel(213359477162770433, 319557542562889729)]
-        public async Task RankCommand([Remainder] IRole role)
+        public Task RankCommand() => RanksCommand(Context.User);
+
+        [Command("rank")]
+        [Alias("color", "colour")]
+        [Summary("Select a rank available to you, as shown in the ranks command")]
+        [RequireChannel(213359477162770433, 319557542562889729)]
+        public async Task RankCommand(IRole role)
         {
             var availableColors = await RankService.GetAvailableColors(Context.User as SocketGuildUser, Context.Guild).ConfigureAwait(false);
             
@@ -104,7 +86,7 @@ namespace KiteBotCore.Modules.Rank
             }
             else
             {
-                await ReplyAsync("You don't have access to that, yet").ConfigureAwait(false);
+                await ReplyAsync($"You don't have access to that, {Format.Italics("yet...\n" + "")}").ConfigureAwait(false);
             }
         }
 
