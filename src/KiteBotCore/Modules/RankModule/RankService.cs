@@ -1,17 +1,21 @@
-﻿using Discord;
-using Discord.WebSocket;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Serilog;
-using System;
+﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Discord;
+using Discord.WebSocket;
+using KiteBotCore.Json;
+using Microsoft.DotNet.Cli.Utils;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Serilog;
+using Color = KiteBotCore.Json.Color;
 
-namespace KiteBotCore.Modules.Rank
+namespace KiteBotCore.Modules.RankModule
 {
     public class RankService
     {
@@ -35,92 +39,13 @@ namespace KiteBotCore.Modules.Rank
 
             client.UserJoined += AddUser;
             client.MessageReceived += UpdateLastActivity;
+
             _roleTimer = new Timer(async e => await Task.Run(async () => await RoleTimerTask().ConfigureAwait(false)).ConfigureAwait(false), null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(2));
 
             _activityTimer = new Timer(async e => await Task.Run(async () => await ActivityTimerTask().ConfigureAwait(false)).ConfigureAwait(false), null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
         }
 
-        private async Task ActivityTimerTask()
-        {
-            if (!_activityQueue.IsEmpty)
-            {
-                using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
-                {
-                    while (!_activityQueue.IsEmpty)
-                        if (_activityQueue.TryDequeue(out var item))
-                        {
-                            try
-                            {
-                                var user = await db.FindAsync<User>(item.user.Id.ConvertToUncheckedLong())
-                                    .ConfigureAwait(false);
-                                if (user == null)
-                                {
-                                    Log.Information("Found a non-tracked user, adding...");
-                                    user = await AddUser(item.user).ConfigureAwait(false);
-                                }
-                                user.LastActivityAt = DateTimeOffset.UtcNow;
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(ex, "Something Happened in ActivityTimerTask");
-                            }
-                        }
-                    await db.SaveChangesAsync().ConfigureAwait(false);
-                }
-            }
-        }
-
-        private async Task RoleTimerTask()
-        {
-            _roleTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            try
-            {
-                foreach (var guild in _client.Guilds.Where(x => _rankConfigs.GuildConfigs.Keys.Contains(x.Id)))
-                {
-                    using (KiteBotDbContext db = _discordFactory.Create(new DbContextFactoryOptions()))
-                    {
-                        var users = db.Users.ToList();
-                        foreach (var socketGuildUser in guild.Users.Where(x => !x.IsBot))
-                        {
-                            try
-                            {
-                                var joinDate = users.FirstOrDefault(x => x.Id == socketGuildUser.Id).JoinedAt;
-                                var activityDate = users.FirstOrDefault(x => x.Id == socketGuildUser.Id).LastActivityAt;
-                                var ranks = await GetAwardedRoles(socketGuildUser, guild, joinDate.GetValueOrDefault(),
-                                    activityDate).ConfigureAwait(false);
-                                await AddAndRemoveMissingRanks(socketGuildUser, guild, ranks).ConfigureAwait(false);
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(ex, "Error in foreach in RoleTimerTask");
-                            }
-                        }
-                    }
-                }
-
-                while (!_roleUpdateQueue.IsEmpty)
-                {
-                    if (_roleUpdateQueue.TryDequeue(out var item))
-                    {
-                        var userRoles = item.user.RoleIds.ToList();
-                        var newRoles = userRoles.Where(x => !item.rolesToRemove.Contains(x)).Union(item.rolesToAdd).ToArray();
-                        await item.user.ModifyAsync(x => x.RoleIds = newRoles) //Race-condition, might change it later
-                            .ConfigureAwait(false);
-                    }
-                }
-
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Something Happened in RoleTimerTask");
-            }
-            finally
-            {
-                _roleTimer.Change(TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(2));
-            }
-        }
-
-        //This should probably not be here TODO
+        //TODO: Should probably not be here
         internal async Task<User> AddUser(IGuildUser userInput)
         {
             using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
@@ -159,35 +84,133 @@ namespace KiteBotCore.Modules.Rank
             return Task.CompletedTask;
         }
 
-        public async Task AddAndRemoveMissingRanks(IGuildUser messageAuthor, IGuild guild, IList<RankConfigs.GuildRanks.Rank> result)
+
+        private async Task ActivityTimerTask()
+        {
+            if (!_activityQueue.IsEmpty)
+            {
+                using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
+                {
+                    while (!_activityQueue.IsEmpty)
+                        if (_activityQueue.TryDequeue(out var item))
+                        {
+                            try
+                            {
+                                var user = await db.FindAsync<User>(item.user.Id.ConvertToUncheckedLong())
+                                    .ConfigureAwait(false);
+                                user.LastActivityAt = DateTimeOffset.UtcNow;
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(ex, "Something Happened in ActivityTimerTask");
+                            }
+                        }
+                    await db.SaveChangesAsync().ConfigureAwait(false);
+                }
+            }
+        }
+
+        private async Task RoleTimerTask()
+        {
+            _roleTimer.Change(Timeout.Infinite, Timeout.Infinite);
+            try
+            {
+                foreach (var guild in _client.Guilds.Where(x => _rankConfigs.GuildConfigs.Keys.Contains(x.Id)))
+                {
+                    using (KiteBotDbContext db = _discordFactory.Create(new DbContextFactoryOptions()))
+                    {
+                        var users = db.Users.Include(u => u.UserRoles).ToList();
+                        foreach (var socketGuildUser in guild.Users.Where(x => !x.IsBot))
+                        {
+                            try
+                            {
+                                var joinDate = users.FirstOrDefault(x => x.Id == socketGuildUser.Id).JoinedAt;
+                                var activityDate = users.FirstOrDefault(x => x.Id == socketGuildUser.Id).LastActivityAt;
+
+                                var ranks = await GetAwardedRoles(socketGuildUser, guild, joinDate.GetValueOrDefault(),
+                                    activityDate).ConfigureAwait(false);
+
+                                var assignedColorsToRemove = users.FirstOrDefault(x => x.Id == socketGuildUser.Id)?.UserRoles?.OrEmptyIfNull()
+                                        .Where(x => x.RemovalAt != null && x.RemovalAt < DateTimeOffset.UtcNow).ToList();
+                                
+                                Debug.Assert(assignedColorsToRemove != null, "assignedColorsToRemove != null");
+                                foreach (var colorRoles in assignedColorsToRemove)
+                                {
+                                    var dbUser = users.FirstOrDefault(x => x.Id == socketGuildUser.Id);
+                                    dbUser.UserRoles.Remove(colorRoles);
+                                }
+                                await AddAndRemoveMissingRanks(socketGuildUser, guild, ranks, assignedColorsToRemove).ConfigureAwait(false);
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(ex, "Error in foreach in RoleTimerTask");
+                            }
+                        }
+                        await db.SaveChangesAsync().ConfigureAwait(false);
+                    }
+                }
+
+                while (!_roleUpdateQueue.IsEmpty)
+                {
+                    if (_roleUpdateQueue.TryDequeue(out var item))
+                    {
+                        var userRoles = item.user.RoleIds.ToList();
+                        var newRoles = userRoles.Where(x => !item.rolesToRemove.Contains(x)).Union(item.rolesToAdd).ToArray();
+                        await item.user.ModifyAsync(x => x.RoleIds = newRoles) //Race-condition, might change it later when there is less pressure on the rate-limit
+                            .ConfigureAwait(false);
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Something Happened in RoleTimerTask");
+            }
+            finally
+            {
+                _roleTimer.Change(TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(2));
+            }
+        }
+
+        internal async Task AddAndRemoveMissingRanks(IGuildUser messageAuthor, IGuild guild, IList<Rank> result, IList<UserColorRoles> userColorToRemove)
         {
             if(result == null)
                 result = (await GetAwardedRoles(messageAuthor, guild).ConfigureAwait(false)).ToList();
+
             var missingRoles = result
                 .Where(x => messageAuthor.RoleIds.All(y => y != x.RoleId))
                 .Select(x => x.RoleId)
                 .ToArray();
             var rolesToRemove = messageAuthor.RoleIds
-                .Where(x => GetRanksForGuild(guild.Id).Select(y => y.RoleId).Contains(x) && !result.Select(y => y.RoleId).Contains(x))
-                .ToArray();
-            if (missingRoles.Any() || rolesToRemove.Any())
+                .Where(x => GetRanksForGuild(guild.Id)
+                    .Select(y => y.RoleId).Contains(x) &&
+                    !result.Select(y => y.RoleId).Contains(x));
+            
+            if (userColorToRemove.Any(x => messageAuthor.RoleIds.Contains(x.Id)))
             {
-                _roleUpdateQueue.Enqueue((messageAuthor, missingRoles, rolesToRemove));
+                rolesToRemove = rolesToRemove.Union(userColorToRemove.Select(x => x.Id));
+            }
+
+            var toRemove = rolesToRemove as ulong[] ?? rolesToRemove.ToArray();
+            if (missingRoles.Any() || toRemove.Any())
+            {
+                _roleUpdateQueue.Enqueue((messageAuthor, missingRoles, toRemove));
             }
         }
 
-        public async Task<IList<RankConfigs.GuildRanks.Rank>> GetAwardedRoles(IGuildUser user, IGuild guild, DateTimeOffset joinDate = default(DateTimeOffset), DateTimeOffset lastActivity = default(DateTimeOffset)) //TODO: Make this remove roles if inactive
+        public async Task<IList<Rank>> GetAwardedRoles(IGuildUser user, IGuild guild, DateTimeOffset joinDate = default(DateTimeOffset), DateTimeOffset lastActivity = default(DateTimeOffset))
         {
             if(joinDate == default(DateTimeOffset))
                 joinDate = await GetUserJoinDate(user, guild).ConfigureAwait(false);
             if(lastActivity == default(DateTimeOffset))
                 lastActivity = await GetUserLastActivity(user, guild).ConfigureAwait(false);
             var timeInGuild = DateTimeOffset.UtcNow - joinDate;
-            var guildRanks = GetRanksForGuild(guild.Id);
-            var awardedRoles = guildRanks.Where(x => x.RequiredTimeSpan < timeInGuild).ToList();
-            var finalRoles = awardedRoles.Take(awardedRoles.Count - (DateTimeOffset.UtcNow - lastActivity).Days / 7);
 
-            return finalRoles.ToList();
+            return GetRanksForGuild(guild.Id)
+                .Where(x => x.RequiredTimeSpan < timeInGuild)
+                .Take(GetRanksForGuild(guild.Id)
+                    .Where(x => x.RequiredTimeSpan < timeInGuild).ToList()
+                    .Count - (DateTimeOffset.UtcNow - lastActivity).Days / 7).ToList();
         }
 
 
@@ -216,9 +239,21 @@ namespace KiteBotCore.Modules.Rank
             }
         }
 
-        public async Task<IEnumerable<ulong>> GetAvailableColors(IGuildUser user, IGuild guild)
+        public async Task<IEnumerable<IColor>> GetAvailableColors(IGuildUser user, IGuild guild)
         {
-            return (await GetAwardedRoles(user, guild).ConfigureAwait(false)).SelectMany(x => x.Colors);
+            var awardedRoles = (await GetAwardedRoles(user, guild).ConfigureAwait(false)).SelectMany(x => x.Colors);
+            using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
+            {
+                var dbUser = await db.Users
+                    .Include(u => u.UserRoles)
+                    .SingleOrDefaultAsync(x => x.Id == user.Id).ConfigureAwait(false);
+                if (dbUser.UserRoles != null && dbUser.UserRoles.Any())
+                {
+                    IEnumerable<IColor> assignedRoles = dbUser.UserRoles;
+                    return awardedRoles.Union(assignedRoles);
+                }
+                return awardedRoles;
+            }
         }
 
         /// <summary>
@@ -237,26 +272,26 @@ namespace KiteBotCore.Modules.Rank
 
         public void AddRank(ulong guildId, ulong roleId, TimeSpan timeSpan)
         {
-            RankConfigs.GuildRanks ranks;
+            GuildRanks ranks;
             if (_rankConfigs.GuildConfigs.TryGetValue(guildId, out ranks))
-                ranks.Ranks.Add(roleId, new RankConfigs.GuildRanks.Rank
+                ranks.Ranks.Add(roleId, new Rank
                 {
                     RoleId = roleId,
-                    Colors = new List<ulong>(),
+                    Colors = new List<Color>(),
                     RequiredTimeSpan = timeSpan
                 });
             else
-                _rankConfigs.GuildConfigs.Add(guildId, new RankConfigs.GuildRanks
+                _rankConfigs.GuildConfigs.Add(guildId, new GuildRanks
                 {
                     GuildId = guildId,
-                    Ranks = new Dictionary<ulong, RankConfigs.GuildRanks.Rank>
+                    Ranks = new Dictionary<ulong, Rank>
                     {
                         {
                             roleId,
-                            new RankConfigs.GuildRanks.Rank
+                            new Rank
                             {
                                 RoleId = roleId,
-                                Colors = new List<ulong>(),
+                                Colors = new List<Color>(),
                                 RequiredTimeSpan = timeSpan
                             }
                         }
@@ -273,30 +308,33 @@ namespace KiteBotCore.Modules.Rank
             return result;
         }
 
-        public IEnumerable<RankConfigs.GuildRanks.Rank> GetRanksForGuild(ulong guildId)
+        public IEnumerable<Rank> GetRanksForGuild(ulong guildId)
         {
             return _rankConfigs.GuildConfigs[guildId].Ranks.Values;
         }
 
         public void AddColorToRank(ulong guildId, ulong roleRankId, ulong colorId)
         {
-            _rankConfigs.GuildConfigs[guildId].Ranks[roleRankId].Colors.Add(colorId);
+            var color = new Color {Id = colorId};
+            _rankConfigs.GuildConfigs[guildId].Ranks[roleRankId].Colors.Add(color);
             _saveFunc(_rankConfigs);
         }
 
         public bool RemoveColorFromRank(ulong guildId, ulong rankRoleId, IRole colorRole)
         {
-            var result = _rankConfigs.GuildConfigs[guildId].Ranks[rankRoleId].Colors.Remove(colorRole.Id);
+            var colorToRemove = _rankConfigs.GuildConfigs[guildId].Ranks[rankRoleId].Colors
+                .FirstOrDefault(x => x.Id == colorRole.Id);
+            var result = _rankConfigs.GuildConfigs[guildId].Ranks[rankRoleId].Colors.Remove(colorToRemove);
             _saveFunc(_rankConfigs);
             return result;
         }
 
         public void EnableGuildRanks(ulong guildId)
         {
-            _rankConfigs.GuildConfigs.Add(guildId, new RankConfigs.GuildRanks
+            _rankConfigs.GuildConfigs.Add(guildId, new GuildRanks
             {
                 GuildId = guildId,
-                Ranks = new Dictionary<ulong, RankConfigs.GuildRanks.Rank>()
+                Ranks = new Dictionary<ulong, Rank>()
             });
             _saveFunc(_rankConfigs);
         }
@@ -308,6 +346,67 @@ namespace KiteBotCore.Modules.Rank
                 var dbUser = await db.Users.FindAsync(user.Id.ConvertToUncheckedLong()).ConfigureAwait(false);
                 dbUser.JoinedAt = newDate;
                 await db.SaveChangesAsync().ConfigureAwait(false);
+            }
+        }
+
+        public async Task<bool> AssignColorToUser(ulong guildId, ulong userId, ulong colorRoleId, TimeSpan? timeToRemove)
+        {
+            using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
+            {
+                var user = await db.Users
+                    .Include(u => u.UserRoles)
+                    .SingleOrDefaultAsync(x => x.Id == userId).ConfigureAwait(false);
+                if (user.UserRoles == null)
+                {
+                    user.UserRoles = new List<UserColorRoles>();
+                }
+
+                if (user.UserRoles.Any(x => x.Id == colorRoleId))
+                {
+                    return false;
+                }
+                user.UserRoles.Add(new UserColorRoles()
+                {
+                    Id = colorRoleId,
+                    RemovalAt = timeToRemove == null ? null : DateTimeOffset.UtcNow + timeToRemove,
+                    uId = userId,
+                    User = user
+                });
+                await db.SaveChangesAsync().ConfigureAwait(false);
+                return true;
+            }
+        }
+
+        public async Task<bool> UnassignColorFromUserAsync(IUser user, IRole role)
+        {
+            using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
+            {
+                var dbUser = await db.Users.Include(u => u.UserRoles).FirstOrDefaultAsync(x => x.UserId == user.Id.ConvertToUncheckedLong()).ConfigureAwait(false);
+                var roleToRemove = dbUser.UserRoles.FirstOrDefault(x => x.RoleId == user.Id.ConvertToUncheckedLong());
+                if (roleToRemove != null)
+                {
+                    dbUser.UserRoles.Remove(roleToRemove);
+                    await db.SaveChangesAsync().ConfigureAwait(false);
+                }
+                else
+                    return false;
+                return true;
+            }
+        }
+
+        public async Task<IList<(ulong roleId, DateTimeOffset? expiry)>> GetAssignedRolesAsync(ulong guildId, ulong userId)
+        {
+            using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
+            {
+                var listOfRoles = new List<(ulong roleId, DateTimeOffset? expiry)>();
+                    var dbUser = await db.Users
+                    .Include(u => u.UserRoles)
+                    .SingleOrDefaultAsync(x => x.UserId == userId.ConvertToUncheckedLong()).ConfigureAwait(false);
+                foreach (var roles in dbUser.UserRoles)
+                {
+                    listOfRoles.Add((roles.Id, roles.RemovalAt));
+                }
+                return listOfRoles;
             }
         }
     }

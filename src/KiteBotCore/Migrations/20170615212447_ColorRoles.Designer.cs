@@ -8,9 +8,10 @@ using KiteBotCore;
 namespace KiteBotCore.Migrations
 {
     [DbContext(typeof(KiteBotDbContext))]
-    partial class DiscordContextModelSnapshot : ModelSnapshot
+    [Migration("20170615212447_ColorRoles")]
+    partial class ColorRoles
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
@@ -33,30 +34,16 @@ namespace KiteBotCore.Migrations
                     b.ToTable("Channels");
                 });
 
-            modelBuilder.Entity("KiteBotCore.Event", b =>
+            modelBuilder.Entity("KiteBotCore.ColorRole", b =>
                 {
-                    b.Property<int>("EventId")
+                    b.Property<long>("ColorRoleId")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<DateTimeOffset>("DateTime");
+                    b.Property<DateTimeOffset?>("RemovalAt");
 
-                    b.Property<string>("Description");
+                    b.HasKey("ColorRoleId");
 
-                    b.Property<long?>("GuildId")
-                        .IsRequired();
-
-                    b.Property<string>("Title");
-
-                    b.Property<long?>("UserId")
-                        .IsRequired();
-
-                    b.HasKey("EventId");
-
-                    b.HasIndex("GuildId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Events");
+                    b.ToTable("ColorRole");
                 });
 
             modelBuilder.Entity("KiteBotCore.Guild", b =>
@@ -120,9 +107,9 @@ namespace KiteBotCore.Migrations
 
                     b.Property<long>("RoleId");
 
-                    b.Property<DateTimeOffset?>("RemovalAt");
-
                     b.HasKey("UserId", "RoleId");
+
+                    b.HasIndex("RoleId");
 
                     b.ToTable("UserColorRoles");
                 });
@@ -132,19 +119,6 @@ namespace KiteBotCore.Migrations
                     b.HasOne("KiteBotCore.Guild", "Guild")
                         .WithMany("Channels")
                         .HasForeignKey("GuildForeignKey")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("KiteBotCore.Event", b =>
-                {
-                    b.HasOne("KiteBotCore.Guild", "Guild")
-                        .WithMany("Events")
-                        .HasForeignKey("GuildId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("KiteBotCore.User", "User")
-                        .WithMany("Events")
-                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
@@ -171,6 +145,11 @@ namespace KiteBotCore.Migrations
 
             modelBuilder.Entity("KiteBotCore.UserColorRoles", b =>
                 {
+                    b.HasOne("KiteBotCore.ColorRole", "ColorRole")
+                        .WithMany("UserRoles")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("KiteBotCore.User", "User")
                         .WithMany("UserRoles")
                         .HasForeignKey("UserId")

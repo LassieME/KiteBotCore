@@ -89,7 +89,7 @@ namespace KiteBotCore.Json.GiantBomb.GameResult
                 .WithDescription(Deck ?? "No Deck")
                 .WithImageUrl(Image?.MediumUrl ?? Image?.SmallUrl ?? Image?.ThumbUrl ?? Image?.SuperUrl)
                 .WithFooter(x => x.Text = "Giant Bomb")
-                .WithColor(new Color(0x00CC00))
+                .WithColor(new Discord.Color(0x00CC00))
                 .WithCurrentTimestamp();
 
             if (OriginalReleaseDate != null)

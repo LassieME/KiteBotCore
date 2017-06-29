@@ -9,6 +9,8 @@
     <None Remove="log.txt" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Discord.Addons.EmojiTools" Version="2.0.1" />
+    <PackageReference Include="Discord.Addons.InteractiveCommands" Version="1.2.4" />
     <PackageReference Include="Google.Apis.YouTube.v3" Version="1.25.0.760" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.0.0-beta1-61626-04" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="1.1.2" />
@@ -23,6 +25,7 @@
     <PackageReference Include="Serilog.Sinks.Literate" Version="2.1.0" />
     <PackageReference Include="Serilog.Sinks.RollingFile" Version="3.3.0" />
     <PackageReference Include="System.Threading.Tasks.Parallel" Version="4.3.0" />
+    <PackageReference Include="TimeZoneConverter" Version="2.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Discord.NetMine3\src\Discord.Net.Commands\Discord.Net.Commands.csproj" />

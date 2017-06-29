@@ -20,11 +20,13 @@ namespace KiteBotCore.Modules
     public class Admin : CleansingModuleBase
     {
         private readonly CommandHandler _handler;
+        private readonly KiteChat _kiteChat;
         private readonly IServiceProvider _services;
 
         public Admin(IServiceProvider services)
         {
             _handler = services.GetService<CommandHandler>();
+            _kiteChat = services.GetService<KiteChat>();
             _services = services;
         }
 
@@ -61,6 +63,22 @@ namespace KiteBotCore.Modules
         private static MemoryStream GenerateStreamFromString(string value)
         {
             return new MemoryStream(Encoding.Unicode.GetBytes(value ?? ""));
+        }
+
+        [Command("livestream on")]
+        [RequireServer(Server.GiantBomb)]
+        [RequireOwnerOrUserPermission(GuildPermission.Administrator)]
+        public async Task LivestreamOnCommand([Remainder] string channelName)
+        {
+            await KiteChat.StreamChecker.LivestreamOnName(channelName, Context.Guild.Id).ConfigureAwait(false);
+        }
+
+        [Command("livestream off")]
+        [RequireServer(Server.GiantBomb)]
+        [RequireOwnerOrUserPermission(GuildPermission.Administrator)]
+        public async Task LivestreamOffCommand([Remainder] string channelName)
+        {
+            await KiteChat.StreamChecker.LivestreamOffName(channelName, Context.Guild.Id).ConfigureAwait(false);
         }
 
         [Command("save")]

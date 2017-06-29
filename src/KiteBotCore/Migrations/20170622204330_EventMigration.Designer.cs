@@ -8,9 +8,10 @@ using KiteBotCore;
 namespace KiteBotCore.Migrations
 {
     [DbContext(typeof(KiteBotDbContext))]
-    partial class DiscordContextModelSnapshot : ModelSnapshot
+    [Migration("20170622204330_EventMigration")]
+    partial class EventMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)

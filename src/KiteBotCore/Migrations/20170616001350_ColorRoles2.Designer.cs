@@ -8,9 +8,10 @@ using KiteBotCore;
 namespace KiteBotCore.Migrations
 {
     [DbContext(typeof(KiteBotDbContext))]
-    partial class DiscordContextModelSnapshot : ModelSnapshot
+    [Migration("20170616001350_ColorRoles2")]
+    partial class ColorRoles2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
@@ -31,32 +32,6 @@ namespace KiteBotCore.Migrations
                     b.HasIndex("GuildForeignKey");
 
                     b.ToTable("Channels");
-                });
-
-            modelBuilder.Entity("KiteBotCore.Event", b =>
-                {
-                    b.Property<int>("EventId")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<DateTimeOffset>("DateTime");
-
-                    b.Property<string>("Description");
-
-                    b.Property<long?>("GuildId")
-                        .IsRequired();
-
-                    b.Property<string>("Title");
-
-                    b.Property<long?>("UserId")
-                        .IsRequired();
-
-                    b.HasKey("EventId");
-
-                    b.HasIndex("GuildId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Events");
                 });
 
             modelBuilder.Entity("KiteBotCore.Guild", b =>
@@ -132,19 +107,6 @@ namespace KiteBotCore.Migrations
                     b.HasOne("KiteBotCore.Guild", "Guild")
                         .WithMany("Channels")
                         .HasForeignKey("GuildForeignKey")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("KiteBotCore.Event", b =>
-                {
-                    b.HasOne("KiteBotCore.Guild", "Guild")
-                        .WithMany("Events")
-                        .HasForeignKey("GuildId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("KiteBotCore.User", "User")
-                        .WithMany("Events")
-                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 

@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using KiteBotCore.Json;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Newtonsoft.Json;
@@ -17,7 +16,7 @@ namespace KiteBotCore
     public class DiscordContextFactory : IDbContextFactory<KiteBotDbContext>
     {
         //This is needed while doing Database migrations and updates
-        private static string SettingsPath => Directory.GetCurrentDirectory().Replace(@"\bin\Debug\netcoreapp1.1\","") + "/Content/settings.json";
+        private static string SettingsPath => Directory.GetCurrentDirectory().Replace(@"\bin\Debug\netcoreapp1.1.2\","") + "/Content/settings.json";
 
         public KiteBotDbContext Create(DbContextFactoryOptions options) => Create();
 
@@ -132,6 +131,8 @@ namespace KiteBotCore
         public DbSet<Guild> Guilds { get; set; }
         public DbSet<Channel> Channels { get; set; }
         public DbSet<Message> Messages { get; set; }
+        public DbSet<UserColorRoles> UserColorRoles { get; set; }
+        public DbSet<Event> Events { get; set; }
         private string ConnectionString { get; set; }
 
         public KiteBotDbContext(string settingsDatabaseConnectionString)
@@ -168,6 +169,27 @@ namespace KiteBotCore
                 .HasOne(u => u.User)
                 .WithMany(m => m.Messages)
                 .IsRequired();
+
+            //Composite Key, User Roles
+            modelBuilder.Entity<UserColorRoles>()
+                .HasKey(t => new { t.UserId, t.RoleId });
+
+            modelBuilder.Entity<UserColorRoles>()
+                .HasOne(pt => pt.User)
+                .WithMany(p => p.UserRoles)
+                .HasForeignKey(pt => pt.UserId);
+
+            //Events
+            modelBuilder.Entity<Event>()
+                .HasOne(e => e.Guild)
+                .WithMany(g => g.Events)
+                .IsRequired();
+
+            modelBuilder.Entity<Event>()
+                .HasOne(e => e.User)
+                .WithMany(u => u.Events)
+                .IsRequired();
+
         }
     }
 
@@ -186,7 +208,26 @@ namespace KiteBotCore
 
         public List<Channel> Channels { get; set; }
         
-        public virtual List<User> Users { get; set; }}
+        public virtual List<User> Users { get; set; }
+
+        public virtual List<Event> Events { get; set; }
+    }
+
+    public class Event
+    {
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int EventId { get; set; }
+
+        public DateTimeOffset DateTime { get; set; }
+
+        public string Title { get; set; }
+
+        public string Description { get; set; }
+
+        public User User { get; set; }
+
+        public Guild Guild { get; set; }
+    }
 
     public class User
     {
@@ -209,7 +250,36 @@ namespace KiteBotCore
         [ForeignKey("GuildForeignKey")]
         public Guild Guild { get; set; }
 
+        public virtual List<UserColorRoles> UserRoles { get; set; }
+
+        public virtual List<Event> Events { get; set; }
+
         public virtual List<Message> Messages { get; set; }
+    }
+
+    public class UserColorRoles : IColor
+    {
+        public long UserId { get; set; }
+
+        [NotMapped]
+        public ulong uId
+        {
+            get { unchecked { return (ulong)UserId; } }
+            set { unchecked { UserId = (long)value; } }
+        }
+
+        public long RoleId { get; set; }
+
+        [NotMapped]
+        public ulong Id
+        {
+            get { unchecked { return (ulong)RoleId; } }
+            set { unchecked { RoleId = (long)value; } }
+        }
+        
+        public DateTimeOffset? RemovalAt { get; set; }
+
+        public User User { get; set; }
     }
 
     public class Channel
@@ -249,5 +319,30 @@ namespace KiteBotCore
 
         [ForeignKey("ChannelForeignKey")]
         public virtual Channel Channel { get; set; }
+    }
+
+    public static class UlongArrayHelper
+    {
+        public static long[] ConvertToUncheckedLongArray(this ulong[] ulongArray)
+        {
+            long[] longArray = new long[ulongArray.Length];
+            unchecked
+            {
+                for (int i = 0; i < ulongArray.Length; i++)
+                    longArray[i] = (long)ulongArray[i];
+            }
+            return longArray;
+        }
+
+        public static ulong[] ConvertToUncheckedULongArray(this long[] longArray)
+        {
+            ulong[] ulongArray = new ulong[longArray.Length];
+            unchecked
+            {
+                for (int i = 0; i < longArray.Length; i++)
+                    ulongArray[i] = (ulong)longArray[i];
+            }
+            return ulongArray;
+        }
     }
 }
