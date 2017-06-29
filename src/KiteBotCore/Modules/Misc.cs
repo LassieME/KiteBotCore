@@ -1,7 +1,9 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Discord;
+using Discord.Addons.InteractiveCommands;
 using Discord.Commands;
 using Discord.WebSocket;
 
@@ -25,11 +27,32 @@ namespace KiteBotCore.Modules
             await ReplyAsync("http://www.giantbomb.com/videos/embed/8635/?allow_gb=yes").ConfigureAwait(false);
         }
 
-        [Command("hi")]
+        [Command("hi", RunMode = RunMode.Async)]
         [Summary("Mentions you and says hello")]
         public async Task HiCommand()
         {
-            await ReplyAsync($"{Context.User.Mention} Heyyo!").ConfigureAwait(false);
+            var msg = await ReplyAsync($"{Context.User.Mention} Heyyo!").ConfigureAwait(false);
+
+            try
+            {
+                ReactionCallbackBuilder rcb = new ReactionCallbackBuilder();
+                await rcb
+                    .WithClient(Context.Client)
+                    .WithPrecondition(x => x.Id == Context.User.Id)
+                    .WithReactions("📱")
+                    .AddCallback("📱", async func =>
+                    {
+                        await msg.ModifyAsync(message => message.Content = "poop").ConfigureAwait(false);
+                    })
+                    .WithTimeout(120000)
+                    .ExecuteAsync(msg)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
 
         [Command("randomql")]

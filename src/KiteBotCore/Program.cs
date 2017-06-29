@@ -17,7 +17,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using KiteBotCore.Modules.Rank;
+using KiteBotCore.Modules.RankModule;
 
 namespace KiteBotCore
 {
@@ -79,7 +79,7 @@ namespace KiteBotCore
                 ? JsonConvert.DeserializeObject<RankConfigs>(File.ReadAllText(RankConfigPath))
                 : new RankConfigs
                 {
-                    GuildConfigs = new Dictionary<ulong, RankConfigs.GuildRanks>()
+                    GuildConfigs = new Dictionary<ulong, GuildRanks>()
                 };
 
             _dbFactory = new DiscordContextFactory();
@@ -97,7 +97,6 @@ namespace KiteBotCore
             {
                 CaseSensitiveCommands = false,
                 DefaultRunMode = RunMode.Sync,
-                DefaultPreconditionsMode = PreconditionsMode.RequireAll,
                 LogLevel = LogSeverity.Verbose,
                 SeparatorChar = ' ',
                 ThrowOnError = true //Throws exceptions up to the commandhandler in sync commands

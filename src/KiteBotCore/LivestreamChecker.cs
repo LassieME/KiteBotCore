@@ -23,12 +23,16 @@ namespace KiteBotCore
         private Timer _chatTimer;//Garbage collection doesnt like local timers.
         private Chats _latestPromo;
         private bool _wasStreamRunning;
+        private Result lastResult;
 
         private readonly DiscordSocketClient _client;
         private static string IgnoreFilePath => Directory.GetCurrentDirectory() + "/Content/ignoredChannels.json";
         private static readonly List<string> IgnoreList = File.Exists(IgnoreFilePath) ? 
             JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(IgnoreFilePath))
             : new List<string>();
+
+        private string LivestreamNotActiveName = "livestream";
+        private string LivestreamActiveName = "livestream-live";
 
         public LivestreamChecker(DiscordSocketClient client, string gBapi, int streamRefresh, bool silentStartup)
         {
@@ -54,6 +58,18 @@ namespace KiteBotCore
         public async Task ForceUpdateChannel()
         {
             await RefreshChatsApi(false).ConfigureAwait(false);
+        }
+
+        public async Task LivestreamOnName(string channelName, ulong guildId)
+        {
+            LivestreamActiveName = channelName;
+            await UpdateTask(lastResult, postMessage: false).ConfigureAwait(false);
+        }
+
+        public async Task LivestreamOffName(string channelName, ulong guildId)
+        {
+            LivestreamNotActiveName = channelName;
+            await UpdateTask(lastResult, postMessage: false).ConfigureAwait(false);
         }
 
         private async void RefreshChatsApi(object sender)
@@ -83,8 +99,8 @@ namespace KiteBotCore
 
                         var numberOfResults = _latestPromo.NumberOfPageResults;
 
-                        var stream = _latestPromo.Results.FirstOrDefault(x => !IgnoreList.Contains(x.ChannelName));
-
+                        Result stream = _latestPromo.Results.FirstOrDefault(x => !IgnoreList.Contains(x.ChannelName));
+                        lastResult = stream;
                         if (_wasStreamRunning == false && numberOfResults != 0 && stream != null)
                         {
                             await UpdateTask(stream, postMessage).ConfigureAwait(false);
@@ -125,7 +141,7 @@ namespace KiteBotCore
 
                     await channel.ModifyAsync(p =>
                     {
-                        p.Name = "livestream-live";
+                        p.Name = LivestreamActiveName;
                         p.Topic = $"Currently Live on Giant Bomb: {e.Title}\n http://www.giantbomb.com/chat/";
                     }).ConfigureAwait(false);
 
@@ -150,7 +166,7 @@ namespace KiteBotCore
 
                     await channel.ModifyAsync(p =>
                     {
-                        p.Name = "livestream";
+                        p.Name = LivestreamNotActiveName;
                         p.Topic =
                             $"Chat for live broadcasts.\nUpcoming livestream: {(nextLiveStream != null ? nextLiveStream.Title + " on " + nextLiveStream.Date + " PST." + Environment.NewLine : "No upcoming livestream.")}";
                     }).ConfigureAwait(false);

@@ -7,7 +7,7 @@ namespace KiteBotCore
     {
         public class MyLoggerProvider : ILoggerProvider
         {
-            public Microsoft.Extensions.Logging.ILogger CreateLogger(string categoryName)
+            public ILogger CreateLogger(string categoryName)
             {
                 return new MyLogger();
             }
@@ -15,7 +15,7 @@ namespace KiteBotCore
             public void Dispose()
             { }
 
-            public class MyLogger : Microsoft.Extensions.Logging.ILogger
+            public class MyLogger : ILogger
             {
                 public bool IsEnabled(LogLevel logLevel)
                 {

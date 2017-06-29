@@ -42,7 +42,7 @@ namespace KiteBotCore.Modules
         }
 
         [Command("feed", RunMode = RunMode.Async)]
-        [Summary("Downloads and feeds the markovchain")]
+        [Summary("Downloads and feeds the markov chain")]
         [RequireBotOwner, RequireServer(Server.KiteCo)]
         public async Task FeedCommand(int amount)
         {
@@ -65,7 +65,7 @@ namespace KiteBotCore.Modules
 
 
         [Command("setdepth", RunMode = RunMode.Async)]
-        [Summary("Downloads and feeds the markovchain")]
+        [Summary("Sets the markov chain \"depth\"")]
         [RequireBotOwner, RequireServer(Server.KiteCo)]
         public async Task SetDepthCommand(int depth)
         {

@@ -113,7 +113,7 @@ namespace KiteBotCore.Json.GiantBomb.Videos
                 .WithDescription(Deck ?? "No Deck on Giant Bomb.")                
                 .WithImageUrl(Image?.SuperUrl ?? Image?.ScreenUrl ?? Image?.MediumUrl ?? Image?.SmallUrl)
                 .WithAuthor(x => { x.Name = "Giant Bomb"; x.Url = "http://giantbomb.com/"; x.IconUrl = "http://giantbomb.com/favicon.ico"; })
-                .WithColor(new Color(0x010101))
+                .WithColor(new Discord.Color(0x010101))
                 .WithCurrentTimestamp();
             return embedBuilder;
         }
