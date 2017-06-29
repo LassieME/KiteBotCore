@@ -31,8 +31,8 @@ namespace KiteBotCore
             JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(IgnoreFilePath))
             : new List<string>();
 
-        private string LivestreamNotActiveName = "livestream";
-        private string LivestreamActiveName = "livestream-live";
+        private string _livestreamNotActiveName = "livestream";
+        private string _livestreamActiveName = "livestream-live";
 
         public LivestreamChecker(DiscordSocketClient client, string gBapi, int streamRefresh, bool silentStartup)
         {
@@ -62,13 +62,13 @@ namespace KiteBotCore
 
         public async Task LivestreamOnName(string channelName, ulong guildId)
         {
-            LivestreamActiveName = channelName;
+            _livestreamActiveName = channelName;
             await UpdateTask(lastResult, postMessage: false).ConfigureAwait(false);
         }
 
         public async Task LivestreamOffName(string channelName, ulong guildId)
         {
-            LivestreamNotActiveName = channelName;
+            _livestreamNotActiveName = channelName;
             await UpdateTask(lastResult, postMessage: false).ConfigureAwait(false);
         }
 
@@ -141,7 +141,7 @@ namespace KiteBotCore
 
                     await channel.ModifyAsync(p =>
                     {
-                        p.Name = LivestreamActiveName;
+                        p.Name = _livestreamActiveName;
                         p.Topic = $"Currently Live on Giant Bomb: {e.Title}\n http://www.giantbomb.com/chat/";
                     }).ConfigureAwait(false);
 
@@ -166,7 +166,7 @@ namespace KiteBotCore
 
                     await channel.ModifyAsync(p =>
                     {
-                        p.Name = LivestreamNotActiveName;
+                        p.Name = _livestreamNotActiveName;
                         p.Topic =
                             $"Chat for live broadcasts.\nUpcoming livestream: {(nextLiveStream != null ? nextLiveStream.Title + " on " + nextLiveStream.Date + " PST." + Environment.NewLine : "No upcoming livestream.")}";
                     }).ConfigureAwait(false);
