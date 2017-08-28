@@ -17,7 +17,7 @@ namespace KiteBotCore
     public class DiscordContextFactory : IDesignTimeDbContextFactory<KiteBotDbContext> // IDbContextFactory<KiteBotDbContext>
     {
         //This is needed while doing Database migrations and updates
-        private static string SettingsPath => Directory.GetCurrentDirectory().Replace(@"\bin\ShowDebugInfo\netcoreapp1.1.2\","") + "/Content/settings.json";
+        private static string SettingsPath => Directory.GetCurrentDirectory().Replace(@"\bin\Debug\netcoreapp1.1.2\","") + "/Content/settings.json";
 
         public KiteBotDbContext Create(DbContextFactoryOptions options) => Create();
 

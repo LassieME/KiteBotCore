@@ -13,7 +13,7 @@ namespace KiteBotCore.Modules.RankModule
     [RequireContext(ContextType.Guild), RequireServer(Server.GiantBomb)]
     public class Ranks : InteractiveModuleBase
     {
-        public enum ShowDebugInfo
+        public enum Debug
         {
             Debug,
             Release
@@ -73,14 +73,14 @@ namespace KiteBotCore.Modules.RankModule
         [Alias("colors", "colours")]
         [Summary("Shows you your current rank, based on the amount of time since you joined this server")]
         [RequireChannel(213359477162770433)]
-        public Task RanksCommand(ShowDebugInfo showDebugInfo = ShowDebugInfo.Release) => 
+        public Task RanksCommand(Debug showDebugInfo = Debug.Release) => 
             RanksCommand(Context.User, showDebugInfo);
 
         [Command("ranks", RunMode = RunMode.Async)]
         [Alias("colors", "colours")]
         [Summary("Shows you your current rank, based on the amount of time since you joined this server")]
         [RequireChannel(213359477162770433)]
-        public async Task RanksCommand(IUser user, ShowDebugInfo showDebugInfo = ShowDebugInfo.Release)
+        public async Task RanksCommand(IUser user, Debug showDebugInfo = Debug.Release)
         {
             await RankService.FlushQueue().ConfigureAwait(false);
             var embed = new EmbedBuilder();
@@ -154,13 +154,13 @@ namespace KiteBotCore.Modules.RankModule
                 embed.WithColor(roles.Last().Color);
             }
 
-            if (showDebugInfo == ShowDebugInfo.Debug)
+            if (showDebugInfo == Debug.Debug)
             {
                 string info = $"Last activity: {await RankService.GetUserLastActivity(user as SocketGuildUser, Context.Guild).ConfigureAwait(false)}\n" +
                               $"Joindate used: {await RankService.GetUserJoinDate(user as SocketGuildUser, Context.Guild).ConfigureAwait(false)}";
                 embed.AddField(e =>
                 {
-                    e.Name = "ShowDebugInfo info";
+                    e.Name = "Debug info";
                     e.IsInline = true;
                     e.Value = info;
                 });
