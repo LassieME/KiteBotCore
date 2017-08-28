@@ -171,7 +171,7 @@ namespace KiteBotCore.Json
                 })
                 .WithFooter(x => x.Text = "anilist.co")
                 .WithColor(new Discord.Color(0x00CC00))
-                .WithImageUrl(ImageUrlLge ?? null)
+                .WithImageUrl(ImageUrlLge ?? "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Anime_eye.svg/170px-Anime_eye.svg.png")
                 .WithCurrentTimestamp();
             return embedBuilder;
         }

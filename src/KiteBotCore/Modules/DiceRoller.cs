@@ -14,13 +14,13 @@ namespace KiteBotCore.Modules
         public CryptoRandom Random { get; set; }
 
         private Stopwatch _stopwatch;
-        protected override void BeforeExecute()
+        protected override void BeforeExecute(CommandInfo command)
         {
             _stopwatch = new Stopwatch();
             _stopwatch.Start();
         }
 
-        protected override void AfterExecute()
+        protected override void AfterExecute(CommandInfo command)
         {
             _stopwatch.Stop();
             Log.Debug($"Dice Command: {_stopwatch.ElapsedMilliseconds.ToString()} ms");

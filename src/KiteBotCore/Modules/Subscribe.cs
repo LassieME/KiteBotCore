@@ -19,13 +19,13 @@ namespace KiteBotCore.Modules
                 : new List<ulong>();
 
         private Stopwatch _stopwatch;
-        protected override void BeforeExecute()
+        protected override void BeforeExecute(CommandInfo command)
         {
             _stopwatch = new Stopwatch();
             _stopwatch.Start();
         }
 
-        protected override void AfterExecute()
+        protected override void AfterExecute(CommandInfo command)
         {
             _stopwatch.Stop();
             Log.Debug($"Subscribe Command: {_stopwatch.ElapsedMilliseconds.ToString()} ms");
@@ -71,7 +71,7 @@ namespace KiteBotCore.Modules
             {
                 try
                 {
-                    var channel = await client.GetUser(user).CreateDMChannelAsync().ConfigureAwait(false);
+                    var channel = await client.GetUser(user).GetOrCreateDMChannelAsync().ConfigureAwait(false);
                     await channel.SendMessageAsync(title + ": " + deck +
                                                    " is LIVE at <http://www.giantbomb.com/chat/> NOW, check it out!" +
                                                    Environment.NewLine + (image ?? ""))

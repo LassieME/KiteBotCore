@@ -89,7 +89,7 @@ namespace KiteBotCore.Modules.Reminder
                     try
                     {
                         var channel = await _client.GetUser(reminder.UserId)
-                            .CreateDMChannelAsync()
+                            .GetOrCreateDMChannelAsync()
                             .ConfigureAwait(false);
 
                         await channel.SendMessageAsync($"Reminder: {reminder.Reason}").ConfigureAwait(false);

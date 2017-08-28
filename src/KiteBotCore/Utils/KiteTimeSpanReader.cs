@@ -9,7 +9,7 @@ namespace KiteBotCore.Utils
     public class KiteTimeSpanReader : TypeReader
     {
         private static readonly Regex Reg = new Regex(@"^(?<weeks>\d+w)?(?<days>\d+d)?(?<hours>\d{1,2}h)?(?<minutes>\d{1,2}m)?(?<seconds>\d{1,2}s)?$", RegexOptions.Compiled);
-        public override async Task<TypeReaderResult> Read(ICommandContext context, string input)
+        public override async Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
         {
             await Task.Yield();
 

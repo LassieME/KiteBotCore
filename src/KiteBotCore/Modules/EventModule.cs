@@ -10,21 +10,21 @@ namespace KiteBotCore.Modules
     public class EventModule : ModuleBase
     {
         [Command("event add")]
-        public async Task EventAddCommand(string title, DateTimeOffset dateTime, [Remainder]string description)
+        public Task EventAddCommand(string title, DateTimeOffset dateTime, [Remainder]string description)
         {
-
+            return Task.CompletedTask;
         }
 
         [Command("event remove")]
-        public async Task EventRemoveCommand(string title)
+        public Task EventRemoveCommand(string title)
         {
-
+            return Task.CompletedTask;
         }
 
         [Command("events")]
-        public async Task EventsCommand()
+        public Task EventsCommand()
         {
-
+            return Task.CompletedTask;
         }
     }
 }

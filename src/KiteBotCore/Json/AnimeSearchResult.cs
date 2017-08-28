@@ -173,7 +173,7 @@ namespace KiteBotCore.Json
                 })
                 .WithFooter(x => x.Text = "anilist.co")
                 .WithColor(new Discord.Color(0x00CC00))
-                .WithImageUrl(ImageUrlLge ?? null)
+                .WithImageUrl(ImageUrlLge ?? "http://i0.kym-cdn.com/photos/images/facebook/000/916/071/aa6.jpg")
                 .WithCurrentTimestamp();
             return embedBuilder;
         }

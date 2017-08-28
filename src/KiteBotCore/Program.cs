@@ -180,8 +180,7 @@ namespace KiteBotCore
                     services.AddSingleton(new RankService(_rankConfigs, configs => File.WriteAllText(RankConfigPath,JsonConvert.SerializeObject(_rankConfigs,Formatting.Indented)), _dbFactory, Client));
                     services.AddSingleton(_kiteChat);
                     services.AddSingleton(_handler);
-                    services.AddEntityFramework()
-                        .AddEntityFrameworkNpgsql()
+                    services.AddEntityFrameworkNpgsql()
                         .AddDbContext<KiteBotDbContext>(options => options.UseNpgsql(_settings.DatabaseConnectionString));
                     services.AddSingleton(new VideoService(_settings.GiantBombApiKey));
                     services.AddSingleton(new SearchHelper(_settings.AnilistId, _settings.AnilistSecret));

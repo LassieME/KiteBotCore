@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Net.Http;
 using System.IO;
+using System.IO.Compression;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -30,7 +31,7 @@ namespace KiteBotCore.Modules
             _services = services;
         }
 
-        [Command("archive channel")]
+        [Command("archive channel", RunMode = RunMode.Async)]
         [Summary("archives a channel and uploads a JSON")]
         [RequireOwnerOrUserPermission(GuildPermission.Administrator)]
         public async Task ArchiveCommand(string guildName, string channelName, int amount = 10000)
@@ -49,7 +50,13 @@ namespace KiteBotCore.Modules
                     list.Add(new Message { Author = message.Author.Username, Content = message.Content, Timestamp = message.Timestamp });
                 var jsonSettings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
                 var json = JsonConvert.SerializeObject(list, Formatting.Indented, jsonSettings);
-                await Context.Channel.SendFileAsync(GenerateStreamFromString(json), $"{channelName}.json").ConfigureAwait(false);
+
+                using (MemoryStream stream = new MemoryStream())
+                {
+                    await CompressStringToFile(stream, json, $"{channelName}.json").ConfigureAwait(false);
+                    stream.Position = 0;
+                    await Context.Channel.SendFileAsync(stream, $"{channelName}.zip").ConfigureAwait(false);
+                }
             }
         }
 
@@ -63,6 +70,20 @@ namespace KiteBotCore.Modules
         private static MemoryStream GenerateStreamFromString(string value)
         {
             return new MemoryStream(Encoding.Unicode.GetBytes(value ?? ""));
+        }
+
+        public static async Task CompressStringToFile(MemoryStream memoryStream, string inputString, string fileName)
+        {
+            using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+            {
+                var file = archive.CreateEntry(fileName);
+
+                using (var entryStream = file.Open())
+                using (var streamWriter = new StreamWriter(entryStream))
+                {
+                    await streamWriter.WriteAsync(inputString).ConfigureAwait(false);
+                }
+            }
         }
 
         [Command("livestream on")]

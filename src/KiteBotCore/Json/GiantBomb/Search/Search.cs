@@ -249,7 +249,7 @@ namespace KiteBotCore.Json.GiantBomb.Search
             embedBuilder.WithTitle(Name)
                 .WithUrl(SiteDetailUrl)
                 .WithDescription(Deck ?? "No Deck on Giant Bomb.")
-                .WithImageUrl(Image?.MediumUrl ?? Image?.SmallUrl ?? Image?.ThumbUrl ?? Image?.SuperUrl)                
+                .WithImageUrl(Image?.MediumUrl ?? Image?.SmallUrl ?? Image?.ThumbUrl ?? Image?.SuperUrl ?? "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/200px-No_image_available.svg.png")                
                 .WithFooter(x => x.Text = "Giant Bomb")
                 .WithColor(new Discord.Color(0x00CC00))
                 .WithCurrentTimestamp();

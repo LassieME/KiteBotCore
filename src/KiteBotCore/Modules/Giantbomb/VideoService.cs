@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using KiteBotCore.Json.GiantBomb.Videos;
 using Newtonsoft.Json;
-using NuGet.Packaging;
 using Serilog;
 
 namespace KiteBotCore.Modules.Giantbomb

@@ -3,7 +3,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Discord;
-using Discord.Addons.EmojiTools;
 using Discord.Commands;
 using Discord.WebSocket;
 using Discord.Addons.InteractiveCommands;
@@ -14,20 +13,76 @@ namespace KiteBotCore.Modules.RankModule
     [RequireContext(ContextType.Guild), RequireServer(Server.GiantBomb)]
     public class Ranks : InteractiveModuleBase
     {
+        public enum ShowDebugInfo
+        {
+            Debug,
+            Release
+        }
+
         public RankService RankService { get; set; }
+
+        public KiteBotDbContext DbContext { get; set; }
+
+        //[Command("opt-out", RunMode = RunMode.Sync)]
+        //[Summary("Opts out of the entire rank system and all data collection for this bot")]
+        //[RequireChannel(213359477162770433)]
+        //public async Task OptOutCommand()
+        //{
+        //    using (var db = DbContext)
+        //    {
+        //        var user = await db.FindAsync<User>(Context.User.Id.ConvertToUncheckedLong())
+        //            .ConfigureAwait(false);
+        //        if (user.OptOut == false)
+        //        {
+        //            user.OptOut = true;
+        //            user.LastActivityAt = default(DateTimeOffset);
+        //            await db.SaveChangesAsync().ConfigureAwait(false);
+        //            await ReplyAsync("👌😢").ConfigureAwait(false);
+        //        }
+        //        else
+        //        {
+        //            await ReplyAsync("You're already opted out, use ~opt-in to opt back in").ConfigureAwait(false);
+        //        }
+        //    }
+        //}
+
+        //[Command("opt-in", RunMode = RunMode.Sync)]
+        //[Summary("Opts in to the greatness that is the Mister GBot ranking system")]
+        //[RequireChannel(213359477162770433)]
+        //public async Task OptInCommand()
+        //{
+        //    using (var db = DbContext)
+        //    {
+        //        var user = await db.FindAsync<User>(Context.User.Id.ConvertToUncheckedLong())
+        //            .ConfigureAwait(false);
+        //        if (user.OptOut)
+        //        {
+        //            user.OptOut = false;
+        //            user.LastActivityAt = DateTimeOffset.UtcNow;
+        //            await db.SaveChangesAsync().ConfigureAwait(false);
+        //            await ReplyAsync("👌😁").ConfigureAwait(false);
+        //        }
+        //        else
+        //        {
+        //            await ReplyAsync("You're already opted in, use ~opt-out to GET OUT NOW!").ConfigureAwait(false);
+        //        }
+        //    }
+        //}
 
         [Command("ranks", RunMode = RunMode.Async)]
         [Alias("colors", "colours")]
         [Summary("Shows you your current rank, based on the amount of time since you joined this server")]
         [RequireChannel(213359477162770433)]
-        public Task RanksCommand(bool debug = false) => RanksCommand(Context.User);
+        public Task RanksCommand(ShowDebugInfo showDebugInfo = ShowDebugInfo.Release) => 
+            RanksCommand(Context.User, showDebugInfo);
 
         [Command("ranks", RunMode = RunMode.Async)]
         [Alias("colors", "colours")]
         [Summary("Shows you your current rank, based on the amount of time since you joined this server")]
-        [RequireChannel(213359477162770433), RequireOwnerOrUserPermission(GuildPermission.Administrator)]
-        public async Task RanksCommand(IUser user, bool debug = false)
+        [RequireChannel(213359477162770433)]
+        public async Task RanksCommand(IUser user, ShowDebugInfo showDebugInfo = ShowDebugInfo.Release)
         {
+            await RankService.FlushQueue().ConfigureAwait(false);
             var embed = new EmbedBuilder();
             
             var userRanks = await RankService.GetAwardedRoles(user as SocketGuildUser, Context.Guild).ConfigureAwait(false);
@@ -99,13 +154,13 @@ namespace KiteBotCore.Modules.RankModule
                 embed.WithColor(roles.Last().Color);
             }
 
-            if (debug)
+            if (showDebugInfo == ShowDebugInfo.Debug)
             {
                 string info = $"Last activity: {await RankService.GetUserLastActivity(user as SocketGuildUser, Context.Guild).ConfigureAwait(false)}\n" +
                               $"Joindate used: {await RankService.GetUserJoinDate(user as SocketGuildUser, Context.Guild).ConfigureAwait(false)}";
                 embed.AddField(e =>
                 {
-                    e.Name = "Debug info";
+                    e.Name = "ShowDebugInfo info";
                     e.IsInline = true;
                     e.Value = info;
                 });
@@ -113,16 +168,16 @@ namespace KiteBotCore.Modules.RankModule
 
             embed.WithAuthor(x =>
             {
-                x.IconUrl = user.GetAvatarUrl();
+                var url = user.GetAvatarUrl();
+                if(url != null)
+                    x.IconUrl = url;
                 x.Name = (user as SocketGuildUser)?.Nickname ?? user.Username;
             });
 
-            embed.WithFooter(x => x.Text =
-                "If you're on mobile and can't see the role mentions, hit the 📱 reaction");
+            embed.WithFooter(x => x.Text = "Hit the 📱 reaction if on mobile.");
 
             var msg = await ReplyAsync("", false, embed).ConfigureAwait(false);
 
-            //await msg.AddReactionAsync(EmojiExtensions.FromText(":iphone:")).ConfigureAwait(false);
             try
             {
                 ReactionCallbackBuilder rcb = new ReactionCallbackBuilder();
@@ -150,10 +205,9 @@ namespace KiteBotCore.Modules.RankModule
                 Console.WriteLine(e);
                 throw;
             }
-            
         }
 
-        [Command("rank")]
+        [Command("rank", RunMode = RunMode.Async)]
         [Alias("color", "colour")]
         [Summary("Select a rank available to you, as shown in the ranks command")]
         [RequireChannel(213359477162770433)]

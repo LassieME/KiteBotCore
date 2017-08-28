@@ -8,19 +8,22 @@ using System.Threading.Tasks;
 using Discord.WebSocket;
 using KiteBotCore.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Newtonsoft.Json;
 
 namespace KiteBotCore
 {
-    public class DiscordContextFactory : IDbContextFactory<KiteBotDbContext>
+    public class DiscordContextFactory : IDesignTimeDbContextFactory<KiteBotDbContext> // IDbContextFactory<KiteBotDbContext>
     {
         //This is needed while doing Database migrations and updates
-        private static string SettingsPath => Directory.GetCurrentDirectory().Replace(@"\bin\Debug\netcoreapp1.1.2\","") + "/Content/settings.json";
+        private static string SettingsPath => Directory.GetCurrentDirectory().Replace(@"\bin\ShowDebugInfo\netcoreapp1.1.2\","") + "/Content/settings.json";
 
         public KiteBotDbContext Create(DbContextFactoryOptions options) => Create();
 
-        public KiteBotDbContext Create()
+        public KiteBotDbContext Create() => CreateDbContext(new string[]{});
+
+        public KiteBotDbContext CreateDbContext(string[] args)
         {
             var settings = JsonConvert.DeserializeObject<BotSettings>(File.ReadAllText(SettingsPath));
             return new KiteBotDbContext(settings.DatabaseConnectionString);
@@ -243,9 +246,15 @@ namespace KiteBotCore
 
         public string Name { get; set; }
 
+        //public string RegToken { get; set; }
+
+        //public bool Premium { get; set; }
+
         public DateTimeOffset LastActivityAt { get; set; }
 
         public DateTimeOffset? JoinedAt { get; set; }
+
+        public bool OptOut { get; set; }
 
         [ForeignKey("GuildForeignKey")]
         public Guild Guild { get; set; }
