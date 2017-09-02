@@ -130,7 +130,9 @@ namespace KiteBotCore.Modules.RankModule
                 {
                     var name = Context.Guild.Roles.FirstOrDefault(x => x.Id == role.roleId).Name;
                     var expiry = role.expiry;
-                    sb.AppendLine($"{name} expires in {(expiry - DateTimeOffset.UtcNow).Value.ToPrettyFormat()}");
+                    sb.AppendLine(expiry == null
+                        ? $"{name}"
+                        : $"{name} expires in {(expiry - DateTimeOffset.UtcNow).Value.ToPrettyFormat()}");
                 }
                 embed.AddField(x =>
                 {
