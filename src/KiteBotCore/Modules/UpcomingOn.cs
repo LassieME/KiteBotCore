@@ -73,6 +73,7 @@ namespace KiteBotCore.Modules
         }
 
         [Command("upcoming")]
+        [Alias("schedule")]
         [Summary("Lists upcoming content on Giant Bomb")]
         public async Task UpcomingNewCommand([Remainder] string inputTimeZone = null)
         {

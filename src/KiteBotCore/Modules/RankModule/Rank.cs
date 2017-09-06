@@ -128,7 +128,7 @@ namespace KiteBotCore.Modules.RankModule
                 var sb = new StringBuilder();
                 foreach (var role in assignedRoles)
                 {
-                    var name = Context.Guild.Roles.FirstOrDefault(x => x.Id == role.roleId).Name;
+                    var name = Context.Guild.Roles.First(x => x.Id == role.roleId).Name;
                     var expiry = role.expiry;
                     sb.AppendLine(expiry == null
                         ? $"{name}"

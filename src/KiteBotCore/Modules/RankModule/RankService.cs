@@ -128,16 +128,14 @@ namespace KiteBotCore.Modules.RankModule
                                 var dbUser = users.FirstOrDefault(x => x.Id == socketGuildUser.Id);
                                 if (dbUser.OptOut == false)
                                 {
-                                    var joinDate = users.FirstOrDefault(x => x.Id == socketGuildUser.Id).JoinedAt;
-                                    var activityDate = users.FirstOrDefault(x => x.Id == socketGuildUser.Id)
-                                        .LastActivityAt;
+                                    var joinDate = dbUser.JoinedAt;
+                                    var activityDate = dbUser.LastActivityAt;
 
                                     var ranks = await GetAwardedRoles(socketGuildUser, guild,
                                         joinDate.GetValueOrDefault(),
                                         activityDate).ConfigureAwait(false);
 
-                                    var assignedColorsToRemove = users.FirstOrDefault(x => x.Id == socketGuildUser.Id)
-                                        ?.UserRoles?.OrEmptyIfNull()
+                                    var assignedColorsToRemove = dbUser?.UserRoles?.OrEmptyIfNull()
                                         .Where(x => x.RemovalAt != null && x.RemovalAt < DateTimeOffset.UtcNow)
                                         .ToList();
 
@@ -155,8 +153,7 @@ namespace KiteBotCore.Modules.RankModule
                                         .Where(x => socketGuildUser.Roles.Any(y => y.Id == x.RoleId))
                                         .ToList();
 
-                                    var assignedColorsToRemove = users.FirstOrDefault(x => x.Id == socketGuildUser.Id)
-                                        ?.UserRoles?.OrEmptyIfNull()
+                                    var assignedColorsToRemove = dbUser?.UserRoles?.OrEmptyIfNull()
                                         .ToList();
 
                                     await AddAndRemoveMissingRanks(socketGuildUser, guild, ranks, assignedColorsToRemove).ConfigureAwait(false);
@@ -202,11 +199,18 @@ namespace KiteBotCore.Modules.RankModule
                 .Where(x => messageAuthor.RoleIds.All(y => y != x.RoleId))
                 .Select(x => x.RoleId)
                 .ToArray();
-            var rolesToRemove = messageAuthor.RoleIds
-                .Where(x => GetRanksForGuild(guild.Id)
-                    .Select(y => y.RoleId).Contains(x) &&
-                    !result.Select(y => y.RoleId).Contains(x));
-            
+            var rolesToRemove = messageAuthor.RoleIds.Where(x => 
+                GetRanksForGuild(guild.Id).Select(y => y.RoleId).Contains(x) && !result.Select(y => y.RoleId).Contains(x));
+
+            var colors = await GetAvailableColors(messageAuthor, messageAuthor.Guild).ConfigureAwait(false);
+            var allColorIds = GetRanksForGuild(guild.Id).SelectMany(x => x.Colors).Select(y => y.Id);
+            var currentColors = messageAuthor.RoleIds.Intersect(allColorIds).ToArray();
+
+            if (!colors.Any() && currentColors.Any())
+            {
+                rolesToRemove = rolesToRemove.Union(currentColors);
+            }
+
             if (userColorToRemove.Any(x => messageAuthor.RoleIds.Contains(x.Id)))
             {
                 rolesToRemove = rolesToRemove.Union(userColorToRemove.Select(x => x.Id));
@@ -262,7 +266,9 @@ namespace KiteBotCore.Modules.RankModule
 
         public async Task<IEnumerable<IColor>> GetAvailableColors(IGuildUser user, IGuild guild)
         {
+            //Gets regular colors awarded by reaching ranks
             var awardedRoles = (await GetAwardedRoles(user, guild).ConfigureAwait(false)).SelectMany(x => x.Colors);
+            //Gets colors assigned my admins/mods
             using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
             {
                 var dbUser = await db.Users
