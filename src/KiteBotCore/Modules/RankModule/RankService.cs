@@ -202,7 +202,7 @@ namespace KiteBotCore.Modules.RankModule
             var rolesToRemove = messageAuthor.RoleIds.Where(x => 
                 GetRanksForGuild(guild.Id).Select(y => y.RoleId).Contains(x) && !result.Select(y => y.RoleId).Contains(x));
 
-            var colors = await GetAvailableColors(messageAuthor, messageAuthor.Guild).ConfigureAwait(false);
+            var colors = result.SelectMany(x => x.Colors).Select(y => y.Id);
             var allColorIds = GetRanksForGuild(guild.Id).SelectMany(x => x.Colors).Select(y => y.Id);
             var currentColors = messageAuthor.RoleIds.Intersect(allColorIds).ToArray();
 
