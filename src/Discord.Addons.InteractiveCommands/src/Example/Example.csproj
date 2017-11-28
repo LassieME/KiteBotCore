@@ -1,0 +1,18 @@
+﻿<Project ToolsVersion="15.0" Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp1.0</TargetFramework>
+    <AssemblyName>Example</AssemblyName>
+    <OutputType>Exe</OutputType>
+    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Discord.Addons.InteractiveCommands\Discord.Addons.InteractiveCommands.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Discord.Net.WebSocket" Version="1.0.0-rc-*" />
+    <PackageReference Include="Discord.Net.Commands" Version="1.0.0-rc-*" />
+  </ItemGroup>
+</Project>

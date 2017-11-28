@@ -86,7 +86,7 @@ namespace LassieME.Controllers
                 {
                     var video = await gbClient.GetVideoAsync(3267, new[] {"url", "name", "id"});
                 }
-                catch (GiantBombApiException ex)
+                catch (GiantBombApiException)
                 {
                     isPremium = false;
                     resultViewModel.SuccessString = "Code is valid, but account is not a premium account";

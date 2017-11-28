@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\ExtendedGiantBombClient\ExtendedGiantBombClient.csproj" />
+    <ProjectReference Include="..\ExtendedGiantBombClient\ExtendedGiantBombClient.csproj" />
   </ItemGroup>
 
   <ItemGroup>

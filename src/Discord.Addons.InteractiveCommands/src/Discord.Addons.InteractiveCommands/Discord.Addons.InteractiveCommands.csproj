@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+  <PropertyGroup>
+    <VersionPrefix>$(BuildVersion)</VersionPrefix>
+    <VersionSuffix Condition="'$(BuildNumber)' == ''">dev</VersionSuffix>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <AssemblyName>Discord.Addons.InteractiveCommands</AssemblyName>
+    <Authors>foxbot</Authors>
+    <Description>Interactive-commands that empower user interaction</Description>
+    <PackageTags>discord;discord.net</PackageTags>
+    <PackageProjectUrl>https://github.com/foxbot/Discord.Addons.InteractiveCommands</PackageProjectUrl>
+    <PackageLicenseUrl>http://opensource.org/licenses/ISC</PackageLicenseUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>git://github.com/foxbot/Discord.Addons.InteractiveCommands</RepositoryUrl>
+    <RootNamespace>Discord.Addons.InteractiveCommands</RootNamespace>
+    <PackageReleaseNotes>$(ReleaseNotes)</PackageReleaseNotes>
+
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Discord.Net.WebSocket" Version="1.0.2" />
+    <PackageReference Include="Discord.Net.Commands" Version="1.0.2" />
+  </ItemGroup>
+</Project>

@@ -9,7 +9,7 @@
     <None Remove="log.txt" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Discord.Addons.InteractiveCommands" Version="1.2.4" />
+    <PackageReference Include="Discord.Addons.Interactive" Version="1.0.1" />
     <PackageReference Include="Discord.Net" Version="1.0.2" />
     <PackageReference Include="Google.Apis.YouTube.v3" Version="1.30.0.1035" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.0.1" />
@@ -23,14 +23,15 @@
     <PackageReference Include="Serilog.Sinks.File" Version="4.0.0" />
     <PackageReference Include="Serilog.Sinks.RollingFile" Version="3.3.0" />
     <PackageReference Include="System.Threading.Tasks.Parallel" Version="4.3.0" />
-    <PackageReference Include="TimeZoneConverter" Version="2.1.0" />
+    <PackageReference Include="TimeZoneConverter" Version="2.2.1" />
   </ItemGroup>
   <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.EntityFrameworkCore.Tools.Dotnet" Version="2.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\ExtendedGiantBombClient\ExtendedGiantBombClient.csproj" />
     <ProjectReference Include="..\Discord.Addons.EmojiTools\Discord.Addons.EmojiTools.csproj" />
+    <ProjectReference Include="..\Discord.Addons.InteractiveCommands\src\Discord.Addons.InteractiveCommands\Discord.Addons.InteractiveCommands.csproj" />
+    <ProjectReference Include="..\ExtendedGiantBombClient\ExtendedGiantBombClient.csproj" />
     <ProjectReference Include="..\MarkovSharpCore\MarkovSharpCore.csproj" />
   </ItemGroup>
 </Project>
