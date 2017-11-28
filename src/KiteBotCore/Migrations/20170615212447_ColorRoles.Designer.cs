@@ -105,11 +105,11 @@ namespace KiteBotCore.Migrations
                 {
                     b.Property<long>("UserId");
 
-                    b.Property<long>("RoleId");
+                    b.Property<long>("Id");
 
-                    b.HasKey("UserId", "RoleId");
+                    b.HasKey("UserId", "Id");
 
-                    b.HasIndex("RoleId");
+                    b.HasIndex("Id");
 
                     b.ToTable("UserColorRoles");
                 });
@@ -147,7 +147,7 @@ namespace KiteBotCore.Migrations
                 {
                     b.HasOne("KiteBotCore.ColorRole", "ColorRole")
                         .WithMany("UserRoles")
-                        .HasForeignKey("RoleId")
+                        .HasForeignKey("Id")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("KiteBotCore.User", "User")

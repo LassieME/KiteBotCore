@@ -7,6 +7,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Discord.Addons.InteractiveCommands;
 using KiteBotCore.Utils;
+using Microsoft.AspNetCore.Hosting.Internal;
 
 namespace KiteBotCore.Modules.RankModule
 {
@@ -19,7 +20,7 @@ namespace KiteBotCore.Modules.RankModule
             Release
         }
 
-        public RankService RankService { get; set; }
+        public IRankService RankService { get; set; }
 
         public KiteBotDbContext DbContext { get; set; }
 
@@ -69,6 +70,14 @@ namespace KiteBotCore.Modules.RankModule
         //    }
         //}
 
+        //[Command("premium", RunMode = RunMode.Async)]
+        //[Summary("Links to the page where you can add premium")]
+        //[RequireChannel(213359477162770433)]
+        //public async Task PremiumCommand(Debug showDebugInfo = Debug.Release)
+        //{
+        //    await ReplyAsync("https://lassie.me/GBot/LinkAccounts").ConfigureAwait(false);
+        //}
+
         [Command("ranks", RunMode = RunMode.Async)]
         [Alias("colors", "colours")]
         [Summary("Shows you your current rank, based on the amount of time since you joined this server")]
@@ -82,17 +91,17 @@ namespace KiteBotCore.Modules.RankModule
         [RequireChannel(213359477162770433)]
         public async Task RanksCommand(IUser user, Debug showDebugInfo = Debug.Release)
         {
-            await RankService.FlushQueue().ConfigureAwait(false);
+            await RankService.FlushQueueAsync().ConfigureAwait(false);
             var embed = new EmbedBuilder();
             
-            var userRanks = await RankService.GetAwardedRoles(user as SocketGuildUser, Context.Guild).ConfigureAwait(false);
+            var userRanks = await RankService.GetAwardedRolesAsync(user as SocketGuildUser, Context.Guild).ConfigureAwait(false);
             if (userRanks.Any())
             {
                 var sb = new StringBuilder("You currently have these ranks:\n");
                 foreach (Json.Rank rank in userRanks)
                 {
                     sb.AppendLine(
-                        $"{Context.Guild.Roles.First(x => x.Id == rank.RoleId).Name} rewarded by {rank.RequiredTimeSpan.ToPrettyFormat()} in the server");
+                        $"{Context.Guild.Roles.First(x => x.Id == rank.Id).Name} rewarded by {rank.RequiredTimeSpan.ToPrettyFormat()} in the server");
                 }
                 embed.AddField(x =>
                 {
@@ -111,7 +120,7 @@ namespace KiteBotCore.Modules.RankModule
                 });
             }
 
-            var (nextRole, timeSpan) = await RankService.GetNextRole(user as SocketGuildUser, Context.Guild).ConfigureAwait(false);
+            var (nextRole, timeSpan) = await RankService.GetNextRoleAsync(user as SocketGuildUser, Context.Guild).ConfigureAwait(false);
             if (nextRole != null)
             {
                 embed.AddField(x =>
@@ -122,7 +131,7 @@ namespace KiteBotCore.Modules.RankModule
                 });
             }
 
-            var assignedRoles = await RankService.GetAssignedRolesAsync(Context.Guild.Id, user.Id).ConfigureAwait(false);
+            var assignedRoles = await RankService.GetAssignedRolesAsync(Context.Guild, user).ConfigureAwait(false);
             if (assignedRoles.Any())
             {
                 var sb = new StringBuilder();
@@ -142,7 +151,7 @@ namespace KiteBotCore.Modules.RankModule
                 });
             }
 
-            var guildColors = (await RankService.GetAvailableColors(user as SocketGuildUser, Context.Guild).ConfigureAwait(false)).ToList();
+            var guildColors = (await RankService.GetAvailableColorsAsync(user as SocketGuildUser, Context.Guild).ConfigureAwait(false)).ToList();
             if (guildColors.Any())
             {
                 var roles = Context.Guild.Roles.Where(x => guildColors.Any(y => y.Id == x.Id)).OrderBy(x => x.Position);
@@ -158,8 +167,8 @@ namespace KiteBotCore.Modules.RankModule
 
             if (showDebugInfo == Debug.Debug)
             {
-                string info = $"Last activity: {await RankService.GetUserLastActivity(user as SocketGuildUser, Context.Guild).ConfigureAwait(false)}\n" +
-                              $"Joindate used: {await RankService.GetUserJoinDate(user as SocketGuildUser, Context.Guild).ConfigureAwait(false)}";
+                string info = $"Last activity: {await RankService.GetUserLastActivityAsync(user as SocketGuildUser, Context.Guild).ConfigureAwait(false)}\n" +
+                              $"Joindate used: {await RankService.GetUserJoinDateAsync(user as SocketGuildUser, Context.Guild).ConfigureAwait(false)}";
                 embed.AddField(e =>
                 {
                     e.Name = "Debug info";
@@ -209,30 +218,36 @@ namespace KiteBotCore.Modules.RankModule
             }
         }
 
-        [Command("rank", RunMode = RunMode.Async)]
+        [Command("rank", RunMode = RunMode.Async), Priority(2)]
         [Alias("color", "colour")]
         [Summary("Select a rank available to you, as shown in the ranks command")]
         [RequireChannel(213359477162770433)]
         public Task RankCommand() => RanksCommand(Context.User);
 
-        [Command("rank")]
+        [Command("rank", RunMode = RunMode.Async), Priority(2)]
         [Alias("color", "colour")]
         [Summary("Select a rank available to you, as shown in the ranks command")]
         [RequireChannel(213359477162770433)]
-        public async Task RankCommand([Remainder]IRole role)
-        {
-            var availableColors = (await RankService.GetAvailableColors(Context.User as SocketGuildUser, Context.Guild).ConfigureAwait(false)).ToList();
+        public Task RankCommand(Discord.IRole role) => RankCommand(Context.User as IGuildUser, role);
 
-            if (RankService.GetRanksForGuild(Context.Guild.Id).SelectMany(x => x.Colors).Select(x => x.Id).Union(availableColors.Select(x => x.Id)).All(y => y != role.Id))
+        [Command("rank"),Priority(3)]
+        [Alias("color", "colour")]
+        [Summary("Select a rank available to you, as shown in the ranks command")]
+        [RequireChannel(213359477162770433), RequireOwnerOrUserPermission(GuildPermission.Administrator)]
+        public async Task RankCommand(IGuildUser user, [Remainder] Discord.IRole role)
+        {
+            var availableColors = (await RankService.GetAvailableColorsAsync(user, Context.Guild).ConfigureAwait(false)).ToList();
+
+            if (RankService.GetRanksForGuild(Context.Guild).SelectMany(x => x.Colors).Select(x => x.Id).Union(availableColors.Select(x => x.Id)).All(y => y != role.Id))
             {
                 await ReplyAsync("That role is not managed by this bot, try `?rank`").ConfigureAwait(false);
                 return;
             }
             if (availableColors.Any(x => x.Id == role.Id))
             {
-                var user = (IGuildUser) Context.User;
+                
                 //Check for any rank, since users can get demoted and then use this command before they get their grade back, might not be nessesary in the future
-                var currentRank = RankService.GetRanksForGuild(Context.Guild.Id)
+                var currentRank = RankService.GetRanksForGuild(Context.Guild)
                     .SelectMany(x => x.Colors)
                     .Union(availableColors)
                     .FirstOrDefault(x => user.RoleIds.Any(y => y == x.Id));
@@ -259,19 +274,19 @@ namespace KiteBotCore.Modules.RankModule
         [Command("assign")]
         [Summary("assign an individual a color with an optional expiration")]
         [RequireOwnerOrUserPermission(GuildPermission.ManageGuild), RequireContext(ContextType.Guild)]
-        public async Task AssignColorCommand(IUser user, IRole colorRole, [OverrideTypeReader(typeof(KiteTimeSpanReader))] TimeSpan timeToRemove = default(TimeSpan))
+        public async Task AssignColorCommand(IUser user, Discord.IRole colorRankRole, [OverrideTypeReader(typeof(KiteTimeSpanReader))] TimeSpan timeToRemove = default)
         {
-            var timeSpan = timeToRemove != default(TimeSpan) ? (TimeSpan?)timeToRemove : null;
-            var assignTask = await RankService.AssignColorToUser(Context.Guild.Id, user.Id, colorRole.Id, timeSpan).ConfigureAwait(false);
+            var timeSpan = timeToRemove != default ? (TimeSpan?)timeToRemove : null;
+            var assignTask = await RankService.AssignColorToUserAsync(Context.Guild, user, colorRankRole, timeSpan).ConfigureAwait(false);
             await ReplyAsync(assignTask ? "OK" : "Couldn't remove rank").ConfigureAwait(false);
         }
 
         [Command("unassign"), Alias("deassign")]
         [Summary("assign an individual a color with an optional expiration")]
         [RequireOwnerOrUserPermission(GuildPermission.ManageGuild), RequireContext(ContextType.Guild)]
-        public async Task UnassignColorCommand(IUser user, IRole role)
+        public async Task UnassignColorCommand(IUser user, Discord.IRole rankRole)
         {
-            var result = await RankService.UnassignColorFromUserAsync(user, role).ConfigureAwait(false);
+            var result = await RankService.UnassignColorFromUserAsync(user, rankRole).ConfigureAwait(false);
             await ReplyAsync(result ? "OK" : "Couldn't remove rank").ConfigureAwait(false);
         }
 
@@ -279,32 +294,32 @@ namespace KiteBotCore.Modules.RankModule
         [RequireContext(ContextType.Guild)]
         public class RankAdmin : ModuleBase
         {
-            public RankService RankService { get; set; }
+            public IRankService RankService { get; set; }
 
             [Command("enable")]
             [RequireOwnerOrUserPermission(GuildPermission.Administrator)]
             public Task EnableCommand()
             {
-                RankService.EnableGuildRanks(Context.Guild.Id);
+                RankService.EnableGuildRanks(Context.Guild);
                 return Task.CompletedTask;
             }
 
             [Command("add")]
             [Summary("Adds a new Rank")]
             [RequireOwnerOrUserPermission(GuildPermission.Administrator)]
-            public async Task AddRankCommand(IRole role,
+            public async Task AddRankCommand(Discord.IRole rankRole,
                 [OverrideTypeReader(typeof(KiteTimeSpanReader))] TimeSpan timeSpan)
             {
-                RankService.AddRank(Context.Guild.Id, role.Id, timeSpan);
+                RankService.AddRank(Context.Guild, rankRole, timeSpan);
                 await ReplyAsync("OK").ConfigureAwait(false);
             }
 
             [Command("remove")]
             [Summary("Removes a new Rank")]
             [RequireOwnerOrUserPermission(GuildPermission.Administrator)]
-            public async Task RemoveRankCommand(IRole role)
+            public async Task RemoveRankCommand(Discord.IRole rankRole)
             {
-                var remove = RankService.RemoveRank(Context.Guild.Id, role.Id);
+                var remove = RankService.RemoveRank(Context.Guild, rankRole);
                 await ReplyAsync(remove ? "OK" : "Couldn't find rank").ConfigureAwait(false);
             }
 
@@ -316,7 +331,7 @@ namespace KiteBotCore.Modules.RankModule
                 var message = await (channel as ITextChannel).GetMessageAsync(messageId).ConfigureAwait(false);
                 if (message.Author.Id == user.Id)
                 {
-                    await RankService.SetJoinDate(user, Context.Guild.Id, message.Timestamp).ConfigureAwait(false);
+                    await RankService.SetJoinDateAsync(user, Context.Guild, message.Timestamp).ConfigureAwait(false);
                     await ReplyAsync("New date set, try the ranks command again.").ConfigureAwait(false);
                 }
                 else
@@ -332,7 +347,7 @@ namespace KiteBotCore.Modules.RankModule
                 var message = await (channel as ITextChannel).GetMessageAsync(messageId).ConfigureAwait(false);
                 if (message.Author.Id == Context.User.Id)
                 {
-                    await RankService.SetJoinDate(Context.User, Context.Guild.Id, message.Timestamp).ConfigureAwait(false);
+                    await RankService.SetJoinDateAsync(Context.User, Context.Guild, message.Timestamp).ConfigureAwait(false);
                     await ReplyAsync("New date set, try the ranks command again.").ConfigureAwait(false);
                 }
                 else
@@ -344,12 +359,12 @@ namespace KiteBotCore.Modules.RankModule
             [Command("list"), Priority(1), Summary("Lists all ranks and their potential associated colors")]
             public async Task ListRankCommand()
             {
-                var list = RankService.GetRanksForGuild(Context.Guild.Id);
+                var list = RankService.GetRanksForGuild(Context.Guild);
                 var stringBuilder = new StringBuilder();
                 stringBuilder.Append("```");
                 foreach (Json.Rank rank in list)
                 {
-                    stringBuilder.Append(Context.Guild.Roles.First(x => x.Id == rank.RoleId).Name)
+                    stringBuilder.Append(Context.Guild.Roles.First(x => x.Id == rank.Id).Name)
                         .AppendLine($" => {rank.RequiredTimeSpan.ToPrettyFormat()}");
                     foreach (Json.Color color in rank.Colors)
                     {
@@ -365,21 +380,21 @@ namespace KiteBotCore.Modules.RankModule
         [RequireOwnerOrUserPermission(GuildPermission.Administrator), RequireContext(ContextType.Guild)]
         public class Color : ModuleBase
         {
-            public RankService RankService { get; set; }
+            public IRankService RankService { get; set; }
 
             [Command("add")]
             [Summary("Attaches a color role to a rank role")]
-            public async Task AddColorCommand(IRole roleRank, IRole color)
+            public async Task AddColorCommand(Discord.IRole rankRoleRank, Discord.IRole color)
             {
-                RankService.AddColorToRank(Context.Guild.Id, roleRank.Id, color.Id);
+                RankService.AddColorToRank(Context.Guild, rankRoleRank, color);
                 await ReplyAsync("OK").ConfigureAwait(false);
             }
 
             [Command("remove")]
             [Summary("Removes a color from a rank")]
-            public async Task RemoveRankCommand(IRole rankRole, IRole colorRole)
+            public async Task RemoveRankCommand(Discord.IRole rankRankRole, Discord.IRole colorRankRole)
             {
-                var remove = RankService.RemoveColorFromRank(Context.Guild.Id, rankRole.Id, colorRole);
+                var remove = RankService.RemoveColorFromRank(Context.Guild, rankRankRole, colorRankRole);
                 await ReplyAsync(remove ? "OK" : "Couldn't remove rank").ConfigureAwait(false);
             }
         }

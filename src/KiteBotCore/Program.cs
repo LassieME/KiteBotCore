@@ -3,7 +3,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using KiteBotCore.Json;
 using KiteBotCore.Modules;
-using KiteBotCore.Modules.Giantbomb;
+using KiteBotCore.Modules.GiantBombModules;
 using KiteBotCore.Modules.Reminder;
 using KiteBotCore.Utils;
 using Microsoft.EntityFrameworkCore;
@@ -16,8 +16,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using ExtendedGiantBombClient.Interfaces;
 using KiteBotCore.Modules.RankModule;
+using ExtendedGiantBombRestClient = ExtendedGiantBombClient.ExtendedGiantBombRestClient;
 
 namespace KiteBotCore
 {
@@ -39,8 +42,8 @@ namespace KiteBotCore
         public static async Task Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
-                .WriteTo.Async(a => a.RollingFile("rollinglog.log", fileSizeLimitBytes: 50000000).MinimumLevel.Information())
-                .WriteTo.LiterateConsole()
+                .WriteTo.Async(a => a.RollingFile("rollinglog.log", fileSizeLimitBytes: 50000000))
+                .WriteTo.Console()
                 .MinimumLevel.Debug()
                 .CreateLogger();
 
@@ -48,6 +51,11 @@ namespace KiteBotCore
                 _silentStartup = true;
             else
                 Log.Information("Are you sure you shouldn't be using the --silent argument?");
+
+            TaskScheduler.UnobservedTaskException += (sender, eventArgs) =>
+            {
+                Log.Fatal(eventArgs.Exception, eventArgs.Exception.Message);
+            };
 
             Client = new DiscordSocketClient(new DiscordSocketConfig
             {
@@ -57,23 +65,15 @@ namespace KiteBotCore
                 HandlerTimeout = 2000
             });
 
-            _settings = File.Exists(SettingsPath)
-                ? JsonConvert.DeserializeObject<BotSettings>(File.ReadAllText(SettingsPath))
-                : new BotSettings
-                {
-                    CommandPrefix = '!',
-                    DiscordEmail = "email",
-                    DiscordPassword = "password",
-                    DiscordToken = "Token",
-                    GiantBombApiKey = "GbAPIKey",
-                    YoutubeApiKey = "",
-                    DatabaseConnectionString = "",
-                    OwnerId = 0,
-                    MarkovChainStart = false,
-                    MarkovChainDepth = 2,
-                    GiantBombLiveStreamRefreshRate = 60000,
-                    GiantBombVideoRefreshRate = 60000
-                };
+            if (File.Exists(SettingsPath))
+            {
+                _settings = JsonConvert.DeserializeObject<BotSettings>(File.ReadAllText(SettingsPath));
+            }
+            else
+            {
+                Log.Fatal("No settings file found in Content folder.");
+                return;
+            }
 
             _rankConfigs = File.Exists(RankConfigPath)
                 ? JsonConvert.DeserializeObject<RankConfigs>(File.ReadAllText(RankConfigPath))
@@ -99,7 +99,7 @@ namespace KiteBotCore
                 DefaultRunMode = RunMode.Sync,
                 LogLevel = LogSeverity.Verbose,
                 SeparatorChar = ' ',
-                ThrowOnError = true //Throws exceptions up to the commandhandler in sync commands
+                ThrowOnError = true //Throws exceptions up to the command handler in sync commands
             });
 
             Client.Log += LogDiscordMessage;
@@ -175,14 +175,17 @@ namespace KiteBotCore
 
                     var services = new ServiceCollection();
                     _handler = new CommandHandler();
+                    var gbClient =
+                        new ExtendedGiantBombRestClient(_settings.GiantBombApiKey) as IExtendedGiantBombRestClient;
                     services.AddSingleton(Client);
                     services.AddSingleton(_settings);
-                    services.AddSingleton(new RankService(_rankConfigs, configs => File.WriteAllText(RankConfigPath,JsonConvert.SerializeObject(_rankConfigs,Formatting.Indented)), _dbFactory, Client));
+                    services.AddSingleton((IRankService)new RankServiceV2(_rankConfigs, configs => File.WriteAllText(RankConfigPath,JsonConvert.SerializeObject(_rankConfigs,Formatting.Indented)), _dbFactory, Client));
                     services.AddSingleton(_kiteChat);
                     services.AddSingleton(_handler);
                     services.AddEntityFrameworkNpgsql()
                         .AddDbContext<KiteBotDbContext>(options => options.UseNpgsql(_settings.DatabaseConnectionString));
-                    services.AddSingleton(new VideoService(_settings.GiantBombApiKey));
+                    services.AddSingleton(gbClient);
+                    services.AddSingleton(new VideoService(gbClient));
                     services.AddSingleton(new SearchHelper(_settings.AnilistId, _settings.AnilistSecret));
                     services.AddSingleton(new ReminderService(Client));
                     services.AddSingleton(new FollowUpService());
@@ -249,14 +252,11 @@ namespace KiteBotCore
                             await channel.SendMessageAsync(
                                     $"{before.Nickname} changed his nickname to {after.Nickname}.")
                                 .ConfigureAwait(false);
-                            WhoIsService.AddWhoIs(before, after.Nickname);
                         }
                         else if (before.Nickname == null && after.Nickname != null)
                         {
-                            await channel
-                                .SendMessageAsync($"{before.Username} set his nickname to {after.Nickname}.")
+                            await channel.SendMessageAsync($"{before.Username} set his nickname to {after.Nickname}.")
                                 .ConfigureAwait(false);
-                            WhoIsService.AddWhoIs(before, after.Nickname);
                         }
                         else
                         {
@@ -268,7 +268,7 @@ namespace KiteBotCore
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex + "\r\n" + ex.Message);
+                Log.Error(ex, ex.Message);
             }
         }
 
@@ -276,21 +276,19 @@ namespace KiteBotCore
         {
             try
             {
-
                 if (before.Username != after.Username)
                 {
-                    var channel = (ITextChannel) Client.GetChannel(85842104034541568);
-                    if (channel != null)
+                    var channel = (SocketTextChannel) Client.GetChannel(85842104034541568);
+                    if (channel != null && channel.Guild.Users.Any(x => x.Id == after.Id))
                     {
                         await channel.SendMessageAsync($"{before.Username} changed his name to {after.Username}.")
                             .ConfigureAwait(false);
-                        WhoIsService.AddWhoIs(before, after);
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex + "\r\n" + ex.Message);
+                Log.Error(ex, ex.Message);
             }
         }
 

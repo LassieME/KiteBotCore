@@ -1,11 +1,11 @@
-using System;
-
-namespace KiteBotCore
+﻿namespace KiteBotCore
 {
-    public interface IColor
+    public interface IRole
     {
         ulong Id { get; set; }
+    }
 
-        DateTimeOffset? RemovalAt { get; set; }
+    public interface IColor : IRole
+    {
     }
 }

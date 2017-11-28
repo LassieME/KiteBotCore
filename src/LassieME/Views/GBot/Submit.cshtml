@@ -1,0 +1,36 @@
+﻿@model LassieME.Models.SubmitViewModel
+
+@{
+    ViewData["Title"] = "SubmitView";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Submit</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <div> STEP 1: Visit this page to get your link code:<br> 
+            <a href="https://www.giantbomb.com/app/GBot/" target="_blank">https://www.giantbomb.com/app/GBot/</a>
+        </div>
+        <p></p>
+        <div>STEP 2: Enter the link code here:</div>
+        <form asp-action="Result">
+            <div class="form-group">
+                <label asp-for="GBkey" class="control-label"></label>
+                <input asp-for="GBkey" class="form-control" />
+                <span asp-validation-for="GBkey" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input asp-for="StoreKey" type="checkbox" />Store my info and auto-check my premium status<br>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Submit" class="btn btn-default"/>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

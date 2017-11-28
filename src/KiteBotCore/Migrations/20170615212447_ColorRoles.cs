@@ -49,7 +49,7 @@ namespace KiteBotCore.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_UserColorRoles_RoleId",
                 table: "UserColorRoles",
-                column: "RoleId");
+                column: "Id");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

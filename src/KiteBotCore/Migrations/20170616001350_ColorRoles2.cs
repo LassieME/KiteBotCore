@@ -48,12 +48,12 @@ namespace KiteBotCore.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_UserColorRoles_RoleId",
                 table: "UserColorRoles",
-                column: "RoleId");
+                column: "Id");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_UserColorRoles_ColorRole_RoleId",
                 table: "UserColorRoles",
-                column: "RoleId",
+                column: "Id",
                 principalTable: "ColorRole",
                 principalColumn: "ColorRoleId",
                 onDelete: ReferentialAction.Cascade);

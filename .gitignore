@@ -256,3 +256,5 @@ ModelManifest.xml
 /src/KiteBotCore/pub
 /src/MarkovChain/pub
 log.txt
+/src/LassieME/pub
+appsettings.json

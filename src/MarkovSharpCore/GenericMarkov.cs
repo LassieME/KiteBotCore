@@ -27,7 +27,7 @@ namespace MarkovSharp
     {
         /// <summary>
         /// Set to true to ensure that all lines generated are different and not same as the training data.
-        /// This might not return as many lines as requested if genreation is exhausted and finds no new unique values.
+        /// This might not return as many lines as requested if generation is exhausted and finds no new unique values.
         /// </summary>
         public bool EnsureUniqueWalk { get; set; }
 
@@ -274,10 +274,9 @@ namespace MarkovSharp
                 // Choose a new word to add from the model
                 //Logger.Info($"In Walkline loop: builtcount = {built.Count}");
                 var key = new SourceGrams<TGram>(q.Cast<TGram>().ToArray());
-                if (Model.ContainsKey(key))
+                if (Model.TryGetValue(key,out var list))
                 {
                     //var chosen = Model[key].OrderBy(x => Guid.NewGuid()).First(); This is soo bad
-                    var list = Model[key];
                     var chosen = list[RandomGenerator.Next(list.Count)];
 
                     q.Dequeue();

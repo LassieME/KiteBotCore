@@ -252,7 +252,8 @@ namespace KiteBotCore
 
         public async Task<string> GetResponseUriFromRandomQlCrew()
         {
-            string url = "http://qlcrew.com/main.php?anyone=anyone&inc%5B0%5D=&p=999&exc%5B0%5D=&per_page=15&random";
+            string url = "http://qlcrew.com/main.php?vid_type=ql&anyone=anyone&inc%5B0%5D=&exc%5B0%5D=&p=1&per_page=15&random";
+                          
 
             var request = (HttpWebRequest)WebRequest.Create(url);
             if (request != null)

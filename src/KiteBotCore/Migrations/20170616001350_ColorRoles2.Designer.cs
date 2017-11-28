@@ -93,11 +93,11 @@ namespace KiteBotCore.Migrations
                 {
                     b.Property<long>("UserId");
 
-                    b.Property<long>("RoleId");
+                    b.Property<long>("Id");
 
                     b.Property<DateTimeOffset?>("RemovalAt");
 
-                    b.HasKey("UserId", "RoleId");
+                    b.HasKey("UserId", "Id");
 
                     b.ToTable("UserColorRoles");
                 });

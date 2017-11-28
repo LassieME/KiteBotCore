@@ -13,7 +13,7 @@ namespace KiteBotCore.Modules
         [Command("role")]        
         [Summary("Lists properties of a given role")]
         [RequireBotOwner]
-        public async Task RoleCommand([Remainder] IRole role)
+        public async Task RoleCommand([Remainder] Discord.IRole role)
         {
             var output = $"Name: {role.Name}\n" +
                 $"Position: {role.Position}\n" +

@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <ApplicationIcon />
+    <StartupObject />
+    <AssemblyName>Discord.Addons.EmojiTools</AssemblyName>
+    <Authors>foxbot</Authors>
+    <Description>Parse :racing_car: into 🏎 (text to emoji), or vice-versa (emoji to text)</Description>
+    <PackageProjectUrl>https://github.com/foxbot/Discord.Addons.EmojiTools</PackageProjectUrl>
+    <PackageLicenseUrl>http://opensource.org/licenses/ISC</PackageLicenseUrl>
+    <RootNamespace>Discord.Addons.EmojiTools</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Discord.Net.Core" Version="1.0.2" />
+  </ItemGroup>
+
+</Project>

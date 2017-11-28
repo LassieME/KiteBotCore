@@ -5,11 +5,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
-using KiteBotCore.Json.GiantBomb.Videos;
+using ExtendedGiantBombClient.Model;
+using GiantBomb.Api.Model;
 using KiteBotCore.Utils.FuzzyString;
 using Serilog;
 
-namespace KiteBotCore.Modules.Giantbomb
+namespace KiteBotCore.Modules.GiantBombModules
 {
     public class VideoModule : ModuleBase
     {
@@ -32,7 +33,7 @@ namespace KiteBotCore.Modules.Giantbomb
         }
 
         [Command("video", RunMode = RunMode.Async), Ratelimit(2, 1, Measure.Minutes)]
-        [Summary("Searches through GB videos for the 5 closest matches to the query")]
+        [Summary("Searches through GB videos for the 10 closest matches to the query")]
         public async Task VideoCommand([Remainder] string videoTitle)
         {
             if (!VideoService.IsReady)
@@ -50,9 +51,9 @@ namespace KiteBotCore.Modules.Giantbomb
 
             string reply = "Which of these videos did you mean?" + Environment.NewLine;
 
-            string videoTitleToLower = videoTitle.ToLower();
-            foreach (Result video in VideoService.AllVideos.Values
-                .OrderByDescending(x => x.Name.ToLower().LongestCommonSubstring(videoTitleToLower).Length).Take(20)
+            string videoTitleLowered = videoTitle.ToLower();
+            foreach (Video video in VideoService.AllVideos.Values
+                .OrderByDescending(x => x.Name.ToLower().LongestCommonSubstring(videoTitleLowered).Length).Take(20)
                 .OrderBy(x => x.Name.LevenshteinDistance(videoTitle)).Take(10))
             {
                 dict.Add(i.ToString(), Tuple.Create<string, Func<EmbedBuilder>>("", () => video.ToEmbed()));

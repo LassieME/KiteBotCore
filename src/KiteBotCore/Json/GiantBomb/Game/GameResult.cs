@@ -81,6 +81,7 @@ namespace KiteBotCore.Json.GiantBomb.GameResult
 
         [JsonProperty("site_detail_url")]
         public string SiteDetailUrl { get; set; }
+
         public EmbedBuilder ToEmbed()
         {
             EmbedBuilder embedBuilder = new EmbedBuilder();

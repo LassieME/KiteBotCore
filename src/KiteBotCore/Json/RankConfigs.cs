@@ -17,12 +17,29 @@ namespace KiteBotCore.Json
 
         [JsonProperty("Roles")]
         public Dictionary<ulong, Rank> Ranks { get; set; }
+
+        [JsonProperty("Premium")]
+        public Premium Premium { get; set; }
     }
 
-    public class Rank
+    public class Premium : IRankRole
+    {
+        [JsonProperty("Id")]
+        public ulong Id { get; set; }
+
+        public TimeSpan RequiredTimeSpan {
+            get => TimeSpan.Zero;
+            set{ ; }
+        }
+
+        [JsonProperty("Colors")]
+        public List<Color> Colors { get; set; }
+    }
+
+    public class Rank : IRankRole
     {
         [JsonProperty("RoleId")]
-        public ulong RoleId { get; set; }
+        public ulong Id { get; set; }
 
         [JsonProperty("RoleTimeSpan")]
         public TimeSpan RequiredTimeSpan { get; set; }
@@ -35,11 +52,5 @@ namespace KiteBotCore.Json
     {
         [JsonProperty("ColorId")]
         public ulong Id { get; set; }
-
-        [JsonProperty("RemovalAt")]
-        public DateTimeOffset? RemovalAt {
-            get { return null; }
-            set { ; }
-        }
     }
 }
