@@ -255,12 +255,12 @@ namespace KiteBotCore
                         }
                         else if (before.Nickname == null && after.Nickname != null)
                         {
-                            await channel.SendMessageAsync($"{before.Username} set his nickname to {after.Nickname}.")
+                            await channel.SendMessageAsync($"{before.Username} set their nickname to {after.Nickname}.")
                                 .ConfigureAwait(false);
                         }
                         else
                         {
-                            await channel.SendMessageAsync($"{before.Username} reset his nickname.")
+                            await channel.SendMessageAsync($"{before.Username} reset their nickname.")
                                 .ConfigureAwait(false);
                         }
                     }
@@ -281,7 +281,7 @@ namespace KiteBotCore
                     var channel = (SocketTextChannel) Client.GetChannel(85842104034541568);
                     if (channel != null && channel.Guild.Users.Any(x => x.Id == after.Id))
                     {
-                        await channel.SendMessageAsync($"{before.Username} changed his name to {after.Username}.")
+                        await channel.SendMessageAsync($"{before.Username} changed their username to {after.Username}.")
                             .ConfigureAwait(false);
                     }
                 }
