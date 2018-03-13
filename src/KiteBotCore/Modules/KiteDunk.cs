@@ -18,7 +18,7 @@ namespace KiteBotCore.Modules
 
         static KiteDunk()
         {
-            KiteDunkTimer = new Timer(async s => await UpdateKiteDunks(),null, TimeSpan.FromHours(24), TimeSpan.FromHours(24));//a day
+            KiteDunkTimer = new Timer(async s => await UpdateKiteDunks(), null, TimeSpan.FromHours(24), TimeSpan.FromHours(24));//a day
         }
 
         [Command("kitedunk"), Summary("Posts a hot Kite Dunk"), Alias("dunk"),RequireServer(Server.KiteCo)]
@@ -70,11 +70,13 @@ namespace KiteBotCore.Modules
                 {
                     response = await client.GetStringAsync(GoogleSpreadsheetApiUrl);
                 }
-                var regex1 =
+
+                var regex =
                     new Regex(
                         @"""gsx\$name"":{""\$t"":""(?<name>[0-9A-Za-z'""., +\-?!\[\]]+?)""},""gsx\$quote"":{""\$t"":""(?<quote>[0-9A-Za-z'""., +\-?!\[\]]+?)""}}",
-                        RegexOptions.Singleline);
-                var matches = regex1.Matches(response);
+                        RegexOptions.Singleline & RegexOptions.Compiled);
+
+                var matches = regex.Matches(response);
                 string[,] kiteDunks = new string[matches.Count, 2];
                 int i = 0;
                 foreach (Match match in matches)

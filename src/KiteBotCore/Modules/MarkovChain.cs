@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using System;
+using Discord;
 using Discord.Commands;
 using Serilog;
 using System.Collections.Generic;
@@ -27,13 +28,18 @@ namespace KiteBotCore.Modules
         [Alias("tm")]
         [Summary("Creates a Markov Chain string based on user messages")]
         [RequireServer(Server.KiteCo)]
-        public async Task MarkovChainCommand(string haiku = null)
+        public async Task MarkovChainCommand([Remainder]string haiku = null)
         {
             if (haiku == "haiku")
             {
                 await ReplyAsync(KiteChat.MultiDeepMarkovChains.GetSequence() + "\n" +
                                  KiteChat.MultiDeepMarkovChains.GetSequence() + "\n" +
                                  KiteChat.MultiDeepMarkovChains.GetSequence() + "\n").ConfigureAwait(false);
+            }
+            else if (haiku != null)
+            {
+                var output = KiteChat.MultiDeepMarkovChains.GetMatch(haiku);//_markovChain.GetMatches(haiku);
+                await ReplyAsync(output).ConfigureAwait(false);
             }
             else
             {
@@ -48,21 +54,24 @@ namespace KiteBotCore.Modules
         {
             var messagesTask = Context.Channel.GetMessagesAsync(amount).Flatten().ConfigureAwait(false);
             int i = 0;
-            List<Message> list = await KiteChat.MultiDeepMarkovChains.GetFullDatabase(Context.Channel.Id).ConfigureAwait(false);
+            List<Message> list = await KiteChat.MultiDeepMarkovChains.GetFullDatabase(Context.Channel.Id)
+                .ConfigureAwait(false);
             var messages = await messagesTask;
-            foreach(var msg in messages)
+            using (Context.Channel.EnterTypingState())
             {
-                i++;
-                if (list.All(x => x.Id != msg.Id))
+                foreach (var msg in messages)
                 {
-                    await KiteChat.MultiDeepMarkovChains.Feed(msg).ConfigureAwait(false);
+                    i++;
+                    if (list.All(x => x.Id != msg.Id))
+                    {
+                        await KiteChat.MultiDeepMarkovChains.Feed(msg).ConfigureAwait(false);
+                    }
                 }
+
+                await KiteChat.MultiDeepMarkovChains.SaveAsync().ConfigureAwait(false);
+                await ReplyAsync($"{i} messages downloaded.").ConfigureAwait(false);
             }
-
-            await KiteChat.MultiDeepMarkovChains.SaveAsync().ConfigureAwait(false);
-            await ReplyAsync($"{i} messages downloaded.").ConfigureAwait(false);
         }
-
 
         [Command("setdepth", RunMode = RunMode.Async)]
         [Summary("Sets the markov chain \"depth\"")]

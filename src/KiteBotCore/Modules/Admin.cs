@@ -11,7 +11,6 @@ using System.Globalization;
 using System.Net.Http;
 using System.IO;
 using System.IO.Compression;
-using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Serilog;
@@ -21,26 +20,20 @@ namespace KiteBotCore.Modules
     public class Admin : CleansingModuleBase
     {
         private readonly CommandHandler _handler;
-        private readonly KiteChat _kiteChat;
         private readonly IServiceProvider _services;
 
         public Admin(IServiceProvider services)
         {
             _handler = services.GetService<CommandHandler>();
-            _kiteChat = services.GetService<KiteChat>();
             _services = services;
         }
 
         [Command("archive channel", RunMode = RunMode.Async)]
         [Summary("archives a channel and uploads a JSON")]
         [RequireOwnerOrUserPermission(GuildPermission.Administrator)]
-        public async Task ArchiveCommand(string guildName, string channelName, int amount = 10000)
+        public async Task ArchiveCommand(string guildName, ITextChannel channelToArchive, int amount = 10000)
         {
-            var channelToArchive = (await
-                (await Context.Client.GetGuildsAsync().ConfigureAwait(false))
-                .FirstOrDefault(x => x.Name == guildName)
-                .GetTextChannelsAsync().ConfigureAwait(false))
-                .FirstOrDefault(x => x.Name == channelName);
+            //var channelToArchive = (await(await Context.Client.GetGuildsAsync().ConfigureAwait(false)).FirstOrDefault(x => x.Name == guildName).GetTextChannelsAsync().ConfigureAwait(false)).FirstOrDefault(x => x.Name == channelName);
 
             if (channelToArchive != null)
             {
@@ -53,9 +46,9 @@ namespace KiteBotCore.Modules
 
                 using (MemoryStream stream = new MemoryStream())
                 {
-                    await CompressStringToFile(stream, json, $"{channelName}.json").ConfigureAwait(false);
+                    await CompressStringToFile(stream, json, $"{channelToArchive.Name}.json").ConfigureAwait(false);
                     stream.Position = 0;
-                    await Context.Channel.SendFileAsync(stream, $"{channelName}.zip").ConfigureAwait(false);
+                    await Context.Channel.SendFileAsync(stream, $"{channelToArchive.Name}.zip").ConfigureAwait(false);
                 }
             }
         }
@@ -65,11 +58,6 @@ namespace KiteBotCore.Modules
             public string Author;
             public string Content;
             public DateTimeOffset Timestamp;
-        }
-
-        private static MemoryStream GenerateStreamFromString(string value)
-        {
-            return new MemoryStream(Encoding.Unicode.GetBytes(value ?? ""));
         }
 
         public static async Task CompressStringToFile(MemoryStream memoryStream, string inputString, string fileName)
@@ -86,21 +74,21 @@ namespace KiteBotCore.Modules
             }
         }
 
-        [Command("livestream on")]
-        [RequireServer(Server.GiantBomb)]
-        [RequireOwnerOrUserPermission(GuildPermission.Administrator)]
-        public async Task LivestreamOnCommand([Remainder] string channelName)
-        {
-            await KiteChat.StreamChecker.LivestreamOnName(channelName, Context.Guild.Id).ConfigureAwait(false);
-        }
+        //[Command("livestream on")]
+        //[RequireServer(Server.GiantBomb)]
+        //[RequireOwnerOrUserPermission(GuildPermission.Administrator)]
+        //public async Task LivestreamOnCommand([Remainder] string channelName)
+        //{
+        //    await KiteChat.StreamChecker.LivestreamOnName(channelName, Context.Guild.Id).ConfigureAwait(false);
+        //}
 
-        [Command("livestream off")]
-        [RequireServer(Server.GiantBomb)]
-        [RequireOwnerOrUserPermission(GuildPermission.Administrator)]
-        public async Task LivestreamOffCommand([Remainder] string channelName)
-        {
-            await KiteChat.StreamChecker.LivestreamOffName(channelName, Context.Guild.Id).ConfigureAwait(false);
-        }
+        //[Command("livestream off")]
+        //[RequireServer(Server.GiantBomb)]
+        //[RequireOwnerOrUserPermission(GuildPermission.Administrator)]
+        //public async Task LivestreamOffCommand([Remainder] string channelName)
+        //{
+        //    await KiteChat.StreamChecker.LivestreamOffName(channelName, Context.Guild.Id).ConfigureAwait(false);
+        //}
 
         [Command("save")]
         [Summary("saves markov chain messages")]
@@ -132,15 +120,15 @@ namespace KiteBotCore.Modules
             Environment.Exit(0);
         }
 
-        [Command("update")]
-        [Alias("up")]
-        [Summary("Updates the livestream channel, and probably crashes if there is no chat")]
-        [RequireBotOwner]
-        public async Task UpdateCommand()
-        {
-            await KiteChat.StreamChecker.ForceUpdateChannel().ConfigureAwait(false);
-            await ReplyAsync("updated?").ConfigureAwait(false);
-        }
+        //[Command("update")]
+        //[Alias("up")]
+        //[Summary("Updates the livestream channel, and probably crashes if there is no chat")]
+        //[RequireBotOwner]
+        //public async Task UpdateCommand()
+        //{
+        //    await KiteChat.StreamChecker.ForceUpdateChannel().ConfigureAwait(false);
+        //    await ReplyAsync("updated?").ConfigureAwait(false);
+        //}
 
         [Command("delete")]
         [Alias("del")]
@@ -151,36 +139,36 @@ namespace KiteBotCore.Modules
             if (KiteChat.BotMessages.Any()) await ((IUserMessage)KiteChat.BotMessages.Last()).DeleteAsync().ConfigureAwait(false);
         }
 
-        [Command("restart")]
-        [Alias("re")]
-        [Summary("restarts the video and livestream checkers")]
-        [RequireBotOwner]
-        public async Task RestartCommand()
-        {
-            KiteChat.StreamChecker?.Restart();
-            KiteChat.GbVideoChecker?.Restart();
-            await ReplyAsync("It might have done something, who knows.").ConfigureAwait(false);
-        }
+        //[Command("restart")]
+        //[Alias("re")]
+        //[Summary("restarts the video and livestream checkers")]
+        //[RequireBotOwner]
+        //public async Task RestartCommand()
+        //{
+        //    KiteChat.StreamChecker?.Restart();
+        //    KiteChat.GbVideoChecker?.Restart();
+        //    await ReplyAsync("It might have done something, who knows.").ConfigureAwait(false);
+        //}
 
-        [Command("ignore")]
-        [Summary("ignore a gb chat channelname")]
-        [RequireBotOwner]
-        public async Task IgnoreCommand([Remainder] string input)
-        {
-            KiteChat.StreamChecker.IgnoreChannel(input);
-            await ReplyAsync("Added to ignore list.").ConfigureAwait(false);
-        }
+        //[Command("ignore")]
+        //[Summary("ignore a gb chat channelname")]
+        //[RequireBotOwner]
+        //public async Task IgnoreCommand([Remainder] string input)
+        //{
+        //    KiteChat.StreamChecker.IgnoreChannel(input);
+        //    await ReplyAsync("Added to ignore list.").ConfigureAwait(false);
+        //}
 
-        [Command("listchannels")]
-        [Summary("Lists names of GB chats")]
-        [RequireBotOwner]
-        public async Task ListChannelCommand()
-        {
+        //[Command("listchannels")]
+        //[Summary("Lists names of GB chats")]
+        //[RequireBotOwner]
+        //public async Task ListChannelCommand()
+        //{
 
-            await ReplyAsync("Current livestreams channels are:" + Environment.NewLine + await KiteChat.StreamChecker.ListChannelsAsync()
-                .ConfigureAwait(false))
-                .ConfigureAwait(false);
-        }
+        //    await ReplyAsync("Current livestreams channels are:" + Environment.NewLine + await KiteChat.StreamChecker.ListChannelsAsync()
+        //        .ConfigureAwait(false))
+        //        .ConfigureAwait(false);
+        //}
 
         [Command("say")]
         [Alias("echo")]
@@ -189,31 +177,6 @@ namespace KiteBotCore.Modules
         public async Task SayCommand([Remainder] string input)
         {
             await ReplyAsync(input).ConfigureAwait(false);
-        }
-
-        [Command("embed")]
-        [Summary("Echos the provided input")]
-        [RequireBotOwner]
-        public async Task EmbedCommand([Remainder] string input)
-        {
-            var embed = new EmbedBuilder
-            {
-                Title = input,
-                Color = new Color(255, 0, 0),
-                Description = input
-            }.AddField(x =>
-            {
-                x.Name = input;
-                x.Value = input;
-            }).WithAuthor(x =>
-            {
-                x.Name = input;
-            })
-            .WithFooter(x =>
-            {
-                x.Text = input;
-            });
-            await ReplyAsync("", false, embed).ConfigureAwait(false);
         }
 
         [Command("setgame")]
@@ -288,6 +251,7 @@ namespace KiteBotCore.Modules
                 catch (Exception ex)
                 {
                     Log.Warning(ex, "Exception in help command");
+                    // ReSharper disable once PossibleIntendedRethrow
                     throw ex;
                 }
             }
@@ -308,7 +272,7 @@ namespace KiteBotCore.Modules
             await ReplyAsync(
                 $"{Format.Bold("Info")}\n" +
                 $"- Author: {application.Owner.Username}#{application.Owner.DiscriminatorValue} (ID {application.Owner.Id})\n" +
-                $"- Avatar by: UberX#6974\n" +
+                $"- Avatars by: UberX#6974\n" +
                 $"- Source Code: <https://github.com/LassieME/KiteBotCore>\n" +
                 $"- Library: Discord.Net ({DiscordConfig.Version})\n" +
                 $"- Runtime: {RuntimeInformation.FrameworkDescription} {RuntimeInformation.OSArchitecture}\n" +

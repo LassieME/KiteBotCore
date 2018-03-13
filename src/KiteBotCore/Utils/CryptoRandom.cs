@@ -19,7 +19,7 @@ namespace KiteBotCore.Utils
 		///<summary>
 		/// Fills the elements of a specified array of bytes with random numbers.
 		///</summary>
-		///<param name=”buffer”>An array of bytes to contain random numbers.</param>
+		///<param name="buffer">An array of bytes to contain random numbers.</param>
 		public override void GetBytes(byte[] buffer)
 		{
 			r.GetBytes(buffer);
@@ -36,8 +36,8 @@ namespace KiteBotCore.Utils
 		///<summary>
 		/// Returns a random number within the specified range.
 		///</summary>
-		///<param name=”minValue”>The inclusive lower bound of the random number returned.</param>
-		///<param name=”maxValue”>The inclusive upper bound of the random number returned. maxValue must be greater than or equal to minValue.</param>
+		///<param name="minValue">The inclusive lower bound of the random number returned.</param>
+		///<param name="maxValue">The inclusive upper bound of the random number returned. maxValue must be greater than or equal to minValue.</param>
 		public int Next(int minValue, int maxValue)
 		{
 			var v = Math.Round(NextDouble() * (maxValue - minValue)) + minValue;
@@ -53,7 +53,7 @@ namespace KiteBotCore.Utils
 		///<summary>
 		/// Returns a nonnegative random number less than the specified maximum
 		///</summary>
-		///<param name=”maxValue”>The inclusive upper bound of the random number returned. maxValue must be greater than or equal 0</param>
+		///<param name="maxValue">The inclusive upper bound of the random number returned. maxValue must be greater than or equal 0</param>
 		public int Next(int maxValue)
 		{
 			return Next(0, maxValue);

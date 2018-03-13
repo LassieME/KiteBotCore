@@ -48,7 +48,7 @@ namespace KiteBotCore.Modules.Eval
             try
             {
                 _dbContext = services.GetService<KiteBotDbContext>();
-                var list = _dbContext.Messages.ToList();
+                _dbContext.Messages.Load();
 
             }
             catch (Exception ex)

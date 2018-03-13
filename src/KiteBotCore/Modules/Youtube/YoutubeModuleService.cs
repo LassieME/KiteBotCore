@@ -86,8 +86,7 @@ namespace KiteBotCore.Modules.Youtube
             {
                 foreach (var channelId in watched.ChannelsThatAreSubbed)
                 {
-                    var socketTextChannel = _client.GetChannel(channelId) as SocketTextChannel;
-                    if (socketTextChannel != null)
+                    if (_client.GetChannel(channelId) is SocketTextChannel socketTextChannel)
                     {
                         var eb = new EmbedBuilder()
                             .WithTitle(data.Snippet.Title)
@@ -187,8 +186,7 @@ namespace KiteBotCore.Modules.Youtube
         }
         private static bool Remove(Dictionary<string, WatchedChannel> dict, ulong discordChannelId, string channelIdOrName)
         {
-            WatchedChannel wc;
-            if (dict.TryGetValue(channelIdOrName, out wc))
+            if (dict.TryGetValue(channelIdOrName, out var wc))
             {
                 if (wc.ChannelsThatAreSubbed.Any(x => x != discordChannelId))
                 {

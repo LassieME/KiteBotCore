@@ -26,18 +26,24 @@ namespace KiteBotCore.Modules.Music
                 using (var audioClient = await (channel as IVoiceChannel)?.ConnectAsync())
                 using (var stream = audioClient.CreatePCMStream(AudioApplication.Music, bitrate: (channel as IVoiceChannel)?.Bitrate, bufferMillis: 2880))
                 {
-                    var process = Process.Start(new ProcessStartInfo
+                    using (var process = Process.Start(new ProcessStartInfo
                     {
                         FileName = "ffmpeg",
                         Arguments = $"-i \"{path}\" -f s16le -ar 48000 -ac 2 pipe:1",
                         UseShellExecute = false,
                         RedirectStandardOutput = true,
                         RedirectStandardError = true
-                    });
-                    Task flush = process.StandardError.BaseStream.CopyToAsync(Stream.Null);
-                    await process.StandardOutput.BaseStream.CopyToAsync(stream).ConfigureAwait(false);
-                    await flush.ConfigureAwait(false);
-                    process.WaitForExit();
+                    }))
+                    {
+                        if (process != null)
+                        {
+                            Task flush = process.StandardError.BaseStream.CopyToAsync(Stream.Null);
+                            await process.StandardOutput.BaseStream.CopyToAsync(stream).ConfigureAwait(false);
+                            await flush.ConfigureAwait(false);
+                            process.WaitForExit();
+                        }
+                    }
+
                     await ReplyAsync("👌").ConfigureAwait(false);
                 }
             }

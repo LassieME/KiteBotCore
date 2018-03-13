@@ -16,6 +16,7 @@ using Serilog;
 
 namespace KiteBotCore
 {
+    [Obsolete("Use LivestreamCheckerV2", true)]
     public class LivestreamChecker
     {
         public string ApiCallUrl;

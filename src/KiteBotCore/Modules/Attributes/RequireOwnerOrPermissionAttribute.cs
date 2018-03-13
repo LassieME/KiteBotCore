@@ -52,13 +52,11 @@ namespace KiteBotCore.Modules
             if ((await context.Client.GetApplicationInfoAsync().ConfigureAwait(false)).Owner.Id == context.User.Id)
                 return PreconditionResult.FromSuccess();
 
-            if (GuildPermission.HasValue)
-            {
-                if (guildUser == null)
-                    return PreconditionResult.FromError("Command must be used in a guild channel");
-                if (!guildUser.GuildPermissions.Has(GuildPermission.Value))
-                    return PreconditionResult.FromError($"Command requires guild permission {GuildPermission.Value}");
-            }
+            if (guildUser == null)
+                return PreconditionResult.FromError("Command must be used in a guild channel");
+
+            if (GuildPermission.HasValue && !guildUser.GuildPermissions.Has(GuildPermission.Value))
+                return PreconditionResult.FromError($"Command requires guild permission {GuildPermission.Value}");
 
             if (ChannelPermission.HasValue)
             {

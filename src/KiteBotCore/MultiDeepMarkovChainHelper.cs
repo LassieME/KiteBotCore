@@ -26,6 +26,7 @@ namespace KiteBotCore
         private readonly SemaphoreSlim _semaphore;
         private KiteBotDbContext _db;
         private bool _isInitialized;
+        private bool _isInitializing;
         private JsonLastMessage _lastMessage;
 
         // ReSharper disable once NotAccessedField.Local
@@ -54,71 +55,77 @@ namespace KiteBotCore
         internal async Task InitializeAsync()
         {
             Console.WriteLine("Initialize");
-            if (!_isInitialized)
+            if (!_isInitializing && !_isInitialized)
             {
+                _isInitializing = true;
                 try
                 {
-                    if (File.Exists(JsonLastMessageLocation))
-                        try
-                        {
-                            foreach (Message message in _db.Messages)
-                                FeedMarkovChain(message);
-                            _semaphore.Release();
-                            string s = File.ReadAllText(JsonLastMessageLocation);
-                            _lastMessage = JsonConvert.DeserializeObject<JsonLastMessage>(s);
-
-                            var dbGuilds = await _db.Guilds
-                                .Include(g => g.Channels)
-                                .Include(g => g.Users)
-                                .ToListAsync().ConfigureAwait(false);
-
-                            List<Channel> channels = new List<Channel>();
-                            List<User> users = new List<User>();
-                            foreach (var guild in dbGuilds)
+                    using (var db = _dbFactory.Create(new DbContextFactoryOptions()))
+                    {
+                        if (File.Exists(JsonLastMessageLocation))
+                            try
                             {
-                                channels.AddRange(guild.Channels);
-                                users.AddRange(guild.Users);
-                            }
+                                foreach (Message message in await db.Messages.ToListAsync().ConfigureAwait(false))
+                                    FeedMarkovChain(message);
+                                _semaphore.Release();
+                                string s = File.ReadAllText(JsonLastMessageLocation);
+                                _lastMessage = JsonConvert.DeserializeObject<JsonLastMessage>(s);
 
-                            var list = new List<IMessage>(await DownloadMessagesAfterIdAsync(_lastMessage.MessageId,
+                                var dbGuilds = await db.Guilds
+                                    .Include(g => g.Channels)
+                                    .Include(g => g.Users)
+                                    .ToListAsync().ConfigureAwait(false);
+
+                                List<Channel> channels = new List<Channel>();
+                                List<User> users = new List<User>();
+                                foreach (var guild in dbGuilds)
+                                {
+                                    channels.AddRange(guild.Channels);
+                                    users.AddRange(guild.Users);
+                                }
+
+                                var list = new List<IMessage>(await DownloadMessagesAfterIdAsync(_lastMessage.MessageId,
                                     _lastMessage.ChannelId).ConfigureAwait(false));
-                            foreach (IMessage message in list)
-                                await FeedMarkovChain(message, channels, users).ConfigureAwait(false);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(ex + ex.Message);
-                        }
-                    else
-                        try
-                        {
-                            var guilds = _client.Guilds;
-                            var list =
-                                new List<IMessage>(await GetMessagesFromChannelAsync(guilds.FirstOrDefault().Id, 1000).ConfigureAwait(false));
-                            _semaphore.Release();
-
-                            var dbGuilds = await _db.Guilds
-                                .Include(g => g.Channels)
-                                .Include(g => g.Users)
-                                .ToListAsync().ConfigureAwait(false);
-
-                            List<Channel> channels = new List<Channel>();
-                            List<User> users = new List<User>();
-                            foreach (var guild in dbGuilds)
-                            {
-                                channels.AddRange(guild.Channels);
-                                users.AddRange(guild.Users);
+                                foreach (IMessage message in list)
+                                    await FeedMarkovChain(message, db, channels, users).ConfigureAwait(false);
                             }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex + ex.Message);
+                            }
+                        else
+                            try
+                            {
+                                var guilds = _client.Guilds;
+                                var list =
+                                    new List<IMessage>(
+                                        await GetMessagesFromChannelAsync(guilds.FirstOrDefault().Id, 1000)
+                                            .ConfigureAwait(false));
+                                _semaphore.Release();
 
-                            foreach (IMessage message in list)
-                                await FeedMarkovChain(message, channels, users).ConfigureAwait(false);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(ex + ex.Message);
-                        }
-                    _isInitialized = true;
-                    await SaveAsync().ConfigureAwait(false);
+                                var dbGuilds = await db.Guilds
+                                    .Include(g => g.Channels)
+                                    .Include(g => g.Users)
+                                    .ToListAsync().ConfigureAwait(false);
+
+                                List<Channel> channels = new List<Channel>();
+                                List<User> users = new List<User>();
+                                foreach (var guild in dbGuilds)
+                                {
+                                    channels.AddRange(guild.Channels);
+                                    users.AddRange(guild.Users);
+                                }
+
+                                foreach (IMessage message in list)
+                                    await FeedMarkovChain(message, db, channels, users).ConfigureAwait(false);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex + ex.Message);
+                            }
+                        _isInitialized = true;
+                        await db.SaveChangesAsync().ConfigureAwait(false);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -129,7 +136,7 @@ namespace KiteBotCore
 
         internal Task Feed(IMessage message)
         {
-            return FeedMarkovChain(message);
+            return FeedMarkovChain(message, _dbFactory.Create(new DbContextFactoryOptions()));
         }
 
         public string GetSequence()
@@ -147,14 +154,15 @@ namespace KiteBotCore
             return "I'm not ready yet Senpai!";
         }
 
-        private async Task FeedMarkovChain(IMessage message, List<Channel> channels = null, List<User> users = null)
+        private async Task FeedMarkovChain(IMessage message, KiteBotDbContext dbContext, List<Channel> channels = null, List<User> users = null)
         {
             if (!message.Author.IsBot)
-                if (!string.IsNullOrWhiteSpace(message.Content) && !message.Content.Contains("http") &&
-                    !message.Content.ToLower().Contains("testmarkov") &&
-                    !message.Content.ToLower().Contains("getdunked") &&
-                    !message.Content.ToLower().StartsWith("!") &&
-                    !message.Content.ToLower().StartsWith("~") &&
+            {
+                var newMessage = message.Content.ToLower();
+                if (!string.IsNullOrWhiteSpace(message.Content) && !newMessage.Contains("http") &&
+                    !newMessage.Contains("testmarkov") &&
+                    !newMessage.StartsWith("!") &&
+                    !newMessage.StartsWith("~") &&
                     message.MentionedUserIds.FirstOrDefault() !=
                     _client.CurrentUser.Id)
                 {
@@ -163,13 +171,13 @@ namespace KiteBotCore
                     try
                     {
                         Channel channel = channels == null
-                            ? await _db.Channels.FirstAsync(x => x.Id == message.Channel.Id)
+                            ? await dbContext.Channels.FirstAsync(x => x.Id == message.Channel.Id)
                                 .ConfigureAwait(false)
                             : channels.Find(x => x.Id == message.Channel.Id);
 
                         User user = users == null
-                            ? await _db.Users.FirstAsync(x => x.Id == message.Author.Id)
-                            .ConfigureAwait(false)
+                            ? await dbContext.Users.FirstAsync(x => x.Id == message.Author.Id)
+                                .ConfigureAwait(false)
                             : users.Find(x => x.Id == message.Author.Id);
 
                         var entityMessage = new Message
@@ -182,8 +190,8 @@ namespace KiteBotCore
 
                         Debug.Assert(entityMessage.Content != null && entityMessage.Channel != null &&
                                      entityMessage.User != null);
-                        
-                        _db.Messages.Add(entityMessage);
+
+                        dbContext.Messages.Add(entityMessage);
                     }
                     catch (InvalidOperationException ex)
                     {
@@ -194,10 +202,11 @@ namespace KiteBotCore
                         Log.Debug(ex + ex.Message + "\n" + _amountOfFails++);
                     }
                 }
+            }
         }
 
         private static int _amountOfFails;
-
+        
         private void FeedMarkovChain(Message message)
         {
             if (!string.IsNullOrWhiteSpace(message.Content) && !message.Content.Contains("http")
@@ -298,6 +307,19 @@ namespace KiteBotCore
         {
             _markovChain.Retrain(depth);
             Depth = depth;
+        }
+
+        public string GetMatch(string input)
+        {
+            return _markovChain.Walk(1, input).First();
+        }
+    }
+
+    public static class ListExtensions
+    {
+        public static T GetRandomElement<T>(this IList<T> enumerable)
+        {
+            return enumerable[new Random().Next(0, enumerable.Count)];
         }
     }
 }

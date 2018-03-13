@@ -3,8 +3,7 @@ using Newtonsoft.Json;
 
 namespace KiteBotCore.Json.GiantBomb.GbUpcoming
 {
-
-    internal class GbUpcoming
+    public class GbUpcoming
     {
 
         [JsonProperty("liveNow")]
@@ -14,7 +13,7 @@ namespace KiteBotCore.Json.GiantBomb.GbUpcoming
         public Upcoming[] Upcoming { get; set; }
     }
 
-    internal class LiveNow
+    public class LiveNow
     {
 
         [JsonProperty("title")]
@@ -23,10 +22,30 @@ namespace KiteBotCore.Json.GiantBomb.GbUpcoming
         [JsonProperty("image")]
         public string Image { get; set; }
 
+        public override bool Equals(object obj)
+        {
+            return obj is LiveNow now &&
+                   Title == now.Title &&
+                   Image == now.Image;
+        }
+
+        protected bool Equals(LiveNow other)
+        {
+            return string.Equals(Title, other.Title) && string.Equals(Image, other.Image);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return ((Title != null ? Title.GetHashCode() : 0) * 397) ^ (Image != null ? Image.GetHashCode() : 0);
+            }
+        }
+
         public override string ToString() => Title != null ? $"Live NOW on Giantbomb.com: {Title} \r\n{Image}" : "No Livestream right now.";
     }
 
-    internal class Upcoming
+    public class Upcoming
     {
 
         [JsonProperty("type")]

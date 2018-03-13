@@ -33,13 +33,12 @@ namespace KiteBotCore.Utils
             int s = 0;
             foreach (var gp in gps)
             {
-                var val = 0;
                 var gpc = mtc.Groups[gp].Value;
                 if (string.IsNullOrWhiteSpace(gpc))
                     continue;
 
                 var gpt = gpc.Last();
-                int.TryParse(gpc.Substring(0, gpc.Length - 1), out val);
+                int.TryParse(gpc.Substring(0, gpc.Length - 1), out var val);
                 switch (gpt)
                 {
                     case 'w':

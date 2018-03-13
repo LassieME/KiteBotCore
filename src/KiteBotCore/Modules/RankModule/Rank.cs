@@ -98,7 +98,7 @@ namespace KiteBotCore.Modules.RankModule
             if (userRanks.Any())
             {
                 var sb = new StringBuilder("You currently have these ranks:\n");
-                foreach (Json.Rank rank in userRanks)
+                foreach (var rank in userRanks)
                 {
                     sb.AppendLine(
                         $"{Context.Guild.Roles.First(x => x.Id == rank.Id).Name} rewarded by {rank.RequiredTimeSpan.ToPrettyFormat()} in the server");
@@ -362,7 +362,7 @@ namespace KiteBotCore.Modules.RankModule
                 var list = RankService.GetRanksForGuild(Context.Guild);
                 var stringBuilder = new StringBuilder();
                 stringBuilder.Append("```");
-                foreach (Json.Rank rank in list)
+                foreach (var rank in list)
                 {
                     stringBuilder.Append(Context.Guild.Roles.First(x => x.Id == rank.Id).Name)
                         .AppendLine($" => {rank.RequiredTimeSpan.ToPrettyFormat()}");

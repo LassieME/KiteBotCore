@@ -91,7 +91,7 @@ namespace KiteBotCore.Modules
                         int rand = RandomSeed.Next(0, currentList.Count);
 
                         //pull new random items until one not in the response is found
-                        while (0 <= builtSandwich.IndexOf(currentList[rand], 0))
+                        while (0 <= builtSandwich.IndexOf(currentList[rand], 0, StringComparison.Ordinal))
                         {
                             rand = RandomSeed.Next(0, currentList.Count);
                         }

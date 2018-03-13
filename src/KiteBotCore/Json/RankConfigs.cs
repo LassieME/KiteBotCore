@@ -29,7 +29,7 @@ namespace KiteBotCore.Json
 
         public TimeSpan RequiredTimeSpan {
             get => TimeSpan.Zero;
-            set{ ; }
+            set{ }
         }
 
         [JsonProperty("Colors")]

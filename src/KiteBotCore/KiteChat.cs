@@ -17,7 +17,7 @@ namespace KiteBotCore
 
         private static string[] _greetings;
 
-        public static LivestreamChecker StreamChecker;
+        //public static LivestreamChecker StreamChecker;
         public static GiantBombVideoChecker GbVideoChecker;
         public static MultiTextMarkovChainHelper MultiDeepMarkovChains;
         public static List<SocketMessage> BotMessages = new List<SocketMessage>();
@@ -32,8 +32,8 @@ namespace KiteBotCore
             RandomSeed = new Random();
             YoutubeModuleService.Init(ytApi, client);
 
-            if (streamRefresh > 3000) StreamChecker = new LivestreamChecker(client, gBapi, streamRefresh, silentStartup);
-            if (videoRefresh > 3000) GbVideoChecker = new GiantBombVideoChecker(client, gBapi, videoRefresh);
+            //if (streamRefresh > 30000) StreamChecker = new LivestreamChecker(client, gBapi, streamRefresh, silentStartup);
+            if (videoRefresh > 30000) GbVideoChecker = new GiantBombVideoChecker(client, gBapi, videoRefresh);
             if (StartMarkovChain && depth > 0)MultiDeepMarkovChains = new MultiTextMarkovChainHelper(client, db, depth);
         }
 

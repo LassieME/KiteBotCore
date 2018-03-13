@@ -62,9 +62,9 @@ namespace KiteBotCore.Modules.GiantBombModules
             {
                 Log.Warning("Did not find videos.json, running full GB video list download");
 
-                var latest = await _gbApiClient.GetAllVideosAsync().ConfigureAwait(false);
-                AllVideos = new Dictionary<int, Video>(latest.Count() + 150);
-                foreach (var video in latest)
+                var videos = (await _gbApiClient.GetAllVideosAsync().ConfigureAwait(false)).ToList();
+                AllVideos = new Dictionary<int, Video>(videos.Count() + 150);
+                foreach (var video in videos)
                 {
                     AllVideos[video.Id] = video;
                 }

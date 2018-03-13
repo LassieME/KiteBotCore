@@ -31,34 +31,7 @@ namespace KiteBotCore.Modules
         [Summary("Mentions you and says hello")]
         public async Task HiCommand()
         {
-            var msg = await ReplyAsync($"{Context.User.Mention} Heyyo!").ConfigureAwait(false);
-        }
-
-        public enum Number
-        {
-            One = 1,
-            Two = 2,
-            Three = 3
-        }
-
-        [Command("enum", RunMode = RunMode.Async)]
-        [Summary("Mentions you and says hello")]
-        public async Task EnumTestCommand(Number number = Number.One)
-        {
-            switch (number)
-            {
-                case Number.One:
-                    await ReplyAsync("Optional enums broken?").ConfigureAwait(false);
-                    break;
-                case Number.Two:
-                    await ReplyAsync("TWO!").ConfigureAwait(false);
-                    break;
-                case Number.Three:
-                    await ReplyAsync("THREE!").ConfigureAwait(false);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(number), number, null);
-            }
+            await ReplyAsync($"{Context.User.Mention} Heyyo!").ConfigureAwait(false);
         }
 
         [Command("summerjams", RunMode = RunMode.Async)]

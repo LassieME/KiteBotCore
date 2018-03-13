@@ -11,7 +11,7 @@ using System;
 namespace KiteBotCore.Migrations
 {
     [DbContext(typeof(KiteBotDbContext))]
-    partial class DiscordContextModelSnapshot : ModelSnapshot
+    class DiscordContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {

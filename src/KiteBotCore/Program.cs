@@ -177,15 +177,19 @@ namespace KiteBotCore
                     _handler = new CommandHandler();
                     var gbClient =
                         new ExtendedGiantBombRestClient(_settings.GiantBombApiKey) as IExtendedGiantBombRestClient;
+                    var upcomingService = new UpcomingJsonService();
                     services.AddSingleton(Client);
                     services.AddSingleton(_settings);
                     services.AddSingleton((IRankService)new RankServiceV2(_rankConfigs, configs => File.WriteAllText(RankConfigPath,JsonConvert.SerializeObject(_rankConfigs,Formatting.Indented)), _dbFactory, Client));
                     services.AddSingleton(_kiteChat);
                     services.AddSingleton(_handler);
+                    services.AddSingleton(upcomingService);
                     services.AddEntityFrameworkNpgsql()
                         .AddDbContext<KiteBotDbContext>(options => options.UseNpgsql(_settings.DatabaseConnectionString));
                     services.AddSingleton(gbClient);
                     services.AddSingleton(new VideoService(gbClient));
+                    services.AddSingleton(new LivestreamCheckerV2(Client, upcomingService,
+                        _settings.GiantBombLiveStreamRefreshRate, _silentStartup));
                     services.AddSingleton(new SearchHelper(_settings.AnilistId, _settings.AnilistSecret));
                     services.AddSingleton(new ReminderService(Client));
                     services.AddSingleton(new FollowUpService());

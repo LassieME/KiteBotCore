@@ -14,7 +14,7 @@ namespace KiteBotCore
         public DbSet<Message> Messages { get; set; }
         public DbSet<UserColorRoles> UserColorRoles { get; set; }
         public DbSet<Event> Events { get; set; }
-        private string ConnectionString { get; set; }
+        private string ConnectionString { get; }
 
         public KiteBotDbContext(string settingsDatabaseConnectionString)
         {

@@ -95,9 +95,7 @@ namespace KiteBotCore.Modules.RankModule
 
         private Task UpdateLastActivityTask(SocketMessage message)
         {
-            var messageGuildChannel = message.Channel as SocketGuildChannel;
-            var messageAuthor = message.Author as SocketGuildUser;
-            if (messageGuildChannel != null && messageAuthor != null &&
+            if (message.Channel is SocketGuildChannel messageGuildChannel && message.Author is SocketGuildUser messageAuthor &&
                 _rankConfigs.GuildConfigs.ContainsKey(messageGuildChannel.Guild.Id))
                 _activityQueue.Enqueue((messageAuthor, DateTimeOffset.UtcNow));
             return Task.CompletedTask;

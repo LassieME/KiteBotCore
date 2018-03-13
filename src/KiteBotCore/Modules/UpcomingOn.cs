@@ -8,33 +8,33 @@ using Discord.Commands;
 using KiteBotCore.Json.GiantBomb.GbUpcoming;
 using Newtonsoft.Json;
 using Discord;
+using KiteBotCore.Utils;
 using Serilog;
 
 namespace KiteBotCore.Modules
 {
-    public class UpcomingOn : ModuleBase, IDisposable
+    public class UpcomingOn : ModuleBase
     {
-        public static string UpcomingUrl = "http://www.giantbomb.com/upcoming_json";
-        public static Dictionary<string, string> ShorthandTz;
-        private readonly HttpClient _client = new HttpClient();
-
+        public UpcomingJsonService UpcomingJsonService { get; set; }
+        private static Dictionary<string, string> _shorthandTz;
+        
         private Stopwatch _stopwatch;
         protected override void BeforeExecute(CommandInfo command)
         {
             _stopwatch = new Stopwatch();
             _stopwatch.Start();
         }
-
         protected override void AfterExecute(CommandInfo command)
         {
             _stopwatch.Stop();
             Log.Debug($"Upcoming Command: {_stopwatch.ElapsedMilliseconds.ToString()} ms");
         }
+
         public UpcomingOn()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                ShorthandTz = new Dictionary<string, string>
+                _shorthandTz = new Dictionary<string, string>
                 {
                     { "CET",  "Europe/Oslo" },
                     { "CEST", "Europe/Oslo" },
@@ -53,7 +53,7 @@ namespace KiteBotCore.Modules
             }
             else
             {
-                ShorthandTz = new Dictionary<string, string>
+                _shorthandTz = new Dictionary<string, string>
                 {
                     { "CET",  "Central Europe Standard Time" },
                     { "CEST", "Central Europe Standard Time" },
@@ -77,7 +77,7 @@ namespace KiteBotCore.Modules
         [Summary("Lists upcoming content on Giant Bomb")]
         public async Task UpcomingNewCommand([Remainder] string inputTimeZone = null)
         {
-            var json = await DownloadUpcomingJson().ConfigureAwait(false);
+            var json = await UpcomingJsonService.DownloadUpcomingJsonAsync().ConfigureAwait(false);
             string output = "";
 
             EmbedBuilder embed = new EmbedBuilder();
@@ -98,25 +98,12 @@ namespace KiteBotCore.Modules
                 {
                     x.Name = $"{(upcoming.Premium ? "Premium " + upcoming.Type : upcoming.Type)}: {upcoming.Title}";
                     x.Value = $@"on {( inputTimeZone != null ? TimeZoneInfo.ConvertTime(upcoming.Date,
-                        TimeZoneInfo.FindSystemTimeZoneById(ShorthandTz["PST"]),
-                        TimeZoneInfo.FindSystemTimeZoneById(ShorthandTz.TryGetValue(inputTimeZone.ToUpper(), out string input) ? input : inputTimeZone)) : upcoming.Date)}";
+                        TimeZoneInfo.FindSystemTimeZoneById(_shorthandTz["PST"]),
+                        TimeZoneInfo.FindSystemTimeZoneById(_shorthandTz.TryGetValue(inputTimeZone.ToUpper(), out string input) ? input : inputTimeZone)) : upcoming.Date)}";
                 });
             }
 
             await ReplyAsync(output, embed: embed).ConfigureAwait(false);
-        }
-
-        internal async Task<GbUpcoming> DownloadUpcomingJson()
-        {
-            _client.DefaultRequestHeaders.Add("User-Agent",
-                "KiteBotCore 1.1 GB Discord Bot looking for upcoming content");
-            GbUpcoming json = JsonConvert.DeserializeObject<GbUpcoming>(await _client.GetStringAsync(UpcomingUrl).ConfigureAwait(false));
-            return json;
-        }
-
-        public void Dispose()
-        {
-            _client.Dispose();
         }
     }
 }

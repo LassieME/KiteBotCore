@@ -46,8 +46,7 @@ namespace KiteBotCore
         public async Task HandleBotCommand(SocketMessage parameterMessage)
         {
             // Don't handle the command if it is a system message
-            var message = parameterMessage as SocketUserMessage;
-            if (message == null) return;
+            if (!(parameterMessage is SocketUserMessage message)) return;
             if (message.Author is SocketUnknownUser) return;
             if (message.Author.IsBot)
             {
@@ -90,8 +89,7 @@ namespace KiteBotCore
 
         public async Task HandleSelfBotCommand(SocketMessage parameterMessage)
         {
-            var message = parameterMessage as SocketUserMessage;
-            if (message == null || message.Author.Id != _ownerId || message.Author is SocketUnknownUser)
+            if (!(parameterMessage is SocketUserMessage message) || message.Author.Id != _ownerId || message.Author is SocketUnknownUser)
                 return;
 
             // Mark where the prefix ends and the command begins

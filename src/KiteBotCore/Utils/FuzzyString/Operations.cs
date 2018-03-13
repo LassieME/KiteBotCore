@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace KiteBotCore.Utils.FuzzyString
 {
-    public static partial class Operations
+    public static class Operations
     {
         public static string Capitalize(this string source)
         {
