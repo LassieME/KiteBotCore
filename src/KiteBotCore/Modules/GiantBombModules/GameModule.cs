@@ -99,17 +99,18 @@ namespace KiteBotCore.Modules.GiantBombModules
         [Summary("Replies with random game from the Giant Bomb games database")]
         public async Task RandomGameCommand()
         {
-            int randomId = Rand.Next(1, 54500);
             GiantBomb.Api.Model.Game result = null;
-
-            while (result == null)
+            int error = 0;
+            while (result == null && error < 5)
             {
                 try
                 {
+                    var randomId = Rand.Next(1, 54500);
                     result = await GbClient.GetGameAsync(randomId).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
+                    error += 1;
                     Log.Debug(ex, ex.Message);
                 }
             }

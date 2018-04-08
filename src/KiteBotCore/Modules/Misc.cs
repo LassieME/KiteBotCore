@@ -11,12 +11,32 @@ namespace KiteBotCore.Modules
 {
     public class Misc : ModuleBase
     {
+        public CommandHandler ch { get; set; }
+
         [Command("420")]
         [Alias("#420", "blaze", "waifu")]
         [Summary("Anime and weed, all you need.")]
         public async Task FourTwentyCommand()
         {
             await ReplyAsync("http://420.moe/", false, new EmbedBuilder().WithDescription("ANIME AND WEED ALL U NEED")).ConfigureAwait(false);
+        }
+        
+        [Command("makemycommand", RunMode = RunMode.Async)]
+        [Summary("Anime and weed, all you need.")]
+        [RequireBotOwner]
+        public async Task MakeMyCommand(string commandName, [Remainder]string input)
+        {
+            await ch.Commands.CreateModuleAsync(commandName, builder =>
+            {
+                builder.AddCommand("", async (context, objects, arg3, arg4) =>
+                    {
+                        await context.Channel.SendMessageAsync(input);
+                    }, 
+                    commandBuilder => 
+                        commandBuilder
+                            .WithRunMode(RunMode.Async)
+                            .WithPriority(0));
+            });
         }
 
         [Command("archive")]

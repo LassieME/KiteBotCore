@@ -23,7 +23,7 @@ namespace KiteBotCore
 
         private readonly DiscordSocketClient _client;
         private readonly UpcomingJsonService _service;
-        private GbUpcoming _gbUpcoming = null;
+        private LiveNow _liveNow = null;
 
         private string _livestreamNotActiveName = "livestream";
         private string _livestreamActiveName = "livestream-live";
@@ -39,8 +39,8 @@ namespace KiteBotCore
             }
             if (silentStartup)
             {
-                _gbUpcoming = new GbUpcoming();
-                _gbUpcoming.LiveNow = new LiveNow();
+                
+                _liveNow = new LiveNow();
             }
         }
 
@@ -64,9 +64,9 @@ namespace KiteBotCore
             if (_client.Guilds.Any())
             {
                 var upcomingNew = await _service.DownloadUpcomingJsonAsync();
-                if (!Equals(_gbUpcoming.LiveNow, upcomingNew.LiveNow))
+                if (!upcomingNew.LiveNow.Equals(_liveNow))
                 {
-                    if (_gbUpcoming.LiveNow == null ^ upcomingNew.LiveNow == null)//Livestream has started or ended
+                    if (_liveNow == null ^ upcomingNew.LiveNow == null)//Livestream has started or ended
                     {
                         foreach (var clientGuild in _client.Guilds.Where(x => x.Id == 85814946004238336 || x.Id == 106386929506873344))
                         {
@@ -78,7 +78,7 @@ namespace KiteBotCore
                         Log.Information("Livestream object has changed but not gone on/offline");
                     }
                 }
-                _gbUpcoming = upcomingNew;
+                _liveNow = upcomingNew.LiveNow;
             }
         }
         private async Task UpdateTask(LiveNow e, bool postMessage, bool isGbServer)
