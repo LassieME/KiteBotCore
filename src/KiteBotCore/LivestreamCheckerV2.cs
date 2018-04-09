@@ -64,7 +64,7 @@ namespace KiteBotCore
             if (_client.Guilds.Any())
             {
                 var upcomingNew = await _service.DownloadUpcomingJsonAsync();
-                if (!upcomingNew.LiveNow.Equals(_liveNow))
+                if (!Equals(upcomingNew.LiveNow, _liveNow))
                 {
                     if (_liveNow == null ^ upcomingNew.LiveNow == null)//Livestream has started or ended
                     {
