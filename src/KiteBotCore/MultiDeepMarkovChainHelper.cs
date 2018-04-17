@@ -11,6 +11,7 @@ using KiteBotCore.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using MarkovSharp.TokenisationStrategies;
+using MarkovSharpCore.TokenisationStrategies;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -20,7 +21,7 @@ namespace KiteBotCore
     {
         private readonly DiscordSocketClient _client;
         private readonly DiscordContextFactory _dbFactory;
-        private readonly StringMarkov _markovChain;
+        private readonly ReversableStringMarkov _markovChain;
 
         private readonly string _rootDirectory = Directory.GetCurrentDirectory();
         private readonly SemaphoreSlim _semaphore;
@@ -33,17 +34,19 @@ namespace KiteBotCore
         private Timer _timer;
 
         public int Depth;
+        private readonly bool _shouldDownload;
 
-        public MultiTextMarkovChainHelper(DiscordSocketClient client, DiscordContextFactory dbFactory, int depth)
+        public MultiTextMarkovChainHelper(DiscordSocketClient client, DiscordContextFactory dbFactory, int depth, bool shouldDownload)
         {
             _semaphore = new SemaphoreSlim(0, 1);
             _dbFactory = dbFactory;
             _db = _dbFactory.Create(new DbContextFactoryOptions());
             _client = client;
             Depth = depth;
+            _shouldDownload = shouldDownload;
 
             if (depth > 0)
-                _markovChain = new StringMarkov(depth);
+                _markovChain = new ReversableStringMarkov(depth);
 
             _timer = new Timer(async e => await SaveAsync().ConfigureAwait(false), null, 600000, 600000);
         }
@@ -84,10 +87,14 @@ namespace KiteBotCore
                                     users.AddRange(guild.Users);
                                 }
 
-                                var list = new List<IMessage>(await DownloadMessagesAfterIdAsync(_lastMessage.MessageId,
-                                    _lastMessage.ChannelId).ConfigureAwait(false));
-                                foreach (IMessage message in list)
-                                    await FeedMarkovChain(message, db, channels, users).ConfigureAwait(false);
+                                if (_shouldDownload)
+                                {
+                                    var list = new List<IMessage>(await DownloadMessagesAfterIdAsync(
+                                        _lastMessage.MessageId,
+                                        _lastMessage.ChannelId).ConfigureAwait(false));
+                                    foreach (IMessage message in list)
+                                        await FeedMarkovChain(message, db, channels, users).ConfigureAwait(false);
+                                }
                             }
                             catch (Exception ex)
                             {
@@ -311,7 +318,8 @@ namespace KiteBotCore
 
         public string GetMatch(string input)
         {
-            return _markovChain.Walk(1, input).First();
+            return _markovChain.WalkBothWays(input);
+            //return _markovChain.Walk(1, input).First();
         }
     }
 

@@ -37,6 +37,9 @@ namespace KiteBotCore.Json
         [JsonProperty("MarkovChainStart")]
         public bool MarkovChainStart { get; set; }
 
+        [JsonProperty("MarkovChainDownload")]
+        public bool MarkovChainDownload { get; set; }
+
         [JsonProperty("MarkovChainDepth")]
         public int MarkovChainDepth { get; set; }
 

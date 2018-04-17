@@ -19,6 +19,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using ExtendedGiantBombClient.Interfaces;
+using Google.Apis.YouTube.v3;
 using KiteBotCore.Modules.RankModule;
 using ExtendedGiantBombRestClient = ExtendedGiantBombClient.ExtendedGiantBombRestClient;
 
@@ -91,7 +92,8 @@ namespace KiteBotCore
                 _settings.GiantBombLiveStreamRefreshRate,
                 _silentStartup,
                 _settings.GiantBombVideoRefreshRate,
-                _settings.MarkovChainDepth);
+                _settings.MarkovChainDepth,
+                _settings.MarkovChainDownload);
 
             _commandService = new CommandService(new CommandServiceConfig
             {
@@ -195,6 +197,8 @@ namespace KiteBotCore
                     services.AddSingleton(new FollowUpService());
                     services.AddSingleton(new Random());
                     services.AddSingleton(new CryptoRandom());
+                    services.AddSingleton(new YouTubeService(
+                        new Google.Apis.Services.BaseClientService.Initializer {ApiKey = _settings.YoutubeApiKey}));
 
                     await _handler.InstallAsync(_commandService, services.BuildServiceProvider()).ConfigureAwait(false);
 

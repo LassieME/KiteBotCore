@@ -14,9 +14,7 @@ namespace MarkovSharp.Models
 
         public override bool Equals(object o)
         {
-            var x = o as SourceGrams<T>;
-
-            if (x == null)
+            if (!(o is SourceGrams<T> x))
             {
                 return false;
             }

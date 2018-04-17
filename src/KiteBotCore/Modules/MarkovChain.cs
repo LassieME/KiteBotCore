@@ -27,7 +27,7 @@ namespace KiteBotCore.Modules
         [Command("testMarkov", RunMode = RunMode.Async)]
         [Alias("tm")]
         [Summary("Creates a Markov Chain string based on user messages")]
-        [RequireServer(Server.KiteCo)]
+        [RequireServer(Server.KiteCo), Ratelimit(3, 1, Measure.Minutes)]
         public async Task MarkovChainCommand([Remainder]string haiku = null)
         {
             if (haiku == "haiku")

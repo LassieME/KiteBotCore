@@ -25,7 +25,7 @@ namespace KiteBotCore
         public static string ChatDirectory = Directory.GetCurrentDirectory();
         public static string GreetingFileLocation = ChatDirectory + "/Content/Greetings.txt";
 
-        public KiteChat(DiscordSocketClient client, DiscordContextFactory db, bool markovbool, string gBapi, string ytApi, int streamRefresh, bool silentStartup, int videoRefresh, int depth)
+        public KiteChat(DiscordSocketClient client, DiscordContextFactory db, bool markovbool, string gBapi, string ytApi, int streamRefresh, bool silentStartup, int videoRefresh, int depth, bool mChainShouldDownload)
         {
             StartMarkovChain = markovbool;
             _greetings = File.ReadAllLines(GreetingFileLocation);
@@ -34,7 +34,7 @@ namespace KiteBotCore
 
             //if (streamRefresh > 30000) StreamChecker = new LivestreamChecker(client, gBapi, streamRefresh, silentStartup);
             if (videoRefresh > 30000) GbVideoChecker = new GiantBombVideoChecker(client, gBapi, videoRefresh);
-            if (StartMarkovChain && depth > 0)MultiDeepMarkovChains = new MultiTextMarkovChainHelper(client, db, depth);
+            if (StartMarkovChain && depth > 0)MultiDeepMarkovChains = new MultiTextMarkovChainHelper(client, db, depth, mChainShouldDownload);
         }
 
         public async Task InitializeMarkovChainAsync()
