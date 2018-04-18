@@ -62,9 +62,9 @@ namespace MarkovSharp
         /// <summary>
         /// Defines how to split the phrase to ngrams
         /// </summary>
-        /// <param name="phrase"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
-        public virtual IEnumerable<TGram> SplitTokens(TPhrase phrase)
+        public virtual IEnumerable<TGram> SplitTokens(TPhrase input)
         {
             throw new ArgumentException("Please do not use GenericMarkov directly - instead, inherit from GenericMarkov and extend SplitTokens and RebuildPhrase methods. An interface IMarkovModel is provided for ease of use.");
         }
@@ -102,13 +102,13 @@ namespace MarkovSharp
         public void Learn(TPhrase phrase)
         {
             _logger.Info($"Learning phrase: '{phrase}'");
-            if (phrase == null || phrase.Equals(default(TPhrase)))
+            if (EqualityComparer<TPhrase>.Default.Equals(phrase, default(TPhrase)))
             {
                 return;
             }
 
             // Ignore particularly short sentences
-            if (SplitTokens(phrase).Count() < Level)
+            if (!SplitTokens(phrase).Skip(Level - 1).Any())
             {
                 _logger.Info($"Phrase {phrase} too short - skipped");
                 return;
@@ -219,7 +219,7 @@ namespace MarkovSharp
 
         public IEnumerable<TPhrase> Walk(int lines = 1, TPhrase seed = default(TPhrase))
         {
-            if (seed == null)
+            if (EqualityComparer<TPhrase>.Default.Equals(seed, default(TPhrase)))
             {
                 seed = RebuildPhrase(new List<TGram> {GetPrepadGram()});
             }

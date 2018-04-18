@@ -96,8 +96,11 @@ namespace KiteBotCore
                         p.Topic = $"Currently Live on Giant Bomb: {e.Title}\n http://www.giantbomb.com/chat/";
                     }).ConfigureAwait(false);
 
-                    if (postMessage) await SendLivestreamMessageAsync(e, channel).ConfigureAwait(false);
-
+                    if (postMessage)
+                    {
+                        IMessage message = await SendLivestreamMessageAsync(e, channel).ConfigureAwait(false);
+                        await Subscribe.PostLivestream(message, _client).ConfigureAwait(false);
+                    }
                 }
                 else
                 {
@@ -144,7 +147,7 @@ namespace KiteBotCore
                 }
             }
         }
-        private async Task SendLivestreamMessageAsync(LiveNow r, SocketTextChannel channel)
+        private async Task<IMessage> SendLivestreamMessageAsync(LiveNow r, SocketTextChannel channel)
         {
             var embedBuilder = new EmbedBuilder();
 
@@ -156,7 +159,7 @@ namespace KiteBotCore
                 .WithColor(new Color(0xFFEE00))
                 .WithCurrentTimestamp();
 
-            await channel.SendMessageAsync("", false, embedBuilder).ConfigureAwait(false);
+            return await channel.SendMessageAsync("", false, embedBuilder.Build()).ConfigureAwait(false);
         }
 
         public async Task<string> GetResponseUriFromRandomQlCrew()

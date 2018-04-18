@@ -13,7 +13,7 @@ namespace KiteBotCore.Modules
         public static ulong OwnerId;
 
         // Override the CheckPermissions method
-        public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo executingCommand, IServiceProvider map)
+        public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo executingCommand, IServiceProvider map)
         {
             var settings = map.GetService<BotSettings>();
             return Task.FromResult(context.User.Id == settings.OwnerId ? PreconditionResult.FromSuccess() : PreconditionResult.FromError("You must be the owner of the bot."));

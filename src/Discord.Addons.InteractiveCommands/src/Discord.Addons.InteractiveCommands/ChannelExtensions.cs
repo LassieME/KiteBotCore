@@ -17,7 +17,7 @@ namespace Discord.Addons.InteractiveCommands
             uint deleteAfter = 0,
             RequestOptions options = null)
         {
-            var message = await channel.SendMessageAsync(text, isTTS, embed, options);
+            var message = await channel.SendMessageAsync(text, isTTS, embed.Build(), options);
             if (deleteAfter > 0)
             {
                 var _ = Task.Run(() => DeleteAfterAsync(message, deleteAfter));

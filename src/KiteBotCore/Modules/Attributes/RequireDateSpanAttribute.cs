@@ -22,7 +22,7 @@ namespace KiteBotCore.Modules
             _toDateTimeOffset = DateTimeOffset.ParseExact(toDateTime, @"dd/MM/yyyy HH:mm:ss", new CultureInfo("no"));
         }
 
-        public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command,
+        public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command,
             IServiceProvider services)
         {
             if (DateTimeOffset.UtcNow.CompareTo(_fromDateTimeOffset) > 0 && DateTimeOffset.UtcNow.CompareTo(_toDateTimeOffset) < 0 )

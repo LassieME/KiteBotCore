@@ -79,7 +79,7 @@ namespace KiteBotCore.Modules
                 output = "Some other error happened, check the logs.";
                 Log.Debug(ex + ex.Message);
             }
-            await ReplyAsync(output, false, embed).ConfigureAwait(false);
+            await ReplyAsync(output, false, embed.Build()).ConfigureAwait(false);
         }
 
         [Command("manga")]
@@ -136,7 +136,7 @@ namespace KiteBotCore.Modules
                 output = "Some other error happened, check the logs.";
                 Log.Debug(ex + ex.Message);
             }
-            await ReplyAsync(output, false, embed).ConfigureAwait(false);
+            await ReplyAsync(output, false, embed.Build()).ConfigureAwait(false);
         }
     }
     public class SearchHelper

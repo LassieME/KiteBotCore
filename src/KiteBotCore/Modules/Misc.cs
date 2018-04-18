@@ -18,7 +18,7 @@ namespace KiteBotCore.Modules
         [Summary("Anime and weed, all you need.")]
         public async Task FourTwentyCommand()
         {
-            await ReplyAsync("http://420.moe/", false, new EmbedBuilder().WithDescription("ANIME AND WEED ALL U NEED")).ConfigureAwait(false);
+            await ReplyAsync("http://420.moe/", false, new EmbedBuilder().WithDescription("ANIME AND WEED ALL U NEED").Build()).ConfigureAwait(false);
         }
         
         [Command("makemycommand", RunMode = RunMode.Async)]

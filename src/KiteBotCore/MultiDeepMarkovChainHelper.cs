@@ -217,8 +217,7 @@ namespace KiteBotCore
         private void FeedMarkovChain(Message message)
         {
             if (!string.IsNullOrWhiteSpace(message.Content) && !message.Content.Contains("http")
-                && !message.Content.ToLower().Contains("testmarkov") && !message.Content.ToLower().Contains("tm")
-                && !message.Content.ToLower().Contains("getdunked") &&
+                && !(message.Content.IndexOf("testmarkov", StringComparison.OrdinalIgnoreCase) >= 0) && !(message.Content.IndexOf("tm", StringComparison.OrdinalIgnoreCase) >= 0) &&
                 !message.Content.Contains(_client.CurrentUser.Id.ToString()))
             {
                 if (message.Content.Contains("."))
@@ -231,18 +230,14 @@ namespace KiteBotCore
         {
             Console.WriteLine("GetMessagesFromChannel");
             var channel = (SocketTextChannel) _client.GetChannel(channelId);
-            IEnumerable<IMessage> latestMessages = await channel.GetMessagesAsync(i).Flatten().ConfigureAwait(false);
-            IMessage[] enumerable = latestMessages as IMessage[] ?? latestMessages.ToArray();
-            return enumerable;
+            return await channel.GetMessagesAsync(i).Flatten().ToList();
         }
 
         private async Task<IEnumerable<IMessage>> DownloadMessagesAfterIdAsync(ulong id, ulong channelId)
         {
             Console.WriteLine("DownloadMessagesAfterId");
             var channel = (SocketTextChannel)_client.GetChannel(channelId);
-            IEnumerable<IMessage> latestMessages = await channel.GetMessagesAsync(id, Direction.After, 10000).Flatten().ConfigureAwait(false);
-            IMessage[] enumerable = latestMessages as IMessage[] ?? latestMessages.ToArray();
-            return enumerable;
+            return await channel.GetMessagesAsync(id, Direction.After, 10000).Flatten().ToList().ConfigureAwait(false);
         }
 
         internal async Task SaveAsync()

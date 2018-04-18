@@ -30,7 +30,7 @@ namespace KiteBotCore
             _ownerId = botSettings.OwnerId;
             _prefix = botSettings.CommandPrefix;
 
-            await Commands.AddModulesAsync(Assembly.GetEntryAssembly()).ConfigureAwait(false);
+            await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), map).ConfigureAwait(false);
             if (_client.CurrentUser.IsBot)
             {
                 _client.MessageReceived += HandleBotCommand;

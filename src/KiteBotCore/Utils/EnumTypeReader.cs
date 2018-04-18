@@ -8,7 +8,7 @@ namespace KiteBotCore.Utils
 {
     public class EnumTypeReader<T> : TypeReader where T : struct, IComparable, IConvertible, IFormattable
     {
-        public override async Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
+        public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
         {
             await Task.Yield();
             var success = Enum.TryParse(input, true, out T value);

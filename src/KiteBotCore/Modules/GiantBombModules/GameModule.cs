@@ -49,7 +49,7 @@ namespace KiteBotCore.Modules.GiantBombModules
 
                     if (search.Count == 1)
                     {
-                        await ReplyAsync("", embed: search.FirstOrDefault().ToEmbed()).ConfigureAwait(false);
+                        await ReplyAsync("", embed: search.FirstOrDefault().ToEmbed().Build()).ConfigureAwait(false);
                     }
                     else if (search.Count > 1)
                     {
@@ -114,7 +114,7 @@ namespace KiteBotCore.Modules.GiantBombModules
                     Log.Debug(ex, ex.Message);
                 }
             }
-            await ReplyAsync("", embed: result.ToEmbed()).ConfigureAwait(false);
+            await ReplyAsync("", embed: result.ToEmbed().Build()).ConfigureAwait(false);
         }
     }
 

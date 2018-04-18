@@ -1,20 +1,21 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace MarkovSharp.Models
 {
     public class SourceGrams<T>
     {
-        public T[] Before { get; set; }
+        public T[] Before { get; }
 
         public SourceGrams(params T[] args)
         {
             Before = args;
         }
 
-        public override bool Equals(object o)
+        public override bool Equals(object obj)
         {
-            if (!(o is SourceGrams<T> x))
+            if (!(obj is SourceGrams<T> x))
             {
                 return false;
             }
@@ -28,13 +29,17 @@ namespace MarkovSharp.Models
             unchecked
             {
                 int hash = 17;
-                var defaultVal = default(T);
-                foreach (var member in Before.Where(a => a != null && !a.Equals(defaultVal)))
+                foreach (var member in Before.Where(a => !EqualityComparer<T>.Default.Equals(a, default(T))))
                 {
                     hash = hash * 23 + member.GetHashCode();
                 }
                 return hash;
             }
+        }
+
+        public int GetHashCodeGenerated()
+        {
+            return -2044498930 + EqualityComparer<T[]>.Default.GetHashCode(Before);
         }
 
         public override string ToString()

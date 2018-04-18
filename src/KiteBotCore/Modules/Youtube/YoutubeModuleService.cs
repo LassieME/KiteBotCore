@@ -94,7 +94,7 @@ namespace KiteBotCore.Modules.Youtube
                             .WithUrl($"https://www.youtube.com/watch?v=" + $"{data.Id.VideoId}")
                             .WithImageUrl(data.Snippet.Thumbnails.High.Url)
                             .WithColor(new Color(0xb31217));
-                        await socketTextChannel.SendMessageAsync("", embed: eb);
+                        await socketTextChannel.SendMessageAsync("", embed: eb.Build());
                     }
                     else //means we're no longer in the guild that contains this channel, or the channel was deleted
                     {

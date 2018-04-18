@@ -103,7 +103,7 @@ namespace KiteBotCore.Modules
                 });
             }
 
-            await ReplyAsync(output, embed: embed).ConfigureAwait(false);
+            await ReplyAsync(output, embed: embed.Build()).ConfigureAwait(false);
         }
     }
 }

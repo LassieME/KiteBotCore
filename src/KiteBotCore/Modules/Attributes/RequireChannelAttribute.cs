@@ -18,7 +18,7 @@ namespace KiteBotCore.Modules
         }
 
         // Override the CheckPermissions method
-        public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo executingCommand,
+        public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo executingCommand,
             IServiceProvider map)
         {
             if (_channels.Contains(context.Channel.Id))

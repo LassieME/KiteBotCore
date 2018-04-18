@@ -208,7 +208,7 @@ namespace KiteBotCore
                 .WithColor(new Color(0xFFEE00))
                 .WithCurrentTimestamp();
 
-            await channel.SendMessageAsync("", false, embedBuilder).ConfigureAwait(false);
+            await channel.SendMessageAsync("", false, embedBuilder.Build()).ConfigureAwait(false);
         }
 
         private async Task<Chats> GetChatsFromUrl(string url, int retry)

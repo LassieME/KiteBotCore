@@ -37,7 +37,7 @@ namespace KiteBotCore.Modules
 
             if (channelToArchive != null)
             {
-                var listOfMessages = new List<IMessage>(await channelToArchive.GetMessagesAsync(amount).Flatten().ConfigureAwait(false));
+                var listOfMessages = await channelToArchive.GetMessagesAsync(amount).Flatten().ToList();
                 List<Message> list = new List<Message>(listOfMessages.Capacity);
                 foreach (var message in listOfMessages)
                     list.Add(new Message { Author = message.Author.Username, Content = message.Content, Timestamp = message.Timestamp });
@@ -252,7 +252,7 @@ namespace KiteBotCore.Modules
                 {
                     Log.Warning(ex, "Exception in help command");
                     // ReSharper disable once PossibleIntendedRethrow
-                    throw ex;
+                    throw;
                 }
             }
             output += "." + Environment.NewLine;
