@@ -18,7 +18,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using ExtendedGiantBombRestClient = ExtendedGiantBombClient.ExtendedGiantBombRestClient;
 
-
 namespace LassieME.Controllers
 {
     public class GBotController : Controller
@@ -46,11 +45,10 @@ namespace LassieME.Controllers
         public IActionResult Submit()
         {
             var model = new SubmitViewModel();
-            
             return View(model);
         }
 
-        static readonly TimeSpanSemaphore appRateLimit = new TimeSpanSemaphore(1, TimeSpan.FromSeconds(1));
+        private static readonly TimeSpanSemaphore AppRateLimit = new TimeSpanSemaphore(1, TimeSpan.FromSeconds(1));
         // GET: GBot/Result
         [Authorize,RequireHttps,ValidateAntiForgeryToken]
         public async Task<IActionResult> Result(SubmitViewModel model)
@@ -60,11 +58,10 @@ namespace LassieME.Controllers
             string s = "";
             using (HttpClient client = new HttpClient())
             {
-
                 client.DefaultRequestHeaders.Add("User-Agent",
                     "KiteBotCore 1.1 GB Unofficial Discord Bot by GB user LassieME");
-                
-                var jsonString = await appRateLimit.RunAsync(async () => await client.GetStringAsync($"https://www.giantbomb.com/app/GBOT/get-result?regCode={model.GBkey}&format=json"));
+
+                var jsonString = await AppRateLimit.RunAsync(() => client.GetStringAsync($"https://www.giantbomb.com/app/GBOT/get-result?regCode={model.GBkey}&format=json")).ConfigureAwait(false);
 
                 var definition = new {Status = "", CreationTime = "", RegToken = "", CustomerId = ""};
                 var jsonObject = JsonConvert.DeserializeAnonymousType(jsonString, definition);
@@ -84,7 +81,7 @@ namespace LassieME.Controllers
             {
                 try
                 {
-                    var video = await gbClient.GetVideoAsync(3267, new[] {"url", "name", "id"});
+                    var video = await gbClient.GetVideoAsync(3267, new[] {"url", "name", "id"}).ConfigureAwait(false);
                 }
                 catch (GiantBombApiException)
                 {
@@ -102,22 +99,22 @@ namespace LassieME.Controllers
                     var encryptedToken = Convert.ToBase64String(encryptedTokenRawData);
                     var userId = ulong.Parse(HttpContext.User.Identities.First(x => x.AuthenticationType == "Discord")
                         .Claims.First().Value);
-                    var user = await _context.Users.FindAsync((long) userId);
+                    var user = await _context.Users.FindAsync((long) userId).ConfigureAwait(false);
                     user.Premium = isPremium;
                     user.RegToken = encryptedToken;
                     user.PremiumLastCheckedAt = null;
-                    await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync().ConfigureAwait(false);
                 }
             }
             else
             {
                 var userId = ulong.Parse(HttpContext.User.Identities.First(x => x.AuthenticationType == "Discord")
                     .Claims.First().Value);
-                var user = await _context.Users.FindAsync((long)userId);
+                var user = await _context.Users.FindAsync((long)userId).ConfigureAwait(false);
                 user.Premium = isPremium;
                 user.PremiumLastCheckedAt = DateTimeOffset.UtcNow;
                 user.RegToken = null;
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync().ConfigureAwait(false);
             }
 
             return View(resultViewModel);

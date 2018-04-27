@@ -21,18 +21,17 @@ namespace KiteBotCore.Modules.Youtube
         private static string WatchVideoPath => Directory.GetCurrentDirectory() + "/Content/WatchedVideoChannels.json";
         private static string WatchLivestreamPath => Directory.GetCurrentDirectory() + "/Content/WatchedLivestreamChannels.json";
 
-        private static readonly Dictionary<string, WatchedChannel> VideoChannels = File.Exists(WatchVideoPath) 
+        private static readonly Dictionary<string, WatchedChannel> VideoChannels = File.Exists(WatchVideoPath)
             ? JsonConvert.DeserializeObject<Dictionary<string, WatchedChannel>>(File.ReadAllText(WatchVideoPath))
             : new Dictionary<string, WatchedChannel>();
 
-        private static readonly Dictionary<string, WatchedChannel> LivestreamChannels = File.Exists(WatchLivestreamPath) 
+        private static readonly Dictionary<string, WatchedChannel> LivestreamChannels = File.Exists(WatchLivestreamPath)
             ? JsonConvert.DeserializeObject<Dictionary<string, WatchedChannel>>(File.ReadAllText(WatchLivestreamPath))
             : new Dictionary<string, WatchedChannel>();
 
         private static Queue<WatchedChannel> _queue = new Queue<WatchedChannel>(60);
         private static Timer _timer;
         private static DiscordSocketClient _client;
-       
 
         internal static void Init(string apiKey, DiscordSocketClient client)
         {
@@ -72,7 +71,7 @@ namespace KiteBotCore.Modules.Youtube
             SearchListResponse searchResponse;
             try
             {
-                searchResponse = await listRequest.ExecuteAsync();
+                searchResponse = await listRequest.ExecuteAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -91,10 +90,10 @@ namespace KiteBotCore.Modules.Youtube
                         var eb = new EmbedBuilder()
                             .WithTitle(data.Snippet.Title)
                             .WithDescription($"{data.Snippet.ChannelTitle} {(watched.WatchedType == WatchType.Livestream ? "just went live!" : "just uploaded a new video!" )}")
-                            .WithUrl($"https://www.youtube.com/watch?v=" + $"{data.Id.VideoId}")
+                            .WithUrl($"https://www.youtube.com/watch?v=" + data.Id.VideoId)
                             .WithImageUrl(data.Snippet.Thumbnails.High.Url)
                             .WithColor(new Color(0xb31217));
-                        await socketTextChannel.SendMessageAsync("", embed: eb.Build());
+                        await socketTextChannel.SendMessageAsync("", embed: eb.Build()).ConfigureAwait(false);
                     }
                     else //means we're no longer in the guild that contains this channel, or the channel was deleted
                     {
@@ -184,6 +183,7 @@ namespace KiteBotCore.Modules.Youtube
             }
             return false;
         }
+
         private static bool Remove(Dictionary<string, WatchedChannel> dict, ulong discordChannelId, string channelIdOrName)
         {
             if (dict.TryGetValue(channelIdOrName, out var wc))
@@ -221,7 +221,7 @@ namespace KiteBotCore.Modules.Youtube
             sb.AppendLine("Channels checked for videos:");
             foreach (var channel in videos)
             {
-                sb.AppendLine($"\t{channel.Value.ChannelName}");
+                sb.Append("\t").AppendLine(channel.Value.ChannelName);
             }
 
             sb.AppendLine();
@@ -229,7 +229,7 @@ namespace KiteBotCore.Modules.Youtube
             sb.AppendLine("Channels checked for livestreams:");
             foreach (var channel in livestreams)
             {
-                sb.AppendLine($"\t{channel.Value.ChannelName}");
+                sb.Append("\t").AppendLine(channel.Value.ChannelName);
             }
 
             return sb.ToString();

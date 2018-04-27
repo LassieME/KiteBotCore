@@ -226,18 +226,18 @@ namespace KiteBotCore
             }
         }
 
-        private async Task<IEnumerable<IMessage>> GetMessagesFromChannelAsync(ulong channelId, int i)
+        private Task<IEnumerable<IMessage>> GetMessagesFromChannelAsync(ulong channelId, int i)
         {
             Console.WriteLine("GetMessagesFromChannel");
             var channel = (SocketTextChannel) _client.GetChannel(channelId);
-            return await channel.GetMessagesAsync(i).Flatten().ToList();
+            return channel.GetMessagesAsync(i).FlattenAsync();
         }
 
-        private async Task<IEnumerable<IMessage>> DownloadMessagesAfterIdAsync(ulong id, ulong channelId)
+        private Task<IEnumerable<IMessage>> DownloadMessagesAfterIdAsync(ulong id, ulong channelId)
         {
             Console.WriteLine("DownloadMessagesAfterId");
             var channel = (SocketTextChannel)_client.GetChannel(channelId);
-            return await channel.GetMessagesAsync(id, Direction.After, 10000).Flatten().ToList().ConfigureAwait(false);
+            return channel.GetMessagesAsync(id, Direction.After, 10000).FlattenAsync();
         }
 
         internal async Task SaveAsync()

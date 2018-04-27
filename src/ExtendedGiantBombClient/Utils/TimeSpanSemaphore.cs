@@ -9,7 +9,7 @@ namespace KiteBotCore.Utils
     /// <summary>
     /// Allows a limited number of acquisitions during a timespan
     /// </summary>
-    public class TimeSpanSemaphore : IDisposable
+    internal class TimeSpanSemaphore : IDisposable
     {
         private readonly SemaphoreSlim _pool;
 

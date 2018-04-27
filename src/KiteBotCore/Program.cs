@@ -53,10 +53,7 @@ namespace KiteBotCore
             else
                 Log.Information("Are you sure you shouldn't be using the --silent argument?");
 
-            TaskScheduler.UnobservedTaskException += (sender, eventArgs) =>
-            {
-                Log.Fatal(eventArgs.Exception, eventArgs.Exception.Message);
-            };
+            TaskScheduler.UnobservedTaskException += (sender, eventArgs) => Log.Fatal(eventArgs.Exception, eventArgs.Exception.Message);
 
             Client = new DiscordSocketClient(new DiscordSocketConfig
             {
@@ -106,7 +103,7 @@ namespace KiteBotCore
 
             Client.Log += LogDiscordMessage;
             _commandService.Log += LogDiscordMessage;
-            
+
             Client.MessageReceived += (msg) =>
             {
                 Log.Verbose("MESSAGE {Channel}{tab}{User}: {Content}", msg.Channel.Name, "\t", msg.Author.Username,
@@ -155,7 +152,7 @@ namespace KiteBotCore
             await Client.StartAsync().ConfigureAwait(false);
 
             Client.Ready += OnReady;
-            
+
             Client.UserUpdated += async (before, after) => await CheckUsername(before, after).ConfigureAwait(false);
             Client.GuildMemberUpdated += async (before, after) => await CheckNickname(before, after).ConfigureAwait(false);
 
@@ -287,7 +284,7 @@ namespace KiteBotCore
                 if (before.Username != after.Username)
                 {
                     var channel = (SocketTextChannel) Client.GetChannel(85842104034541568);
-                    if (channel != null && channel.Guild.Users.Any(x => x.Id == after.Id))
+                    if (channel?.Guild.Users.Any(x => x.Id == after.Id) == true)
                     {
                         await channel.SendMessageAsync($"{before.Username} changed their username to {after.Username}.")
                             .ConfigureAwait(false);

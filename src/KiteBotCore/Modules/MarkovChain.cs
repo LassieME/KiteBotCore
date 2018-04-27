@@ -52,7 +52,7 @@ namespace KiteBotCore.Modules
         [RequireBotOwner, RequireServer(Server.KiteCo)]
         public async Task FeedCommand(int amount)
         {
-            var messagesTask = await Context.Channel.GetMessagesAsync(amount).Flatten().ToList();
+            var messagesTask = await Context.Channel.GetMessagesAsync(amount).FlattenAsync();
             int i = 0;
             List<Message> list = await KiteChat.MultiDeepMarkovChains.GetFullDatabase(Context.Channel.Id)
                 .ConfigureAwait(false);

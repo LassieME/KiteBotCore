@@ -12,7 +12,7 @@ namespace ExtendedGiantBombClient
 {
     public partial class ExtendedGiantBombRestClient : GiantBombRestClient, IExtendedGiantBombRestClient, IDisposable
     {
-        public static ConcurrentDictionary<string, TimeSpanSemaphore> RatelimitDictionary = new ConcurrentDictionary<string, TimeSpanSemaphore>();
+        internal static ConcurrentDictionary<string, TimeSpanSemaphore> RatelimitDictionary = new ConcurrentDictionary<string, TimeSpanSemaphore>();
 
         public ExtendedGiantBombRestClient(string apiToken, Uri baseUrl) : base(apiToken, baseUrl)
         {

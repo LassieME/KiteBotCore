@@ -37,8 +37,8 @@ namespace KiteBotCore.Modules
 
             if (channelToArchive != null)
             {
-                var listOfMessages = await channelToArchive.GetMessagesAsync(amount).Flatten().ToList();
-                List<Message> list = new List<Message>(listOfMessages.Capacity);
+                var listOfMessages = await channelToArchive.GetMessagesAsync(amount).FlattenAsync();
+                List<Message> list = new List<Message>(listOfMessages.Count());
                 foreach (var message in listOfMessages)
                     list.Add(new Message { Author = message.Author.Username, Content = message.Content, Timestamp = message.Timestamp });
                 var jsonSettings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };

@@ -17,13 +17,14 @@ namespace KiteBotCore.Modules
     {
         public UpcomingJsonService UpcomingJsonService { get; set; }
         private static Dictionary<string, string> _shorthandTz;
-        
         private Stopwatch _stopwatch;
+
         protected override void BeforeExecute(CommandInfo command)
         {
             _stopwatch = new Stopwatch();
             _stopwatch.Start();
         }
+
         protected override void AfterExecute(CommandInfo command)
         {
             _stopwatch.Stop();
@@ -78,7 +79,6 @@ namespace KiteBotCore.Modules
         public async Task UpcomingNewCommand([Remainder] string inputTimeZone = null)
         {
             var json = await UpcomingJsonService.DownloadUpcomingJsonAsync().ConfigureAwait(false);
-            string output = "";
 
             EmbedBuilder embed = new EmbedBuilder();
             embed.WithTitle("Upcoming on Giant Bomb")
@@ -103,7 +103,7 @@ namespace KiteBotCore.Modules
                 });
             }
 
-            await ReplyAsync(output, embed: embed.Build()).ConfigureAwait(false);
+            await ReplyAsync("", embed: embed.Build()).ConfigureAwait(false);
         }
     }
 }

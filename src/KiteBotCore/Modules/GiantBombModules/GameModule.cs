@@ -35,8 +35,7 @@ namespace KiteBotCore.Modules.GiantBombModules
         }
 
         //_searchAPIUrl = $"http://www.giantbomb.com/api/search/?api_key={botSettings.GiantBombApiKey}&resources=game&field_list=deck,image,name,original_release_date,platforms,site_detail_url,expected_release_day,expected_release_month,expected_release_quarter,expected_release_year&format=json&query=";
-        //_gameAPIUrl = (intId) => $"http://www.giantbomb.com/api/game/3030-{intId}/?api_key={botSettings.GiantBombApiKey}&field_list=deck,expected_release_day,expected_release_month,expected_release_quarter,expected_release_year,image,name,original_release_date,platforms,site_detail_url&format=json";
-            
+        //_gameAPIUrl = (intId) => $"http://www.giantbomb.com/api/game/3030-{intId}/?api_key={botSettings.GiantBombApiKey}&field_list=deck,expected_release_day,expected_release_month,expected_release_quarter,expected_release_year,image,name,original_release_date,platforms,site_detail_url&format=json";            
         [Command("game", RunMode = RunMode.Async), Ratelimit(2, 1, Measure.Minutes)]
         [Summary("Finds a game in the Giantbomb games database")]
         public async Task GameCommand([Remainder] string gameTitle)
@@ -49,7 +48,7 @@ namespace KiteBotCore.Modules.GiantBombModules
 
                     if (search.Count == 1)
                     {
-                        await ReplyAsync("", embed: search.FirstOrDefault().ToEmbed().Build()).ConfigureAwait(false);
+                        await ReplyAsync("", embed: search[0].ToEmbed().Build()).ConfigureAwait(false);
                     }
                     else if (search.Count > 1)
                     {
@@ -80,7 +79,7 @@ namespace KiteBotCore.Modules.GiantBombModules
                     }
                     else
                     {
-                        await ReplyAsync(@"Giant Bomb doesn't have any games that match that name.")
+                        await ReplyAsync("Giant Bomb doesn't have any games that match that query.")
                             .ConfigureAwait(false);
                     }
                 }
@@ -110,7 +109,7 @@ namespace KiteBotCore.Modules.GiantBombModules
                 }
                 catch (Exception ex)
                 {
-                    error += 1;
+                    error++;
                     Log.Debug(ex, ex.Message);
                 }
             }
@@ -161,13 +160,15 @@ namespace KiteBotCore.Modules.GiantBombModules
                 });
             }
 
-            if (game.Platforms != null && game.Platforms.Any())
+            if (game.Platforms?.Count > 0)
+            {
                 embedBuilder.AddField(x =>
-                {
-                    x.Name = "Platforms";
-                    x.Value = game.Platforms != null ? string.Join(", ", game.Platforms?.Select(y => y.Name)) : null;
-                    x.IsInline = true;
-                });
+               {
+                   x.Name = "Platforms";
+                   x.Value = game.Platforms != null ? string.Join(", ", game.Platforms?.Select(y => y.Name)) : null;
+                   x.IsInline = true;
+               });
+            }
 
             return embedBuilder;
         }

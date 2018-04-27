@@ -185,12 +185,12 @@ namespace KiteBotCore.Modules.RankModule
                     if (_roleUpdateQueue.TryDequeue(out var item))
                     {
                         Log.Information($"{item.user.Username} {string.Join(" ", item.rolesToAdd)} + {string.Join(" ", item.rolesToRemove)}");
-                        var userRoles = item.user.RoleIds.ToList();
+                        var userRoles = item.user.RoleIds.Where(x => x != item.user.Guild.EveryoneRole.Id).ToList();
                         var newRoles = userRoles.Where(x => !item.rolesToRemove.Contains(x)).Union(item.rolesToAdd)
                             .ToArray();
 
                         await item.user
-                            .ModifyAsync(x => x.RoleIds = newRoles) //Race-condition, might change it later when there is less pressure on the rate-limit
+                            .ModifyAsync(x => x.RoleIds = newRoles) //Race-condition with other role editing bots, might change it later when there is less pressure on the rate-limit
                             .ConfigureAwait(false);
                     }
                 }

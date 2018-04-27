@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace LassieME.Utils
+namespace LassieME
 {
     /// <summary>
     /// Allows a limited number of acquisitions during a timespan
     /// </summary>
-    public class TimeSpanSemaphore : IDisposable
+    internal class TimeSpanSemaphore : IDisposable
     {
         private readonly SemaphoreSlim _pool;
 
@@ -38,6 +37,7 @@ namespace LassieME.Utils
         /// <summary>
         /// Blocks the current thread until it can enter the semaphore, while observing a CancellationToken
         /// </summary>
+        /// <param name="cancelToken"></param>
         private void Wait(CancellationToken cancelToken)
         {
             // will throw if token is cancelled
@@ -113,7 +113,9 @@ namespace LassieME.Utils
         /// <summary>
         /// Runs an action after entering the semaphore (if the CancellationToken is not canceled)
         /// </summary>
-        public void Run(Action action, 
+        /// <param name="action"></param>
+        /// <param name="cancelToken"></param>
+        public void Run(Action action,
             CancellationToken cancelToken = new CancellationToken())
         {
             // will throw if token is cancelled, but will auto-release lock
@@ -132,7 +134,9 @@ namespace LassieME.Utils
         /// <summary>
         /// Runs an action after entering the semaphore (if the CancellationToken is not canceled)
         /// </summary>
-        public async Task RunAsync(Func<Task> action, 
+        /// <param name="action"></param>
+        /// <param name="cancelToken"></param>
+        public async Task RunAsync(Func<Task> action,
             CancellationToken cancelToken = new CancellationToken())
         {
             // will throw if token is cancelled, but will auto-release lock
@@ -151,7 +155,11 @@ namespace LassieME.Utils
         /// <summary>
         /// Runs an action after entering the semaphore (if the CancellationToken is not canceled)
         /// </summary>
-        public async Task RunAsync<T>(Func<T, Task> action, T arg, 
+        /// <typeparam name="T"></typeparam>
+        /// <param name="action"></param>
+        /// <param name="arg"></param>
+        /// <param name="cancelToken"></param>
+        public async Task RunAsync<T>(Func<T, Task> action, T arg,
             CancellationToken cancelToken = new CancellationToken())
         {
             // will throw if token is cancelled, but will auto-release lock
@@ -170,7 +178,10 @@ namespace LassieME.Utils
         /// <summary>
         /// Runs an action after entering the semaphore (if the CancellationToken is not canceled)
         /// </summary>
-        public async Task<TR> RunAsync<TR>(Func<Task<TR>> action, 
+        /// <typeparam name="TR"></typeparam>
+        /// <param name="action"></param>
+        /// <param name="cancelToken"></param>
+        public async Task<TR> RunAsync<TR>(Func<Task<TR>> action,
             CancellationToken cancelToken = new CancellationToken())
         {
             // will throw if token is cancelled, but will auto-release lock
@@ -189,6 +200,11 @@ namespace LassieME.Utils
         /// <summary>
         /// Runs an action after entering the semaphore (if the CancellationToken is not canceled)
         /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TR"></typeparam>
+        /// <param name="action"></param>
+        /// <param name="arg"></param>
+        /// <param name="cancelToken"></param>
         public async Task<TR> RunAsync<T, TR>(Func<T, CancellationToken, Task<TR>> action, T arg,
             CancellationToken cancelToken = new CancellationToken())
         {
