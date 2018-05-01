@@ -31,7 +31,7 @@ namespace KiteBotCore
         private JsonLastMessage _lastMessage;
 
         // ReSharper disable once NotAccessedField.Local
-        private Timer _timer;
+        private readonly Timer _timer;
 
         public int Depth;
         private readonly bool _shouldDownload;
@@ -48,12 +48,12 @@ namespace KiteBotCore
             if (depth > 0)
                 _markovChain = new ReversableStringMarkov(depth);
 
-            _timer = new Timer(async e => await SaveAsync().ConfigureAwait(false), null, 600000, 600000);
+            _timer = new Timer(async _ => await SaveAsync().ConfigureAwait(false), null, 600000, 600000);
         }
 
         private string JsonLastMessageLocation => _rootDirectory + "/Content/LastMessage.json";
 
-        public static int AmountOfFails { get => _amountOfFails; set => _amountOfFails = value; }
+        //public static int AmountOfFails { get => _amountOfFails; set => _amountOfFails = value; }
 
         internal async Task InitializeAsync()
         {
@@ -66,6 +66,7 @@ namespace KiteBotCore
                     using (var db = _dbFactory.Create(new DbContextFactoryOptions()))
                     {
                         if (File.Exists(JsonLastMessageLocation))
+                        {
                             try
                             {
                                 foreach (Message message in await db.Messages.ToListAsync().ConfigureAwait(false))
@@ -100,13 +101,15 @@ namespace KiteBotCore
                             {
                                 Console.WriteLine(ex + ex.Message);
                             }
+                        }
                         else
+                        {
                             try
                             {
                                 var guilds = _client.Guilds;
                                 var list =
                                     new List<IMessage>(
-                                        await GetMessagesFromChannelAsync(guilds.FirstOrDefault().Id, 1000)
+                                        await GetMessagesFromChannelAsync(guilds.First().Id, 1000)
                                             .ConfigureAwait(false));
                                 _semaphore.Release();
 
@@ -130,6 +133,8 @@ namespace KiteBotCore
                             {
                                 Console.WriteLine(ex + ex.Message);
                             }
+                        }
+
                         _isInitialized = true;
                         await db.SaveChangesAsync().ConfigureAwait(false);
                     }
@@ -149,6 +154,7 @@ namespace KiteBotCore
         public string GetSequence()
         {
             if (_isInitialized)
+            {
                 try
                 {
                     return _markovChain.Walk().First();
@@ -158,6 +164,8 @@ namespace KiteBotCore
                     Log.Warning("Nullref fun {0}", ex.Message);
                     return GetSequence();
                 }
+            }
+
             return "I'm not ready yet Senpai!";
         }
 
@@ -166,12 +174,11 @@ namespace KiteBotCore
             if (!message.Author.IsBot)
             {
                 var newMessage = message.Content.ToLower();
-                if (!string.IsNullOrWhiteSpace(message.Content) && !newMessage.Contains("http") &&
-                    !newMessage.Contains("testmarkov") &&
-                    !newMessage.StartsWith("!") &&
-                    !newMessage.StartsWith("~") &&
-                    message.MentionedUserIds.FirstOrDefault() !=
-                    _client.CurrentUser.Id)
+                if (!string.IsNullOrWhiteSpace(message.Content) && !newMessage.Contains("http")
+                    && !newMessage.Contains("testmarkov")
+                    && !newMessage.StartsWith("!")
+                    && !newMessage.StartsWith("~")
+                    && message.MentionedUserIds.FirstOrDefault() != _client.CurrentUser.Id)
                 {
                     _markovChain.Learn(message.Content);
 
@@ -195,8 +202,8 @@ namespace KiteBotCore
                             User = user
                         };
 
-                        Debug.Assert(entityMessage.Content != null && entityMessage.Channel != null &&
-                                     entityMessage.User != null);
+                        Debug.Assert(entityMessage.Content != null && entityMessage.Channel != null
+                                     && entityMessage.User != null);
 
                         dbContext.Messages.Add(entityMessage);
                     }
@@ -213,12 +220,12 @@ namespace KiteBotCore
         }
 
         private static int _amountOfFails;
-        
+
         private void FeedMarkovChain(Message message)
         {
             if (!string.IsNullOrWhiteSpace(message.Content) && !message.Content.Contains("http")
-                && !(message.Content.IndexOf("testmarkov", StringComparison.OrdinalIgnoreCase) >= 0) && !(message.Content.IndexOf("tm", StringComparison.OrdinalIgnoreCase) >= 0) &&
-                !message.Content.Contains(_client.CurrentUser.Id.ToString()))
+                && !(message.Content.IndexOf("testmarkov", StringComparison.OrdinalIgnoreCase) >= 0) && !(message.Content.IndexOf("tm", StringComparison.OrdinalIgnoreCase) >= 0)
+                && !message.Content.Contains(_client.CurrentUser.Id.ToString()))
             {
                 if (message.Content.Contains("."))
                     _markovChain.Learn(message.Content);
@@ -250,7 +257,6 @@ namespace KiteBotCore
                     Log.Debug("_semaphore.WaitAsync() in SaveAsync");
                     await _semaphore.WaitAsync().ConfigureAwait(false);
                     await _db.SaveChangesAsync().ConfigureAwait(false);
-
                 }
                 catch (Exception ex)
                 {
@@ -289,14 +295,14 @@ namespace KiteBotCore
             }
         }
 
-        internal async Task<List<Message>> GetFullDatabase(ulong channelId)
+        internal Task<List<Message>> GetFullDatabase(ulong channelId)
         {
-            return await _db.Messages.Where(x => x.Channel.Id == channelId).ToListAsync().ConfigureAwait(false);
+            return _db.Messages.Where(x => x.Channel.Id == channelId).ToListAsync();
         }
 
-        internal async Task<List<Message>> GetFullDatabase()
+        internal Task<List<Message>> GetFullDatabase()
         {
-            return await _db.Messages.ToListAsync().ConfigureAwait(false);
+            return _db.Messages.ToListAsync();
         }
 
         internal async Task RemoveItemAsync(Message message)

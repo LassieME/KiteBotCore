@@ -31,13 +31,13 @@ namespace KiteBotCore.Modules
         [Command("archive channel", RunMode = RunMode.Async)]
         [Summary("archives a channel and uploads a JSON")]
         [RequireOwnerOrUserPermission(GuildPermission.Administrator)]
-        public async Task ArchiveCommand(string guildName, ITextChannel channelToArchive, int amount = 10000)
+        public async Task ArchiveCommand(ITextChannel channelToArchive, int amount = 10000)
         {
             //var channelToArchive = (await(await Context.Client.GetGuildsAsync().ConfigureAwait(false)).FirstOrDefault(x => x.Name == guildName).GetTextChannelsAsync().ConfigureAwait(false)).FirstOrDefault(x => x.Name == channelName);
 
             if (channelToArchive != null)
             {
-                var listOfMessages = await channelToArchive.GetMessagesAsync(amount).FlattenAsync();
+                var listOfMessages = await channelToArchive.GetMessagesAsync(amount).FlattenAsync().ConfigureAwait(false);
                 List<Message> list = new List<Message>(listOfMessages.Count());
                 foreach (var message in listOfMessages)
                     list.Add(new Message { Author = message.Author.Username, Content = message.Content, Timestamp = message.Timestamp });
@@ -112,11 +112,14 @@ namespace KiteBotCore.Modules
             var message = await ReplyAsync("OK").ConfigureAwait(false);
             var saveTask = KiteChat.MultiDeepMarkovChains?.SaveAsync();
             if (saveTask != null)
+            {
                 await saveTask.ContinueWith(async (e) =>
                 {
-                    if (e.IsCompleted)
-                        await message.ModifyAsync(x => x.Content = x.Content + ", Saved.").ConfigureAwait(false);
+                   if (e.IsCompleted)
+                       await message.ModifyAsync(x => x.Content += ", Saved.").ConfigureAwait(false);
                 }).ConfigureAwait(false);
+            }
+
             Environment.Exit(0);
         }
 
@@ -136,7 +139,7 @@ namespace KiteBotCore.Modules
         [RequireBotOwner]
         public async Task DeleteCommand()
         {
-            if (KiteChat.BotMessages.Any()) await ((IUserMessage)KiteChat.BotMessages.Last()).DeleteAsync().ConfigureAwait(false);
+            if (KiteChat.BotMessages.Count > 0) await ((IUserMessage)KiteChat.BotMessages.Last()).DeleteAsync().ConfigureAwait(false);
         }
 
         //[Command("restart")]
@@ -288,4 +291,3 @@ namespace KiteBotCore.Modules
         }
     }
 }
- 

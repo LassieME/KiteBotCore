@@ -12,6 +12,7 @@ namespace KiteBotCore.Modules
     public class MarkovChain : CleansingModuleBase
     {
         private Stopwatch _stopwatch;
+
         protected override void BeforeExecute(CommandInfo command)
         {
             _stopwatch = new Stopwatch();
@@ -52,7 +53,7 @@ namespace KiteBotCore.Modules
         [RequireBotOwner, RequireServer(Server.KiteCo)]
         public async Task FeedCommand(int amount)
         {
-            var messagesTask = await Context.Channel.GetMessagesAsync(amount).FlattenAsync();
+            var messagesTask = await Context.Channel.GetMessagesAsync(amount).FlattenAsync().ConfigureAwait(false);
             int i = 0;
             List<Message> list = await KiteChat.MultiDeepMarkovChains.GetFullDatabase(Context.Channel.Id)
                 .ConfigureAwait(false);
@@ -79,7 +80,6 @@ namespace KiteBotCore.Modules
         public async Task SetDepthCommand(int depth)
         {
             KiteChat.MultiDeepMarkovChains.SetDepth(depth);
-            
             await ReplyAsync("👌").ConfigureAwait(false);
         }
 
