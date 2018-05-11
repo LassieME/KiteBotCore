@@ -154,7 +154,7 @@ namespace KiteBotCore
             embedBuilder
                 .WithTitle($"{r.Title}  is LIVE NOW")
                 .WithUrl("https://www.giantbomb.com/chat/")
-                .WithImageUrl("http://" + r.Image)
+                .WithImageUrl(Uri.EscapeUriString(r.Image.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ? "" : "http://" + r.Image))
                 .WithFooter(x => x.WithText("Giant Bomb"))
                 .WithColor(new Color(0xFFEE00))
                 .WithCurrentTimestamp();
