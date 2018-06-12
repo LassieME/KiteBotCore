@@ -25,7 +25,7 @@ using ExtendedGiantBombRestClient = ExtendedGiantBombClient.ExtendedGiantBombRes
 
 namespace KiteBotCore
 {
-    public partial class Program
+    public static partial class Program
     {
         public static DiscordSocketClient Client;
 
@@ -86,8 +86,6 @@ namespace KiteBotCore
                 _settings.MarkovChainStart,
                 _settings.GiantBombApiKey,
                 _settings.YoutubeApiKey,
-                _settings.GiantBombLiveStreamRefreshRate,
-                _silentStartup,
                 _settings.GiantBombVideoRefreshRate,
                 _settings.MarkovChainDepth,
                 _settings.MarkovChainDownload);
@@ -125,7 +123,7 @@ namespace KiteBotCore
                 return Task.CompletedTask;
             };
 
-            Client.UserUnbanned += (user, guild) =>
+            Client.UserUnbanned += (user, _) =>
             {
                 Console.WriteLine($"{user.Username}#{user.Discriminator}");
                 Console.WriteLine(user);
@@ -189,6 +187,8 @@ namespace KiteBotCore
                     services.AddSingleton(new VideoService(gbClient));
                     services.AddSingleton(new LivestreamCheckerV2(Client, upcomingService,
                         _settings.GiantBombLiveStreamRefreshRate, _silentStartup));
+                    services.AddSingleton(new JeffMixlrChecker(Client, _settings.GiantBombLiveStreamRefreshRate,
+                        _silentStartup));
                     services.AddSingleton(new SearchHelper(_settings.AnilistId, _settings.AnilistSecret));
                     services.AddSingleton(new ReminderService(Client));
                     services.AddSingleton(new FollowUpService());

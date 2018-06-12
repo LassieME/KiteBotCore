@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace KiteBotCore
 {
-    public partial class Program
+    public static partial class Program
     {
         public class MyLoggerProvider : ILoggerProvider
         {

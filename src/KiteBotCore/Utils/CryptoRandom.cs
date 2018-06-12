@@ -9,6 +9,7 @@ namespace KiteBotCore.Utils
 	public class CryptoRandom : RandomNumberGenerator
 	{
 		private static RandomNumberGenerator r;
+
 		///<summary>
 		/// Creates an instance of the default implementation of a cryptographic random number generator that can be used to generate random data.
 		///</summary>
@@ -16,14 +17,16 @@ namespace KiteBotCore.Utils
 		{
 			r = Create();
 		}
+
 		///<summary>
 		/// Fills the elements of a specified array of bytes with random numbers.
 		///</summary>
-		///<param name="buffer">An array of bytes to contain random numbers.</param>
-		public override void GetBytes(byte[] buffer)
+		///<param name="data">An array of bytes to contain random numbers.</param>
+		public override void GetBytes(byte[] data)
 		{
-			r.GetBytes(buffer);
+			r.GetBytes(data);
 		}
+
 		///<summary>
 		/// Returns a random number between 0.0 and 1.0.
 		///</summary>
@@ -33,6 +36,7 @@ namespace KiteBotCore.Utils
 			r.GetBytes(b);
 			return (double)BitConverter.ToUInt32(b, 0) / uint.MaxValue;
 		}
+
 		///<summary>
 		/// Returns a random number within the specified range.
 		///</summary>
@@ -43,6 +47,7 @@ namespace KiteBotCore.Utils
 			var v = Math.Round(NextDouble() * (maxValue - minValue)) + minValue;
 			return (int)v;
 		}
+
 		///<summary>
 		/// Returns a nonnegative random number.
 		///</summary>
@@ -50,6 +55,7 @@ namespace KiteBotCore.Utils
 		{
 			return Next(0, int.MaxValue);
 		}
+
 		///<summary>
 		/// Returns a nonnegative random number less than the specified maximum
 		///</summary>

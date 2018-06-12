@@ -17,7 +17,7 @@ namespace KiteBotCore
         //This is needed while doing Database migrations and updates
         private static string SettingsPath => Directory.GetCurrentDirectory().Replace(@"\bin\Debug\netcoreapp1.1.2\", "") + "/Content/settings.json";
 
-        public KiteBotDbContext Create(DbContextFactoryOptions options) => Create();
+        public KiteBotDbContext Create(DbContextFactoryOptions _) => Create();
 
         public KiteBotDbContext Create() => CreateDbContext(new string[] { });
 
@@ -85,7 +85,7 @@ namespace KiteBotCore
                     var channelsNotTracked = socketGuild.TextChannels.Where(x => guild.Channels.All(y => y.Id != x.Id));
                     var socketTextChannels = channelsNotTracked as IList<SocketTextChannel> ??
                                              channelsNotTracked.ToList();
-                    if (socketTextChannels.Any())
+                    if (socketTextChannels.Count > 0)
                     {
                         foreach (var channelToTrack in socketTextChannels)
                         {
@@ -103,7 +103,7 @@ namespace KiteBotCore
 
                     var usersNotTracked = socketGuild.Users.Where(x => guild.Users.All(y => y.Id != x.Id));
                     var socketGuildUsers = usersNotTracked as IList<SocketGuildUser> ?? usersNotTracked.ToList();
-                    if (socketGuildUsers.Any())
+                    if (socketGuildUsers.Count > 0)
                     {
                         foreach (var userToTrack in socketGuildUsers)
                         {

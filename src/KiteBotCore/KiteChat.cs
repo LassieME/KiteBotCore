@@ -25,14 +25,13 @@ namespace KiteBotCore
         public static string ChatDirectory = Directory.GetCurrentDirectory();
         public static string GreetingFileLocation = ChatDirectory + "/Content/Greetings.txt";
 
-        public KiteChat(DiscordSocketClient client, DiscordContextFactory db, bool markovbool, string gBapi, string ytApi, int streamRefresh, bool silentStartup, int videoRefresh, int depth, bool mChainShouldDownload)
+        public KiteChat(DiscordSocketClient client, DiscordContextFactory db, bool markovbool, string gBapi, string ytApi, int videoRefresh, int depth, bool mChainShouldDownload)
         {
             StartMarkovChain = markovbool;
             _greetings = File.ReadAllLines(GreetingFileLocation);
             RandomSeed = new Random();
             YoutubeModuleService.Init(ytApi, client);
 
-            //if (streamRefresh > 30000) StreamChecker = new LivestreamChecker(client, gBapi, streamRefresh, silentStartup);
             if (videoRefresh > 30000) GbVideoChecker = new GiantBombVideoChecker(client, gBapi, videoRefresh);
             if (StartMarkovChain && depth > 0)MultiDeepMarkovChains = new MultiTextMarkovChainHelper(client, db, depth, mChainShouldDownload);
         }
@@ -50,12 +49,13 @@ namespace KiteBotCore
             }
             else if (msg.Author.Id != client.CurrentUser.Id)
             {
-                if(StartMarkovChain && msg.Channel is IGuildChannel) await MultiDeepMarkovChains.Feed(msg).ConfigureAwait(false);
-
+                if(StartMarkovChain && msg.Channel is IGuildChannel)
+                {
+                    await MultiDeepMarkovChains.Feed(msg).ConfigureAwait(false);
+                }
                 else if (msg.MentionedUsers.Any(x => x.Id == client.CurrentUser.Id))
                 {
-                    if (msg.Content.ToLower().Contains("fuck you") ||
-                             msg.Content.ToLower().Contains("fuckyou"))
+                    if (msg.Content.IndexOf("fuck you", StringComparison.CurrentCultureIgnoreCase) >= 0 || msg.Content.IndexOf("fuckyou", StringComparison.CurrentCultureIgnoreCase) >= 0)
                     {
                         List<string> possibleResponses = new List<string>
                         {
@@ -70,16 +70,14 @@ namespace KiteBotCore
                                 possibleResponses[RandomSeed.Next(0, possibleResponses.Count)].Replace("USER",
                                     msg.Author.Username)).ConfigureAwait(false);
                     }
-                    else if (msg.Content.ToLower().Contains("hi") ||
-                             msg.Content.ToLower().Contains("hey") ||
-                             msg.Content.ToLower().Contains("hello"))
+                    else if (msg.Content.IndexOf("hi", StringComparison.CurrentCultureIgnoreCase) >= 0 || msg.Content.IndexOf("hey", StringComparison.CurrentCultureIgnoreCase) >= 0 || msg.Content.IndexOf("hello", StringComparison.CurrentCultureIgnoreCase) >= 0)
                     {
                         await msg.Channel.SendMessageAsync(ParseGreeting(msg.Author.Username)).ConfigureAwait(false);
                     }
                 }
             }
         }
-        
+
         //returns a greeting from the greetings.txt list on a per user or generic basis
 	    private string ParseGreeting(string userName)
         {

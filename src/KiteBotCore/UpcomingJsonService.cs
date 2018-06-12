@@ -20,7 +20,7 @@ namespace KiteBotCore
 
         public Task<GbUpcoming> DownloadUpcomingJsonAsync()
         {
-            return _rateLimit.RunAsync(async () => 
+            return _rateLimit.RunAsync(async () =>
                 JsonConvert.DeserializeObject<GbUpcoming>(await _client.GetStringAsync(UpcomingUrl)
                 .ConfigureAwait(false)));
         }

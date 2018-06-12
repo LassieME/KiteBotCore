@@ -20,15 +20,18 @@ namespace KiteBotCore
         {
             ConnectionString = settingsDatabaseConnectionString;
         }
+
         public KiteBotDbContext(DbContextOptions options) : base(options)
         {
         }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (ConnectionString != null)//this is wrong, but it works
                 optionsBuilder.UseNpgsql(ConnectionString).EnableSensitiveDataLogging();
             base.OnConfiguring(optionsBuilder);
         }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Channel>()
@@ -70,7 +73,6 @@ namespace KiteBotCore
                 .HasOne(e => e.User)
                 .WithMany(u => u.Events)
                 .IsRequired();
-
         }
     }
 
@@ -85,10 +87,11 @@ namespace KiteBotCore
             get{ unchecked{ return (ulong)GuildId; } }
             set{ unchecked{ GuildId = (long)value; } }
         }
+
         public string Name { get; set; }
 
         public List<Channel> Channels { get; set; }
-        
+
         public virtual List<User> Users { get; set; }
 
         public virtual List<Event> Events { get; set; }
@@ -151,7 +154,9 @@ namespace KiteBotCore
         public long UserId { get; set; }
 
         [NotMapped]
+#pragma warning disable IDE1006 // Naming Styles
         public ulong uId
+#pragma warning restore IDE1006 // Naming Styles
         {
             get { unchecked { return (ulong)UserId; } }
             set { unchecked { UserId = (long)value; } }
@@ -165,7 +170,7 @@ namespace KiteBotCore
             get { unchecked { return (ulong)RoleId; } }
             set { unchecked { RoleId = (long)value; } }
         }
-        
+
         public DateTimeOffset? RemovalAt { get; set; }
 
         public User User { get; set; }
@@ -182,6 +187,7 @@ namespace KiteBotCore
             get{ unchecked{ return (ulong)ChannelId; } }
             set{ unchecked{ ChannelId = (long)value; } }
         }
+
         public string Name { get; set; }
 
         [ForeignKey("GuildForeignKey")]
@@ -201,6 +207,7 @@ namespace KiteBotCore
             get{ unchecked{ return (ulong)MessageId; } }
             set{ unchecked{ MessageId = (long)value; } }
         }
+
         public string Content { get; set; }
 
         [ForeignKey("UserForeignKey")]

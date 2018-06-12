@@ -5,7 +5,6 @@ namespace KiteBotCore.Json.GiantBomb.GbUpcoming
 {
     public class GbUpcoming
     {
-
         [JsonProperty("liveNow")]
         public LiveNow LiveNow { get; set; }
 
@@ -15,7 +14,6 @@ namespace KiteBotCore.Json.GiantBomb.GbUpcoming
 
     public class LiveNow
     {
-
         [JsonProperty("title")]
         public string Title { get; set; }
 
@@ -24,9 +22,9 @@ namespace KiteBotCore.Json.GiantBomb.GbUpcoming
 
         public override bool Equals(object obj)
         {
-            return obj is LiveNow now &&
-                   Title == now.Title &&
-                   Image == now.Image;
+            return obj is LiveNow now
+                   && Title == now.Title
+                   && Image == now.Image;
         }
 
         protected bool Equals(LiveNow other)
@@ -47,7 +45,6 @@ namespace KiteBotCore.Json.GiantBomb.GbUpcoming
 
     public class Upcoming
     {
-
         [JsonProperty("type")]
         public string Type { get; set; }
 
@@ -63,10 +60,9 @@ namespace KiteBotCore.Json.GiantBomb.GbUpcoming
         [JsonProperty("premium")]
         public bool Premium { get; set; }
 
-        public override string ToString() => 
-            Premium ? 
-            $"Upcoming Premium {Type} on {Date} PST: \n{Title}" : 
+        public override string ToString() =>
+            Premium ?
+            $"Upcoming Premium {Type} on {Date} PST: \n{Title}" :
             $"Upcoming {Type} on {Date} PST: \n{Title}";
     }
-
 }

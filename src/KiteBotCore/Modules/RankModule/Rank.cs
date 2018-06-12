@@ -5,14 +5,13 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Discord.Addons.InteractiveCommands;
 using KiteBotCore.Utils;
 using Microsoft.AspNetCore.Hosting.Internal;
 
 namespace KiteBotCore.Modules.RankModule
 {
     [RequireContext(ContextType.Guild), RequireServer(Server.GiantBomb)]
-    public class Ranks : InteractiveModuleBase
+    public class Ranks : ModuleBase
     {
         public enum Debug
         {
@@ -82,7 +81,7 @@ namespace KiteBotCore.Modules.RankModule
         [Alias("colors", "colours")]
         [Summary("Shows you your current rank, based on the amount of time since you joined this server")]
         [RequireChannel(213359477162770433)]
-        public Task RanksCommand(Debug showDebugInfo = Debug.Release) => 
+        public Task RanksCommand(Debug showDebugInfo = Debug.Release) =>
             RanksCommand(Context.User, showDebugInfo);
 
         [Command("ranks", RunMode = RunMode.Async)]
@@ -93,15 +92,14 @@ namespace KiteBotCore.Modules.RankModule
         {
             await RankService.FlushQueueAsync().ConfigureAwait(false);
             var embed = new EmbedBuilder();
-            
+
             var userRanks = await RankService.GetAwardedRolesAsync(user as SocketGuildUser, Context.Guild).ConfigureAwait(false);
-            if (userRanks.Any())
+            if (userRanks.Count > 0)
             {
                 var sb = new StringBuilder("You currently have these ranks:\n");
                 foreach (var rank in userRanks)
                 {
-                    sb.AppendLine(
-                        $"{Context.Guild.Roles.First(x => x.Id == rank.Id).Name} rewarded by {rank.RequiredTimeSpan.ToPrettyFormat()} in the server");
+                    sb.Append(Context.Guild.Roles.First(x => x.Id == rank.Id).Name).Append(" rewarded by ").Append(rank.RequiredTimeSpan.ToPrettyFormat()).AppendLine(" in the server");
                 }
                 embed.AddField(x =>
                 {
@@ -132,7 +130,7 @@ namespace KiteBotCore.Modules.RankModule
             }
 
             var assignedRoles = await RankService.GetAssignedRolesAsync(Context.Guild, user).ConfigureAwait(false);
-            if (assignedRoles.Any())
+            if (assignedRoles.Count > 0)
             {
                 var sb = new StringBuilder();
                 foreach (var role in assignedRoles)
@@ -140,8 +138,7 @@ namespace KiteBotCore.Modules.RankModule
                     var name = Context.Guild.Roles.First(x => x.Id == role.roleId).Name;
                     var expiry = role.expiry;
                     sb.AppendLine(expiry == null
-                        ? $"{name}"
-                        : $"{name} expires in {(expiry - DateTimeOffset.UtcNow).Value.ToPrettyFormat()}");
+                        ? name : $"{name} expires in {(expiry - DateTimeOffset.UtcNow).Value.ToPrettyFormat()}");
                 }
                 embed.AddField(x =>
                 {
@@ -152,7 +149,7 @@ namespace KiteBotCore.Modules.RankModule
             }
 
             var guildColors = (await RankService.GetAvailableColorsAsync(user as SocketGuildUser, Context.Guild).ConfigureAwait(false)).ToList();
-            if (guildColors.Any())
+            if (guildColors.Count > 0)
             {
                 var roles = Context.Guild.Roles.Where(x => guildColors.Any(y => y.Id == x.Id)).OrderBy(x => x.Position);
                 embed.AddField(e =>
@@ -185,37 +182,7 @@ namespace KiteBotCore.Modules.RankModule
                 x.Name = (user as SocketGuildUser)?.Nickname ?? user.Username;
             });
 
-            embed.WithFooter(x => x.Text = "Hit the 📱 reaction if on mobile.");
-
-            var msg = await ReplyAsync("", false, embed).ConfigureAwait(false);
-
-            try
-            {
-                ReactionCallbackBuilder rcb = new ReactionCallbackBuilder();
-                await rcb
-                    .WithClient(Context.Client)
-                    .WithPrecondition(x => x.Id == Context.User.Id)
-                    .WithReactions("📱", "❌")
-                    .AddCallback("📱", async func =>
-                    {
-                        await msg.ModifyAsync(message => message.Content =
-                            string.Join(", ", Context.Guild.Roles.Where(x => guildColors.Any(y => y.Id == x.Id))
-                                .OrderBy(x => x.Position)
-                                .Select(z => z.Mention))).ConfigureAwait(false);
-                    })
-                    .AddCallback("❌", async func =>
-                    {
-                        await msg.DeleteAsync().ConfigureAwait(false);
-                    })
-                    .WithTimeout(120000)
-                    .ExecuteAsync(msg)
-                    .ConfigureAwait(false);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
+            await ReplyAsync("", false, embed.Build()).ConfigureAwait(false);
         }
 
         [Command("rank", RunMode = RunMode.Async), Priority(2)]
@@ -245,7 +212,6 @@ namespace KiteBotCore.Modules.RankModule
             }
             if (availableColors.Any(x => x.Id == role.Id))
             {
-                
                 //Check for any rank, since users can get demoted and then use this command before they get their grade back, might not be nessesary in the future
                 var currentRank = RankService.GetRanksForGuild(Context.Guild)
                     .SelectMany(x => x.Colors)
@@ -326,9 +292,9 @@ namespace KiteBotCore.Modules.RankModule
             [Command("setjoindate")]
             [Summary("Sets a new join date for a user by channelId and messageId")]
             [RequireOwnerOrUserPermission(GuildPermission.Administrator)]
-            public async Task SetJoinDate(IUser user, IChannel channel, ulong messageId)
+            public async Task SetJoinDate(IUser user, ITextChannel channel, ulong messageId)
             {
-                var message = await (channel as ITextChannel).GetMessageAsync(messageId).ConfigureAwait(false);
+                var message = await channel.GetMessageAsync(messageId).ConfigureAwait(false);
                 if (message.Author.Id == user.Id)
                 {
                     await RankService.SetJoinDateAsync(user, Context.Guild, message.Timestamp).ConfigureAwait(false);
@@ -342,9 +308,9 @@ namespace KiteBotCore.Modules.RankModule
 
             [Command("setjoindate")]
             [Summary("Sets a new join date for a user by channelId and messageId")]
-            public async Task SetJoinDate(IChannel channel, ulong messageId)
+            public async Task SetJoinDate(ITextChannel channel, ulong messageId)
             {
-                var message = await (channel as ITextChannel).GetMessageAsync(messageId).ConfigureAwait(false);
+                var message = await channel.GetMessageAsync(messageId).ConfigureAwait(false);
                 if (message.Author.Id == Context.User.Id)
                 {
                     await RankService.SetJoinDateAsync(Context.User, Context.Guild, message.Timestamp).ConfigureAwait(false);
@@ -365,10 +331,10 @@ namespace KiteBotCore.Modules.RankModule
                 foreach (var rank in list)
                 {
                     stringBuilder.Append(Context.Guild.Roles.First(x => x.Id == rank.Id).Name)
-                        .AppendLine($" => {rank.RequiredTimeSpan.ToPrettyFormat()}");
+                        .Append(" => ").AppendLine(rank.RequiredTimeSpan.ToPrettyFormat());
                     foreach (Json.Color color in rank.Colors)
                     {
-                        stringBuilder.AppendLine($"\t{Context.Guild.Roles.First(x => x.Id == color.Id).Name}");
+                        stringBuilder.Append("\t").AppendLine(Context.Guild.Roles.First(x => x.Id == color.Id).Name);
                     }
                 }
                 stringBuilder.Append("```");

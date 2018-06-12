@@ -20,8 +20,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Discord.Addons.EmojiTools",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExtendedGiantBombClient", "src\ExtendedGiantBombClient\ExtendedGiantBombClient.csproj", "{9E7745E9-EC4E-45CB-B389-885BD74F3F2A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Discord.Addons.InteractiveCommands", "src\Discord.Addons.InteractiveCommands\src\Discord.Addons.InteractiveCommands\Discord.Addons.InteractiveCommands.csproj", "{D39095BF-1656-4D40-B3CF-54F88F9D6FF4}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -92,18 +90,6 @@ Global
 		{9E7745E9-EC4E-45CB-B389-885BD74F3F2A}.Release|x64.Build.0 = Release|Any CPU
 		{9E7745E9-EC4E-45CB-B389-885BD74F3F2A}.Release|x86.ActiveCfg = Release|Any CPU
 		{9E7745E9-EC4E-45CB-B389-885BD74F3F2A}.Release|x86.Build.0 = Release|Any CPU
-		{D39095BF-1656-4D40-B3CF-54F88F9D6FF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D39095BF-1656-4D40-B3CF-54F88F9D6FF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D39095BF-1656-4D40-B3CF-54F88F9D6FF4}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{D39095BF-1656-4D40-B3CF-54F88F9D6FF4}.Debug|x64.Build.0 = Debug|Any CPU
-		{D39095BF-1656-4D40-B3CF-54F88F9D6FF4}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{D39095BF-1656-4D40-B3CF-54F88F9D6FF4}.Debug|x86.Build.0 = Debug|Any CPU
-		{D39095BF-1656-4D40-B3CF-54F88F9D6FF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D39095BF-1656-4D40-B3CF-54F88F9D6FF4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D39095BF-1656-4D40-B3CF-54F88F9D6FF4}.Release|x64.ActiveCfg = Release|Any CPU
-		{D39095BF-1656-4D40-B3CF-54F88F9D6FF4}.Release|x64.Build.0 = Release|Any CPU
-		{D39095BF-1656-4D40-B3CF-54F88F9D6FF4}.Release|x86.ActiveCfg = Release|Any CPU
-		{D39095BF-1656-4D40-B3CF-54F88F9D6FF4}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -114,7 +100,6 @@ Global
 		{8748A88B-EE70-4DC2-8E56-3C055A28B5C8} = {05D58AE3-1C92-4DFD-9FA0-03F3769B7115}
 		{C9A27EAA-FAEE-47DA-9772-3011B2C9C41D} = {05D58AE3-1C92-4DFD-9FA0-03F3769B7115}
 		{9E7745E9-EC4E-45CB-B389-885BD74F3F2A} = {05D58AE3-1C92-4DFD-9FA0-03F3769B7115}
-		{D39095BF-1656-4D40-B3CF-54F88F9D6FF4} = {05D58AE3-1C92-4DFD-9FA0-03F3769B7115}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CBC44ECD-21DC-49A8-8245-7081549B032E}

@@ -10,7 +10,6 @@ using KiteBotCore.Json.GiantBomb.Promos;
 using Newtonsoft.Json;
 using Serilog;
 
-
 namespace KiteBotCore
 {
     public class GiantBombVideoChecker
@@ -31,7 +30,6 @@ namespace KiteBotCore
                     $"http://www.giantbomb.com/api/promos/?api_key={GbAPI}&field_list=name,deck,date_added,link,user&format=json";
                 RefreshRate = videoRefresh;
                 _chatTimer = new Timer(RefreshVideosApi, null, videoRefresh, videoRefresh);
-
             }
         }
 
@@ -49,7 +47,7 @@ namespace KiteBotCore
             try
             {
                 Log.Verbose("Running Videochecker");
-                await RefreshVideosApi();
+                await RefreshVideosApi().ConfigureAwait(false);
                 Log.Verbose("Finishing Videochecker");
             }
             catch (Exception ex)
@@ -61,7 +59,7 @@ namespace KiteBotCore
 
 		private async Task RefreshVideosApi()
 		{
-            var latestPromo = await GetPromosFromUrl(ApiCallUrl,0);
+            var latestPromo = await GetPromosFromUrl(ApiCallUrl,0).ConfigureAwait(false);
 
             IOrderedEnumerable<Result> sortedXElements = latestPromo.Results.OrderBy(e => GetGiantBombFormatDateTime(e.DateAdded));
 
@@ -90,6 +88,7 @@ namespace KiteBotCore
                 }
             }
 		}
+
         private DateTime GetGiantBombFormatDateTime(string dateTimeString)
         {
             string timeString = dateTimeString;
@@ -100,13 +99,13 @@ namespace KiteBotCore
 
         private async Task<Promos> GetPromosFromUrl(string url, int retry)
         {
+            string json;
             try
             {
                 using (HttpClient client = new HttpClient())
                 {
                     client.DefaultRequestHeaders.Add("User-Agent", $"KiteBotCore 1.1 GB Discord Bot that calls api every {RefreshRate / 1000} seconds.");
-                    Promos json = JsonConvert.DeserializeObject<Promos>(await client.GetStringAsync(url).ConfigureAwait(false));
-                    return json;
+                    json = (await client.GetStringAsync(url).ConfigureAwait(false)).Replace("[],","");//GB has decided to have an empty array where there usually are objects
                 }
             }
             catch (Exception)
@@ -116,8 +115,10 @@ namespace KiteBotCore
                     await Task.Delay(10000).ConfigureAwait(false);
                     return await GetPromosFromUrl(url,retry).ConfigureAwait(false);
                 }
-                throw new TimeoutException();
+                throw;
             }
+
+            return JsonConvert.DeserializeObject<Promos>(json);
         }
 	}
 }

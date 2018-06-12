@@ -9,6 +9,7 @@ namespace KiteBotCore.Utils
     public class KiteTimeSpanReader : TypeReader
     {
         private static readonly Regex Reg = new Regex(@"^(?<weeks>\d+w)?(?<days>\d+d)?(?<hours>\d{1,2}h)?(?<minutes>\d{1,2}m)?(?<seconds>\d{1,2}s)?$", RegexOptions.Compiled);
+
         public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
         {
             await Task.Yield();
@@ -20,7 +21,6 @@ namespace KiteBotCore.Utils
             if (TimeSpan.TryParse(input, out result))
                 return TypeReaderResult.FromSuccess(result);
 
-            
             var gps = new[] { "weeks", "days", "hours", "minutes", "seconds" };
             var mtc = Reg.Match(input);
             if (!mtc.Success)

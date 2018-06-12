@@ -10,7 +10,7 @@ using Serilog;
 namespace KiteBotCore.Modules.Youtube
 {
     [Group("youtube")]
-    public class Youtube : ModuleBase 
+    public class Youtube : ModuleBase
     {
         [Command]
         [Summary("Lists youtube commands and how to use them.")]
@@ -93,6 +93,7 @@ namespace KiteBotCore.Modules.Youtube
         }
 
         private static string _latestVideo;
+
         [Command("latestexample")]
         [Summary("posts a video if a new video exists since the last time this command was ran")]
         [RequireBotOwner]
@@ -124,7 +125,7 @@ namespace KiteBotCore.Modules.Youtube
                 listRequest.Order = SearchResource.ListRequest.OrderEnum.Date;
                 listRequest.MaxResults = 1;
                 var request = listRequest.Execute();
-                return (true, request.Items.FirstOrDefault().Snippet.ChannelTitle);
+                return (true, request.Items.FirstOrDefault()?.Snippet.ChannelTitle);
             }
             catch (Exception ex)
             {
