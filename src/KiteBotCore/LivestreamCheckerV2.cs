@@ -104,7 +104,7 @@ namespace KiteBotCore
 
                     await channel.ModifyAsync(p =>
                     {
-                        if(channel.Name == _livestreamActiveName)
+                        if(channel.Name != _livestreamActiveName)
                             p.Name = _livestreamActiveName;
 
                         p.Topic = $"Currently Live on Giant Bomb: {e.Title}\n http://www.giantbomb.com/chat/";

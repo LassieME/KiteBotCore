@@ -101,7 +101,12 @@ namespace KiteBotCore.Modules.Youtube
                     }
                 }
             }
-            watched.LastVideoId = data?.Id.VideoId;
+            
+            if (watched.LastVideoId != data?.Id.VideoId && watched.WatchedType == WatchType.Video)
+            {
+                watched.LastVideoId = data?.Id.VideoId;
+                File.WriteAllText(WatchVideoPath, JsonConvert.SerializeObject(VideoChannels));
+            }
         }
 
         private static void AddToQueue(WatchedChannel wc)
