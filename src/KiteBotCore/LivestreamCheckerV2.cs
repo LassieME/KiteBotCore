@@ -26,7 +26,7 @@ namespace KiteBotCore
         private LiveNow _liveNow;
 
         private readonly string _livestreamNotActiveName = "livestream";
-        private readonly string _livestreamActiveName = "livestream-live";
+        private readonly string _livestreamActiveName = "livestream\u2005live";
 
         public LivestreamCheckerV2(DiscordSocketClient client, UpcomingJsonService service, int streamRefresh, bool silentStartup)
         {
@@ -46,7 +46,7 @@ namespace KiteBotCore
 
         private async void TimerEvent(object sender)
         {
-            await RefreshChatsApi(false).ConfigureAwait(false);
+            await RunRefreshChatsApi(false).ConfigureAwait(false);
         }
 
         private async Task RunRefreshChatsApi(bool isInitialRun, bool silentStartup = false)
@@ -180,6 +180,7 @@ namespace KiteBotCore
             return await channel.SendMessageAsync("", false, embedBuilder.Build()).ConfigureAwait(false);
         }
 
+        //TODO:Make this use the same method as misc:Randomql/RandomRyan
         public async Task<string> GetResponseUriFromRandomQlCrew()
         {
             const string url =
@@ -192,8 +193,16 @@ namespace KiteBotCore
             }
             catch (WebException ex)
             {
-                if (ex.Status != WebExceptionStatus.ProtocolError)
-                    throw;
+                var location = ex.Response.Headers.Get("Location");
+                if (location != null)
+                {
+                    return location;
+                }
+                Console.WriteLine(ex + ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex + ex.Message);
             }
 
             return "Couldn't load QLcrew's Random Link.";

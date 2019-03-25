@@ -255,7 +255,7 @@ namespace KiteBotCore
                         if (before.Nickname != null && after.Nickname != null)
                         {
                             await channel.SendMessageAsync(
-                                    $"{before.Nickname} changed his nickname to {after.Nickname}.")
+                                    $"{before.Nickname} changed their nickname to {after.Nickname}.")
                                 .ConfigureAwait(false);
                         }
                         else if (before.Nickname == null && after.Nickname != null)

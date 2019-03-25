@@ -73,7 +73,57 @@ namespace KiteBotCore
                 .HasOne(e => e.User)
                 .WithMany(u => u.Events)
                 .IsRequired();
+
+            modelBuilder.Entity<ShineBetEvent>()
+                .HasMany(e => e.ShineBets)
+                .WithOne(b => b.ShineBetEvent);
+
+            modelBuilder.Entity<ShineBet>()
+                .HasOne(b => b.ShineBetEvent)
+                .WithMany(e => e.ShineBets)
+                .IsRequired();
+
+            modelBuilder.Entity<ShineBet>()
+                .HasOne(e => e.User)
+                .WithMany(u => u.Bets);
+                
         }
+    }
+
+    public class ShineBetEvent
+    {
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int ShineBetEventId { get; set; }
+
+        public DateTimeOffset CreationDateTime { get; set; } = DateTimeOffset.UtcNow;        
+
+        public string Question { get; set; }
+
+        public int BetAmount { get; set; }
+
+        public bool? BetResult { get; set; }
+
+        public User OwnerUser { get; set; }
+
+        public Channel Channel { get; set; }
+
+        public Guild Guild { get; set; }
+
+        public virtual List<ShineBet> ShineBets { get; set; }
+    }
+
+    public class ShineBet
+    {
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int ShineBetId { get; set; }        
+
+        public bool Answer { get; set; }
+
+        public bool DoubleDown { get; set; }
+
+        public User User { get; set; }
+
+        public ShineBetEvent ShineBetEvent { get; set; }
     }
 
     public class Guild
@@ -127,17 +177,19 @@ namespace KiteBotCore
 
         public string Name { get; set; }
 
-        public string RegToken { get; set; }
+        public int Shines { get; set; }
 
-        public bool Premium { get; set; }
+        //public string RegToken { get; set; }
 
-        public DateTimeOffset? PremiumLastCheckedAt { get; set; }
+        //public bool Premium { get; set; }
+
+        //public DateTimeOffset? PremiumLastCheckedAt { get; set; }
 
         public DateTimeOffset LastActivityAt { get; set; }
 
         public DateTimeOffset? JoinedAt { get; set; }
 
-        public bool OptOut { get; set; }
+        //public bool OptOut { get; set; }
 
         [ForeignKey("GuildForeignKey")]
         public Guild Guild { get; set; }
@@ -147,6 +199,8 @@ namespace KiteBotCore
         public virtual List<Event> Events { get; set; }
 
         public virtual List<Message> Messages { get; set; }
+
+        public virtual List<ShineBet> Bets { get; set; }
     }
 
     public class UserColorRoles : IColor

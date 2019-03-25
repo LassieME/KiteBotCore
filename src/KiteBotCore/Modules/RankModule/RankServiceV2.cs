@@ -184,7 +184,7 @@ namespace KiteBotCore.Modules.RankModule
                 {
                     if (_roleUpdateQueue.TryDequeue(out var item))
                     {
-                        Log.Information($"{item.user.Username} {string.Join(" ", item.rolesToAdd)} + {string.Join(" ", item.rolesToRemove)}");
+                        Log.Information($"{item.user.Username} Adding:{string.Join(" ", item.rolesToAdd)} Removing:{string.Join(" ", item.rolesToRemove)}");
                         var userRoles = item.user.RoleIds.Where(x => x != item.user.Guild.EveryoneRole.Id).ToList();
                         var newRoles = userRoles.Where(x => !item.rolesToRemove.Contains(x)).Union(item.rolesToAdd)
                             .ToArray();

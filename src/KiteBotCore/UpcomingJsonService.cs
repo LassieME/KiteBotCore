@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace KiteBotCore
 {
@@ -20,9 +21,29 @@ namespace KiteBotCore
 
         public Task<GbUpcoming> DownloadUpcomingJsonAsync()
         {
-            return _rateLimit.RunAsync(async () =>
-                JsonConvert.DeserializeObject<GbUpcoming>(await _client.GetStringAsync(UpcomingUrl)
-                .ConfigureAwait(false)));
+            try
+            {
+                return _rateLimit.RunAsync(async () =>
+                    JsonConvert.DeserializeObject<GbUpcoming>(await _client.GetStringAsync(UpcomingUrl)
+                        .ConfigureAwait(false)));
+            }
+            catch (Exception ex)
+            {
+                switch (ex)
+                {
+                    case OperationCanceledException operationCanceledException:
+                        Log.Error(ex,"HttpClient request timed out");
+                        break;
+                    case HttpRequestException httpRequestException:
+                        Log.Error(ex, "HttpRequestException");
+                        break;
+                    default:
+                        Log.Error(ex, "Some other unexpected error happened");
+                        break;
+                }
+
+                throw;
+            }
         }
     }
 }

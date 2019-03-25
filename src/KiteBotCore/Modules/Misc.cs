@@ -85,22 +85,61 @@ namespace KiteBotCore.Modules
             await ReplyAsync(await GetResponseUriFromRandomQlCrew(url).ConfigureAwait(false)).ConfigureAwait(false);
         }
 
-        public async Task<string> GetResponseUriFromRandomQlCrew(string url)
+        public static async Task<string> GetResponseUriFromRandomQlCrew(string url)
         {
             var request = (HttpWebRequest)WebRequest.Create(url);
-            if (request != null)
+            try
             {
-                try
+                HttpWebResponse response = await request.GetResponseAsync().ConfigureAwait(false) as HttpWebResponse;
+                return response?.ResponseUri.AbsoluteUri;
+            }
+            catch (WebException ex)
+            {
+                var location = ex.Response.Headers.Get("Location");
+                if (location != null)
                 {
-                    HttpWebResponse response = await request.GetResponseAsync().ConfigureAwait(false) as HttpWebResponse;
-                    return response?.ResponseUri.AbsoluteUri;
+                    return location;
                 }
-                catch (Exception ex)
+                Console.WriteLine(ex + ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex + ex.Message);
+            }
+
+            return "Couldn't load QLcrew's Random Link.";
+        }
+
+        [Command("fixchannelnames", RunMode = RunMode.Async)]
+        [Summary("Replaces dashes(-) with unicode 2005 spaces in all text channels")]
+        [RequireOwnerOrUserPermission(GuildPermission.Administrator)]
+        public async Task FixChannelsCommand()
+        {
+            var readOnlyCollection1 = await Context.Client.GetGuildsAsync();
+            var readOnlyCollection = await readOnlyCollection1.First(x => x.Id == 106386929506873344).GetTextChannelsAsync();
+            foreach(var channel in readOnlyCollection)
+            {
+                if (channel.Name.Contains("-") &&
+                    !(channel.Id == 169062411247157248 || channel.Id == 213359477162770433))
                 {
-                    Console.WriteLine(ex + ex.Message);
+                    try
+                    {
+                        await channel.ModifyAsync(x => x.Name = channel.Name.Replace('-', '\u2005'));
+                    }
+                    catch (Exception)
+                    {
+                        //skip
+                    }
                 }
             }
-            return "Couldn't load QLcrew's Random Link.";
+        }
+
+        [Command("fixchannelname", RunMode = RunMode.Async)]
+        [Summary("replaces dashes(-) with spaces in given channel name")]
+        [RequireOwnerOrUserPermission(GuildPermission.Administrator)]
+        public async Task FixChannelCommand(ITextChannel channel)
+        {
+            await channel.ModifyAsync(x => x.Name = channel.Name.Replace('-', '\u2005'));
         }
     }
 }
