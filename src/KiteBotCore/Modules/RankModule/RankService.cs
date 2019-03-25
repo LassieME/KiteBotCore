@@ -44,7 +44,7 @@ namespace KiteBotCore.Modules.RankModule
 
             _activityTimer = new Timer(async e => await Task.Run(async () => await ActivityTimerTask().ConfigureAwait(false)).ConfigureAwait(false), null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
 
-            _roleProviders = new List<IRoleProvider> {new PremiumRoleProvider(rankConfigs), new AssignedRoleProvider(), new RankRoleProvider(rankConfigs)};
+            _roleProviders = new List<IRoleProvider> { new AssignedRoleProvider(), new RankRoleProvider(rankConfigs) };
         }
 
         //TODO: Should probably not be here
@@ -98,8 +98,6 @@ namespace KiteBotCore.Modules.RankModule
                             {
                                 var user = await db.FindAsync<User>(item.user.Id.ConvertToUncheckedLong())
                                     .ConfigureAwait(false);
-                                if(user.OptOut == false)
-                                    user.LastActivityAt = DateTimeOffset.UtcNow;
                             }
                             catch (Exception ex)
                             {
@@ -126,46 +124,34 @@ namespace KiteBotCore.Modules.RankModule
                             try
                             {
                                 var dbUser = users.FirstOrDefault(x => x.Id == socketGuildUser.Id);
-                                if (dbUser.OptOut == false)
+
+                                var joinDate = dbUser.JoinedAt;
+                                var activityDate = dbUser.LastActivityAt;
+
+                                List<IRankRole> ranks = await GetAwardedRolesAsync(socketGuildUser, guild,
+                                    joinDate.GetValueOrDefault(),
+                                    activityDate).ConfigureAwait(false);
+
+                                var assignedColorsToRemove = dbUser?.UserRoles?.OrEmptyIfNull()
+                                    .Where(x => x.RemovalAt != null && x.RemovalAt < DateTimeOffset.UtcNow)
+                                    .ToList();
+
+                                Debug.Assert(assignedColorsToRemove != null, "assignedColorsToRemove != null");
+                                foreach (var colorRoles in assignedColorsToRemove)
                                 {
-                                    var joinDate = dbUser.JoinedAt;
-                                    var activityDate = dbUser.LastActivityAt;
-
-                                    List<IRankRole> ranks = await GetAwardedRolesAsync(socketGuildUser, guild,
-                                        joinDate.GetValueOrDefault(),
-                                        activityDate).ConfigureAwait(false);
-
-                                    var assignedColorsToRemove = dbUser?.UserRoles?.OrEmptyIfNull()
-                                        .Where(x => x.RemovalAt != null && x.RemovalAt < DateTimeOffset.UtcNow)
-                                        .ToList();
-
-                                    Debug.Assert(assignedColorsToRemove != null, "assignedColorsToRemove != null");
-                                    foreach (var colorRoles in assignedColorsToRemove)
-                                    {
-                                        dbUser.UserRoles.Remove(colorRoles);
-                                    }
-
-                                    foreach (IRoleProvider roleProvider in _roleProviders)
-                                    {
-                                        List<IRankRole> list = await roleProvider.GetUserRoles(socketGuildUser, db);
-                                        ranks.AddRange(list);
-                                    }
-
-                                    await AddAndRemoveRanksAsync(socketGuildUser, guild, ranks, assignedColorsToRemove)
-                                        .ConfigureAwait(false);
+                                    dbUser.UserRoles.Remove(colorRoles);
                                 }
-                                else
+
+                                foreach (IRoleProvider roleProvider in _roleProviders)
                                 {
-                                    List<IRankRole> ranks = new List<IRankRole>(_rankConfigs.GuildConfigs[guild.Id].Ranks.Values
-                                        .Where(x => socketGuildUser.Roles.Any(y => y.Id == x.Id))
-                                        .ToList());
-
-                                    var assignedColorsToRemove = dbUser?.UserRoles?.OrEmptyIfNull()
-                                        .ToList();
-
-                                    await AddAndRemoveRanksAsync(socketGuildUser, guild, ranks, assignedColorsToRemove)
-                                        .ConfigureAwait(false);
+                                    List<IRankRole> list = await roleProvider.GetUserRoles(socketGuildUser, db);
+                                    ranks.AddRange(list);
                                 }
+
+                                await AddAndRemoveRanksAsync(socketGuildUser, guild, ranks, assignedColorsToRemove)
+                                    .ConfigureAwait(false);
+
+
                             }
                             catch (Exception ex)
                             {
@@ -200,7 +186,7 @@ namespace KiteBotCore.Modules.RankModule
 
         internal async Task AddAndRemoveRanksAsync(IGuildUser messageAuthor, IGuild guild, IList<IRankRole> result, IList<UserColorRoles> userColorToRemove)
         {
-            if(result == null)
+            if (result == null)
                 result = (await GetAwardedRolesAsync(messageAuthor, guild).ConfigureAwait(false)).ToList();
 
             //Find any roles that a person has a claim to
@@ -210,7 +196,7 @@ namespace KiteBotCore.Modules.RankModule
                 .ToArray();
 
             //Find any roles currently applied to remove due to changing circumstances
-            var rolesToRemove = messageAuthor.RoleIds.Where(x => 
+            var rolesToRemove = messageAuthor.RoleIds.Where(x =>
                     GetRanksForGuild(guild)
                     .Select(y => y.Id)
                     .Contains(x) && !result.Select(y => y.Id)
@@ -239,9 +225,9 @@ namespace KiteBotCore.Modules.RankModule
 
         public async Task<List<IRankRole>> GetAwardedRolesAsync(IGuildUser user, IGuild guild, DateTimeOffset joinDate = default, DateTimeOffset lastActivity = default)
         {
-            if(joinDate == default)
+            if (joinDate == default)
                 joinDate = await GetUserJoinDateAsync(user, guild).ConfigureAwait(false);
-            if(lastActivity == default)
+            if (lastActivity == default)
                 lastActivity = await GetUserLastActivityAsync(user, guild).ConfigureAwait(false);
             var timeInGuild = DateTimeOffset.UtcNow - joinDate;
             var allRanksInGuild = GetRanksForGuild(guild).ToList();
@@ -348,7 +334,7 @@ namespace KiteBotCore.Modules.RankModule
 
         public void AddColorToRank(IGuild guild, Discord.IRole roleRank, Discord.IRole color)
         {
-            var configColor = new Color {Id = color.Id};
+            var configColor = new Color { Id = color.Id };
             _rankConfigs.GuildConfigs[guild.Id].Ranks[roleRank.Id].Colors.Add(configColor);
             _saveFunc(_rankConfigs);
         }
@@ -432,9 +418,9 @@ namespace KiteBotCore.Modules.RankModule
             using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
             {
                 var listOfRoles = new List<(ulong roleId, DateTimeOffset? expiry)>();
-                    var dbUser = await db.Users
-                    .Include(u => u.UserRoles)
-                    .SingleOrDefaultAsync(x => x.UserId == user.Id.ConvertToUncheckedLong()).ConfigureAwait(false);
+                var dbUser = await db.Users
+                .Include(u => u.UserRoles)
+                .SingleOrDefaultAsync(x => x.UserId == user.Id.ConvertToUncheckedLong()).ConfigureAwait(false);
                 foreach (var roles in dbUser.UserRoles)
                 {
                     listOfRoles.Add((roles.Id, roles.RemovalAt));

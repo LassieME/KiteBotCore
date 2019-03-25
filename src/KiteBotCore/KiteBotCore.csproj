@@ -32,4 +32,9 @@
     <ProjectReference Include="..\ExtendedGiantBombClient\ExtendedGiantBombClient.csproj" />
     <ProjectReference Include="..\MarkovSharpCore\MarkovSharpCore.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="Content\settings.json">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

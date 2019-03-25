@@ -97,18 +97,25 @@ namespace KiteBotCore
 
         public DateTimeOffset CreationDateTime { get; set; } = DateTimeOffset.UtcNow;        
 
+        public TimeSpan TimeUntilClose { get; set; }
+
+        [Required]
         public string Question { get; set; }
 
         public int BetAmount { get; set; }
 
         public bool? BetResult { get; set; }
 
+        [Required]
         public User OwnerUser { get; set; }
 
+        [Required]
         public Channel Channel { get; set; }
 
+        [Required]
         public Guild Guild { get; set; }
 
+        [Required]//Will always have the creator
         public virtual List<ShineBet> ShineBets { get; set; }
     }
 
@@ -179,11 +186,11 @@ namespace KiteBotCore
 
         public int Shines { get; set; }
 
-        //public string RegToken { get; set; }
+        [NotMapped] public string RegToken { get; set; }
 
-        //public bool Premium { get; set; }
+        [NotMapped] public bool Premium { get; set; }
 
-        //public DateTimeOffset? PremiumLastCheckedAt { get; set; }
+        [NotMapped] public DateTimeOffset? PremiumLastCheckedAt { get; set; }
 
         public DateTimeOffset LastActivityAt { get; set; }
 

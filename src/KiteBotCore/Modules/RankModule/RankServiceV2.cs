@@ -54,8 +54,7 @@ namespace KiteBotCore.Modules.RankModule
                         .ConfigureAwait(false), null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
 
             _roleProviders = new List<IRoleProvider>
-            {
-                new PremiumRoleProvider(rankConfigs),
+            {                
                 new AssignedRoleProvider(),
                 new RankRoleProvider(rankConfigs)
             };
@@ -114,9 +113,7 @@ namespace KiteBotCore.Modules.RankModule
                             try
                             {
                                 var user = await db.FindAsync<User>((long)item.user.Id)
-                                    .ConfigureAwait(false);
-                                if (user.OptOut == false)
-                                    user.LastActivityAt = DateTimeOffset.UtcNow;
+                                    .ConfigureAwait(false);                                
                             }
                             catch (Exception ex)
                             {
