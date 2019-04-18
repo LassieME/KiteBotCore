@@ -13,7 +13,9 @@ namespace KiteBotCore
         public DbSet<Channel> Channels { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<UserColorRoles> UserColorRoles { get; set; }
-        public DbSet<Event> Events { get; set; }
+        //public DbSet<Event> Events { get; set; }
+        public DbSet<ShineBetEvent> ShineBetEvents { get; set; }
+        public DbSet<ShineBet> ShineBets { get; set; }
         private string ConnectionString { get; }
 
         public KiteBotDbContext(string settingsDatabaseConnectionString)
@@ -64,15 +66,15 @@ namespace KiteBotCore
                 .HasForeignKey(pt => pt.UserId);
 
             //Events
-            modelBuilder.Entity<Event>()
-                .HasOne(e => e.Guild)
-                .WithMany(g => g.Events)
-                .IsRequired();
+            //modelBuilder.Entity<Event>()
+            //    .HasOne(e => e.Guild)
+            //    .WithMany(g => g.Events)
+            //    .IsRequired();
 
-            modelBuilder.Entity<Event>()
-                .HasOne(e => e.User)
-                .WithMany(u => u.Events)
-                .IsRequired();
+            //modelBuilder.Entity<Event>()
+            //    .HasOne(e => e.User)
+            //    .WithMany(u => u.Events)
+            //    .IsRequired();
 
             modelBuilder.Entity<ShineBetEvent>()
                 .HasMany(e => e.ShineBets)
@@ -110,10 +112,7 @@ namespace KiteBotCore
         public User OwnerUser { get; set; }
 
         [Required]
-        public Channel Channel { get; set; }
-
-        [Required]
-        public Guild Guild { get; set; }
+        public Channel Channel { get; set; }        
 
         [Required]//Will always have the creator
         public virtual List<ShineBet> ShineBets { get; set; }
@@ -151,24 +150,8 @@ namespace KiteBotCore
 
         public virtual List<User> Users { get; set; }
 
-        public virtual List<Event> Events { get; set; }
-    }
-
-    public class Event
-    {
-        [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int EventId { get; set; }
-
-        public DateTimeOffset DateTime { get; set; }
-
-        public string Title { get; set; }
-
-        public string Description { get; set; }
-
-        public User User { get; set; }
-
-        public Guild Guild { get; set; }
-    }
+        //public virtual List<Event> Events { get; set; }
+    }   
 
     public class User
     {
@@ -203,7 +186,7 @@ namespace KiteBotCore
 
         public virtual List<UserColorRoles> UserRoles { get; set; }
 
-        public virtual List<Event> Events { get; set; }
+        //public virtual List<Event> Events { get; set; }
 
         public virtual List<Message> Messages { get; set; }
 

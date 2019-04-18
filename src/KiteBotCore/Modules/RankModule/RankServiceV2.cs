@@ -113,7 +113,8 @@ namespace KiteBotCore.Modules.RankModule
                             try
                             {
                                 var user = await db.FindAsync<User>((long)item.user.Id)
-                                    .ConfigureAwait(false);                                
+                                    .ConfigureAwait(false);
+                                user.LastActivityAt = DateTimeOffset.UtcNow;
                             }
                             catch (Exception ex)
                             {

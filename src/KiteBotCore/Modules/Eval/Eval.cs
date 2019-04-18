@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using Discord.Commands;
 using Serilog;
@@ -29,9 +30,11 @@ namespace KiteBotCore.Modules.Eval
         public async Task EvalCommand([Remainder]string script)
         {
             var evalService = new EvalService(Services);
-            var scriptTask = evalService.Evaluate(Context, script);
-            await Task.Delay(10000).ConfigureAwait(false);
-            if (!scriptTask.IsCompleted) evalService.PopToken();
+            await evalService.Evaluate((SocketCommandContext) Context, script, new CancellationTokenSource(10000).Token) ;            
+            //var evalService = new EvalService(Services);
+            //var scriptTask = evalService.Evaluate(Context, script);
+            //await Task.Delay(10000).ConfigureAwait(false);
+            //if (!scriptTask.IsCompleted) evalService.PopToken();
         }
 
         //public static unsafe void EvalCommand()

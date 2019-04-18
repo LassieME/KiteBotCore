@@ -6,7 +6,6 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using KiteBotCore.Utils;
-using Microsoft.AspNetCore.Hosting.Internal;
 
 namespace KiteBotCore.Modules.RankModule
 {

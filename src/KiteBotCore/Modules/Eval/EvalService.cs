@@ -63,7 +63,7 @@ namespace KiteBotCore.Modules.Eval
             _token.Cancel();
         }
 
-        public async Task Evaluate(ICommandContext context, string script)
+        public async Task Evaluate(SocketCommandContext context, string script)
         {
             using (context.Channel.EnterTypingState())
             {
@@ -81,6 +81,34 @@ namespace KiteBotCore.Modules.Eval
                 {
                     object eval = await CSharpScript
                         .EvaluateAsync(script, _options, globals, cancellationToken: _token.Token)
+                        .ConfigureAwait(false);
+                    await working.ModifyAsync(x => x.Content = eval.ToString()).ConfigureAwait(false);
+                }
+                catch (Exception e)
+                {
+                    await working.ModifyAsync(x => x.Content = $"**Script Failed**\n{e.Message}").ConfigureAwait(false);
+                }
+            }
+        }
+
+        public async Task Evaluate(SocketCommandContext context, string script, CancellationToken cancellationToken = default)
+        {
+            using (context.Channel.EnterTypingState())
+            {
+                IUserMessage working = await context.Channel.SendMessageAsync("**Evaluating**, just a sec...")
+                    .ConfigureAwait(false);
+                var globals = new ScriptGlobals
+                {
+                    handler = _handler,
+                    client = _client,
+                    context = context,
+                    dbContext = _dbContext
+                };
+                script = script.Trim('`');
+                try
+                {
+                    object eval = await CSharpScript
+                        .EvaluateAsync(script, _options, globals, cancellationToken: cancellationToken)
                         .ConfigureAwait(false);
                     await working.ModifyAsync(x => x.Content = eval.ToString()).ConfigureAwait(false);
                 }
@@ -109,7 +137,7 @@ namespace KiteBotCore.Modules.Eval
         public CommandHandler handler { get; internal set; }
         public KiteBotDbContext dbContext { get; internal set; }
         public DiscordSocketClient client { get; internal set; }
-        public ICommandContext context { get; internal set; }
+        public SocketCommandContext context { get; internal set; }
         public SocketMessage msg => context.Message as SocketMessage;
         public SocketGuild guild => context.Guild as SocketGuild;
         public SocketGuildChannel channel => context.Channel as SocketGuildChannel;

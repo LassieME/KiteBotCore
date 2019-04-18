@@ -22,6 +22,7 @@ using ExtendedGiantBombClient.Interfaces;
 using Google.Apis.YouTube.v3;
 using KiteBotCore.Modules.RankModule;
 using ExtendedGiantBombRestClient = ExtendedGiantBombClient.ExtendedGiantBombRestClient;
+using Discord.Addons.Interactive;
 
 namespace KiteBotCore
 {
@@ -172,8 +173,7 @@ namespace KiteBotCore
 
                     var services = new ServiceCollection();
                     _handler = new CommandHandler();
-                    var gbClient =
-                        new ExtendedGiantBombRestClient(_settings.GiantBombApiKey) as IExtendedGiantBombRestClient;
+                    var gbClient = new ExtendedGiantBombRestClient(_settings.GiantBombApiKey) as IExtendedGiantBombRestClient;
                     var upcomingService = new UpcomingJsonService();
                     services.AddSingleton(Client);
                     services.AddSingleton(_settings);
@@ -184,6 +184,8 @@ namespace KiteBotCore
                     services.AddEntityFrameworkNpgsql()
                         .AddDbContext<KiteBotDbContext>(options => options.UseNpgsql(_settings.DatabaseConnectionString));
                     services.AddSingleton(gbClient);
+                    services.AddSingleton(new InteractiveService(Client,TimeSpan.FromMinutes(30)));
+                    services.AddSingleton(new ShineService(_dbFactory));
                     services.AddSingleton(new VideoService(gbClient));
                     services.AddSingleton(new LivestreamCheckerV2(Client, upcomingService,
                         _settings.GiantBombLiveStreamRefreshRate, _silentStartup));

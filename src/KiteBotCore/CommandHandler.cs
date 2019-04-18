@@ -59,7 +59,7 @@ namespace KiteBotCore
                 // Create a Command Context
                 try
                 {
-                    var context = new CommandContext(_client, message);
+                    var context = new SocketCommandContext(_client, message);
 
                     // Execute the Command, store the result
                     var result = await Commands.ExecuteAsync(context, argPos, _services).ConfigureAwait(false);
