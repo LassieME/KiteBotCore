@@ -35,16 +35,16 @@ namespace KiteBotCore.Modules
             {
                 await ReplyAsync(KiteChat.MultiDeepMarkovChains.GetSequence() + "\n" +
                                  KiteChat.MultiDeepMarkovChains.GetSequence() + "\n" +
-                                 KiteChat.MultiDeepMarkovChains.GetSequence() + "\n").ConfigureAwait(false);
+                                 KiteChat.MultiDeepMarkovChains.GetSequence() + "\n", allowedMentions: AllowedMentions.None).ConfigureAwait(false);
             }
             else if (haiku != null)
             {
                 var output = KiteChat.MultiDeepMarkovChains.GetMatch(haiku);//_markovChain.GetMatches(haiku);
-                await ReplyAsync(output).ConfigureAwait(false);
+                await ReplyAsync(output, allowedMentions: AllowedMentions.None).ConfigureAwait(false);
             }
             else
             {
-                await ReplyAsync(KiteChat.MultiDeepMarkovChains.GetSequence()).ConfigureAwait(false);
+                await ReplyAsync(KiteChat.MultiDeepMarkovChains.GetSequence(), allowedMentions: AllowedMentions.None).ConfigureAwait(false);
             }
         }
 
@@ -70,7 +70,7 @@ namespace KiteBotCore.Modules
                 }
 
                 await KiteChat.MultiDeepMarkovChains.SaveAsync().ConfigureAwait(false);
-                await ReplyAsync($"{i} messages downloaded.").ConfigureAwait(false);
+                await ReplyAsync($"{i} messages downloaded.", allowedMentions: AllowedMentions.None).ConfigureAwait(false);
             }
         }
 

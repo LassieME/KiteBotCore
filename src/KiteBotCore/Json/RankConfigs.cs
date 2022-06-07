@@ -20,6 +20,9 @@ namespace KiteBotCore.Json
 
         [JsonProperty("Premium")]
         public Premium Premium { get; set; }
+
+        [JsonProperty("LinkedRoles")]
+        public Dictionary<ulong, List<Color>> LinkedColors { get; set; }
     }
 
     public class Premium : IRankRole
@@ -46,6 +49,9 @@ namespace KiteBotCore.Json
 
         [JsonProperty("RoleColors")]
         public List<Color> Colors { get; set; }
+
+        [JsonProperty("RemoveWhen")]
+        public ulong? RemoveWhen { get; set; }
     }
 
     public class Color : IColor

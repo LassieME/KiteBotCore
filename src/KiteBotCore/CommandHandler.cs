@@ -39,8 +39,17 @@ namespace KiteBotCore
             }
         }
 
+        public void EnableCommands() 
+        {
+            enabled = true;
+        }
+
+        public bool enabled = false;
+
         public async Task HandleBotCommand(SocketMessage parameterMessage)
         {
+            if (enabled == false)
+                return;
             // Don't handle the command if it is a system message
             if (!(parameterMessage is SocketUserMessage message)) return;
             if (message.Author is SocketUnknownUser) return;
@@ -69,6 +78,7 @@ namespace KiteBotCore
                     {
                         await message.Channel.SendMessageAsync($"**Error:** {result.ErrorReason}")
                             .ConfigureAwait(false);
+                        Log.Debug($"**Error:** {result.Error}");
                         Log.Debug($"**Error:** {result.ErrorReason}");
                     }
                 }

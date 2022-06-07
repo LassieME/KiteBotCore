@@ -18,7 +18,7 @@ namespace KiteBotCore.Modules
         [Summary("Anime and weed, all you need.")]
         public async Task FourTwentyCommand()
         {
-            await ReplyAsync("http://420.moe/", false, new EmbedBuilder().WithDescription("ANIME AND WEED ALL U NEED").Build()).ConfigureAwait(false);
+            await ReplyAsync("flash:http://420.moe/ html:http://420.mon.im/", false, new EmbedBuilder().WithDescription("ANIME AND WEED ALL U NEED").Build()).ConfigureAwait(false);
         }
         
         [Command("makemycommand", RunMode = RunMode.Async)]
@@ -39,13 +39,13 @@ namespace KiteBotCore.Modules
             });
         }
 
-        [Command("archive")]
-        [Alias("gbarchive")]
-        [Summary("Links you the GB livestream archive")]
-        public async Task GBArchiveCommand()
-        {
-            await ReplyAsync("http://www.giantbomb.com/videos/embed/8635/?allow_gb=yes").ConfigureAwait(false);
-        }
+        //[Command("archive")]
+        //[Alias("gbarchive")]
+        //[Summary("Links you the GB livestream archive")]
+        //public async Task GBArchiveCommand()
+        //{
+        //    await ReplyAsync("http://www.giantbomb.com/videos/embed/8635/?allow_gb=yes").ConfigureAwait(false);
+        //}
 
         [Command("hi", RunMode = RunMode.Async)]
         [Summary("Mentions you and says hello")]
@@ -117,6 +117,7 @@ namespace KiteBotCore.Modules
         {
             var readOnlyCollection1 = await Context.Client.GetGuildsAsync();
             var readOnlyCollection = await readOnlyCollection1.First(x => x.Id == 106386929506873344).GetTextChannelsAsync();
+            var error = "";
             foreach(var channel in readOnlyCollection)
             {
                 if (channel.Name.Contains("-") &&
@@ -126,12 +127,16 @@ namespace KiteBotCore.Modules
                     {
                         await channel.ModifyAsync(x => x.Name = channel.Name.Replace('-', '\u2005'));
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
-                        //skip
+                        error += (e.Message + "\n");
                     }
                 }
             }
+            if (error == "")
+                return;
+            else
+                await ReplyAsync(error);
         }
 
         [Command("fixchannelname", RunMode = RunMode.Async)]

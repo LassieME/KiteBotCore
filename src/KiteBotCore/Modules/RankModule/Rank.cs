@@ -98,7 +98,8 @@ namespace KiteBotCore.Modules.RankModule
                 var sb = new StringBuilder("You currently have these ranks:\n");
                 foreach (var rank in userRanks)
                 {
-                    sb.Append(Context.Guild.Roles.First(x => x.Id == rank.Id).Name).Append(" rewarded by ").Append(rank.RequiredTimeSpan.ToPrettyFormat()).AppendLine(" in the server");
+                    if(rank.RequiredTimeSpan > TimeSpan.FromMinutes(1))
+                        sb.AppendLine($"{Context.Guild.Roles.First(x => x.Id == rank.Id).Name} rewarded by {rank.RequiredTimeSpan.ToPrettyFormat()} in the server");
                 }
                 embed.AddField(x =>
                 {
@@ -361,6 +362,22 @@ namespace KiteBotCore.Modules.RankModule
             {
                 var remove = RankService.RemoveColorFromRank(Context.Guild, rankRankRole, colorRankRole);
                 await ReplyAsync(remove ? "OK" : "Couldn't remove rank").ConfigureAwait(false);
+            }
+
+            [Command("link")]
+            [Summary("Attaches a color role to a manually or other bot assigned role")]
+            public async Task LinkColorCommand(Discord.IRole role, Discord.IRole color)
+            {
+                ((RankServiceV2)RankService).LinkColor(this.Context.Guild, role, color);//.AddColorToRank(Context.Guild, rankRoleRank, color);
+                await ReplyAsync($"{color.Name} attached to {role.Name}").ConfigureAwait(false);
+            }
+
+            [Command("unlink")]
+            [Summary("Removes a color from a role manually assigned or other bots")]
+            public async Task UnlinkRankCommand(Discord.IRole role, Discord.IRole color)
+            {
+                var result = ((RankServiceV2)RankService).UnlinkColor(this.Context.Guild, role, color);
+                await ReplyAsync(result ? "OK" : "Couldn't unlink color from role, either it doesnt exist or is deleted").ConfigureAwait(false);
             }
         }
     }

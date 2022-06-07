@@ -56,7 +56,7 @@ namespace KiteBotCore.Modules
             if (parameterMessage.Author.Id != User || parameterMessage.Channel.Id != _channel)
                 return Task.CompletedTask;
 
-            var _ = Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 try
                 {

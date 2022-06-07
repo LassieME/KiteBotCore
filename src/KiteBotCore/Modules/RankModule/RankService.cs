@@ -50,7 +50,7 @@ namespace KiteBotCore.Modules.RankModule
         //TODO: Should probably not be here
         private async Task<User> AddUserTask(IGuildUser userInput)
         {
-            using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
+            using (var db = _discordFactory.Create())
             {
                 var guild = await db.Guilds.Include(g => g.Users).SingleOrDefaultAsync(x => x.GuildId == userInput.Guild.Id.ConvertToUncheckedLong()).ConfigureAwait(false);
                 var user = await db.FindAsync<User>(userInput.Id.ConvertToUncheckedLong()).ConfigureAwait(false);
@@ -88,7 +88,7 @@ namespace KiteBotCore.Modules.RankModule
         {
             if (!_activityQueue.IsEmpty)
             {
-                using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
+                using (var db = _discordFactory.Create())
                 {
                     await db.Users.LoadAsync().ConfigureAwait(false);
                     while (!_activityQueue.IsEmpty)
@@ -116,7 +116,7 @@ namespace KiteBotCore.Modules.RankModule
             {
                 foreach (var guild in _client.Guilds.Where(x => _rankConfigs.GuildConfigs.Keys.Contains(x.Id)))
                 {
-                    using (KiteBotDbContext db = _discordFactory.Create(new DbContextFactoryOptions()))
+                    using (KiteBotDbContext db = _discordFactory.Create())
                     {
                         var users = db.Users.Include(u => u.UserRoles).ToList();
                         foreach (var socketGuildUser in guild.Users.Where(x => !x.IsBot))
@@ -241,7 +241,7 @@ namespace KiteBotCore.Modules.RankModule
 
         public async Task<DateTimeOffset> GetUserLastActivityAsync(IGuildUser inputUser, IGuild guild)
         {
-            using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
+            using (var db = _discordFactory.Create())
             {
                 var user = await db.FindAsync<User>(inputUser.Id.ConvertToUncheckedLong()).ConfigureAwait(false);
 
@@ -253,7 +253,7 @@ namespace KiteBotCore.Modules.RankModule
 
         public async Task<DateTimeOffset> GetUserJoinDateAsync(IUser inputUser, IGuild guild)
         {
-            using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
+            using (var db = _discordFactory.Create())
             {
                 var user = await db.FindAsync<User>(inputUser.Id.ConvertToUncheckedLong()).ConfigureAwait(false);
 
@@ -268,7 +268,7 @@ namespace KiteBotCore.Modules.RankModule
             //Gets regular colors awarded by reaching ranks
             var awardedRoles = (await GetAwardedRolesAsync(user, guild).ConfigureAwait(false)).SelectMany(x => x.Colors);
             //Gets colors assigned my admins/mods
-            using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
+            using (var db = _discordFactory.Create())
             {
                 var dbUser = await db.Users
                     .Include(u => u.UserRoles)
@@ -360,7 +360,7 @@ namespace KiteBotCore.Modules.RankModule
 
         public async Task SetJoinDateAsync(IUser user, IGuild guild, DateTimeOffset newDate)
         {
-            using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
+            using (var db = _discordFactory.Create())
             {
                 var dbUser = await db.Users.FindAsync(user.Id.ConvertToUncheckedLong()).ConfigureAwait(false);
                 dbUser.JoinedAt = newDate;
@@ -370,7 +370,7 @@ namespace KiteBotCore.Modules.RankModule
 
         public async Task<bool> AssignColorToUserAsync(IGuild guild, IUser user, Discord.IRole colorRole, TimeSpan? timeToRemove)
         {
-            using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
+            using (var db = _discordFactory.Create())
             {
                 var dbUser = await db.Users
                     .Include(u => u.UserRoles)
@@ -398,7 +398,7 @@ namespace KiteBotCore.Modules.RankModule
 
         public async Task<bool> UnassignColorFromUserAsync(IUser user, Discord.IRole rankRole)
         {
-            using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
+            using (var db = _discordFactory.Create())
             {
                 var dbUser = await db.Users.Include(u => u.UserRoles).FirstOrDefaultAsync(x => x.UserId == user.Id.ConvertToUncheckedLong()).ConfigureAwait(false);
                 var roleToRemove = dbUser.UserRoles.FirstOrDefault(x => x.RoleId == user.Id.ConvertToUncheckedLong());
@@ -415,7 +415,7 @@ namespace KiteBotCore.Modules.RankModule
 
         public async Task<IList<(ulong roleId, DateTimeOffset? expiry)>> GetAssignedRolesAsync(IGuild guild, IUser user)
         {
-            using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
+            using (var db = _discordFactory.Create())
             {
                 var listOfRoles = new List<(ulong roleId, DateTimeOffset? expiry)>();
                 var dbUser = await db.Users

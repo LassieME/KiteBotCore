@@ -81,7 +81,7 @@ namespace KiteBotCore.Modules.Youtube
 
             SearchResult data = searchResponse.Items.FirstOrDefault(v => v.Id.Kind == "youtube#video");
 
-            if (data != null && (watched.LastVideoId != null || watched.WatchedType == WatchType.Livestream) && data.Id.VideoId != watched.LastVideoId && ( DateTime.UtcNow - data.Snippet.PublishedAt) < TimeSpan.FromMinutes(10))
+            if (data != null && (watched.LastVideoId != null || watched.WatchedType == WatchType.Livestream) && data.Id.VideoId != watched.LastVideoId && ( DateTime.UtcNow - Convert.ToDateTime(data.Snippet.PublishedAt)) < TimeSpan.FromMinutes(10))
             {
                 foreach (var channelId in watched.ChannelsThatAreSubbed)
                 {

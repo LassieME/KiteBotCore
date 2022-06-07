@@ -17,12 +17,12 @@ using Serilog;
 
 namespace KiteBotCore.Modules
 {
-    public class Admin : CleansingModuleBase
+    public class AdminModule : CleansingModuleBase
     {
         private readonly CommandHandler _handler;
         private readonly IServiceProvider _services;
 
-        public Admin(IServiceProvider services)
+        public AdminModule(IServiceProvider services)
         {
             _handler = services.GetService<CommandHandler>();
             _services = services;
@@ -90,18 +90,18 @@ namespace KiteBotCore.Modules
         //    await KiteChat.StreamChecker.LivestreamOffName(channelName, Context.Guild.Id).ConfigureAwait(false);
         //}
 
-        [Command("save")]
-        [Summary("saves markov chain messages")]
-        [RequireBotOwner]
-        public async Task SaveCommand()
-        {
-            var message = await ReplyAsync("OK").ConfigureAwait(false);
-            var saveTask = KiteChat.MultiDeepMarkovChains.SaveAsync();
-            await saveTask.ContinueWith(async (e) =>
-            {
-                if (e.IsCompleted) await message.ModifyAsync(x => x.Content += ", Saved.").ConfigureAwait(false);
-            }).ConfigureAwait(false);
-        }
+        //[Command("save")]
+        //[Summary("saves markov chain messages")]
+        //[RequireBotOwner]
+        //public async Task SaveCommand()
+        //{
+        //    var message = await ReplyAsync("OK").ConfigureAwait(false);
+        //    var saveTask = KiteChat.MultiDeepMarkovChains.SaveAsync();
+        //    await saveTask.ContinueWith(async (e) =>
+        //    {
+        //        if (e.IsCompleted) await message.ModifyAsync(x => x.Content += ", Saved.").ConfigureAwait(false);
+        //    }).ConfigureAwait(false);
+        //}
 
         [Command("saveexit")]
         [Alias("se")]

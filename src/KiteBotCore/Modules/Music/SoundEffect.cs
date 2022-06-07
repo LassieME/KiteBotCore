@@ -9,7 +9,7 @@ using Discord.WebSocket;
 
 namespace KiteBotCore.Modules.Music
 {
-    public class SoundEffect : CleansingModuleBase
+    public class SoundEffect : ModuleBase
     {
         public DiscordSocketClient Client { get; set; }
 

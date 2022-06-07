@@ -17,8 +17,6 @@ namespace KiteBotCore
         //This is needed while doing Database migrations and updates
         private static string SettingsPath => Directory.GetCurrentDirectory().Replace(@"\bin\Debug\netcoreapp1.1.2\", "") + "/Content/settings.json";
 
-        public KiteBotDbContext Create(DbContextFactoryOptions _) => Create();
-
         public KiteBotDbContext Create() => CreateDbContext(new string[] { });
 
         public KiteBotDbContext CreateDbContext(string[] args)
@@ -32,12 +30,12 @@ namespace KiteBotCore
     {
         internal static async Task SyncGuild(this DiscordContextFactory dbFactory, SocketGuild socketGuild)
         {
-            using (var dbContext = dbFactory.Create(new DbContextFactoryOptions()))
+            using (var dbContext = dbFactory.Create())
             {
-                Guild guild = await dbContext.Guilds
+                Guild guild = (await dbContext.Guilds
                     .Include(g => g.Channels)
                     .Include(g => g.Users)
-                    .SingleOrDefaultAsync(x => x.Id == socketGuild.Id).ConfigureAwait(false);
+                    .ToListAsync()).FirstOrDefault(x => x.Id == socketGuild.Id);
 
                 //If guild does not exist, we create a new one and populate it with Users and Channels
                 if (guild == null)
@@ -77,6 +75,7 @@ namespace KiteBotCore
                         guild.Users.Add(user);
                     }
                     dbContext.Add(guild);
+                    await dbContext.SaveChangesAsync();
                 }
                 else
                 {
@@ -98,16 +97,16 @@ namespace KiteBotCore
                             };
                             guild.Channels.Add(channel);
                         }
-                        dbContext.Update(guild);
+                        await dbContext.SaveChangesAsync();
                     }
-
+                    
                     var usersNotTracked = socketGuild.Users.Where(x => guild.Users.All(y => y.Id != x.Id));
                     var socketGuildUsers = usersNotTracked as IList<SocketGuildUser> ?? usersNotTracked.ToList();
                     if (socketGuildUsers.Count > 0)
                     {
                         foreach (var userToTrack in socketGuildUsers)
                         {
-                            User user = new User
+                            User user = new()
                             {
                                 Id = userToTrack.Id,
                                 Guild = guild,
@@ -115,13 +114,12 @@ namespace KiteBotCore
                                 JoinedAt = userToTrack.JoinedAt,
                                 Messages = new List<Message>(),
                                 Name = userToTrack.Username
-                            };
+                            };                            
                             guild.Users.Add(user);
                         }
-                        dbContext.Update(guild);
-                    }
-                }
-                await dbContext.SaveChangesAsync().ConfigureAwait(false); //I could move this inside the branches, but its relatively cheap to call this if nothing has changed, and avoids multiple calls to it
+                        await dbContext.SaveChangesAsync();
+                    }                    
+                }                
             }
         }
     }

@@ -9,8 +9,6 @@ using Discord;
 using Discord.WebSocket;
 using KiteBotCore.Json;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using MarkovSharp.TokenisationStrategies;
 using MarkovSharpCore.TokenisationStrategies;
 using Newtonsoft.Json;
 using Serilog;
@@ -40,7 +38,7 @@ namespace KiteBotCore
         {
             _semaphore = new SemaphoreSlim(0, 1);
             _dbFactory = dbFactory;
-            _db = _dbFactory.Create(new DbContextFactoryOptions());
+            _db = _dbFactory.Create();
             _client = client;
             Depth = depth;
             _shouldDownload = shouldDownload;
@@ -63,7 +61,7 @@ namespace KiteBotCore
                 _isInitializing = true;
                 try
                 {
-                    using (var db = _dbFactory.Create(new DbContextFactoryOptions()))
+                    using (var db = _dbFactory.Create())
                     {
                         if (File.Exists(JsonLastMessageLocation))
                         {
@@ -148,7 +146,7 @@ namespace KiteBotCore
 
         internal Task Feed(IMessage message)
         {
-            return FeedMarkovChain(message, _dbFactory.Create(new DbContextFactoryOptions()));
+            return FeedMarkovChain(message, _dbFactory.Create());
         }
 
         public string GetSequence()
@@ -185,12 +183,12 @@ namespace KiteBotCore
                     try
                     {
                         Channel channel = channels == null
-                            ? await dbContext.Channels.FirstAsync(x => x.Id == message.Channel.Id)
+                            ? await dbContext.Channels.AsQueryable().FirstAsync(x => x.Id == message.Channel.Id)
                                 .ConfigureAwait(false)
                             : channels.Find(x => x.Id == message.Channel.Id);
 
                         User user = users == null
-                            ? await dbContext.Users.FirstAsync(x => x.Id == message.Author.Id)
+                            ? await dbContext.Users.AsQueryable().FirstAsync(x => x.Id == message.Author.Id)
                                 .ConfigureAwait(false)
                             : users.Find(x => x.Id == message.Author.Id);
 
@@ -290,7 +288,7 @@ namespace KiteBotCore
                 finally
                 {
                     _db.Dispose();
-                    _db = _dbFactory.Create(new DbContextFactoryOptions());
+                    _db = _dbFactory.Create();
                 }
             }
         }

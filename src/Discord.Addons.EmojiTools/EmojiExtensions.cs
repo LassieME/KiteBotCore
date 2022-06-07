@@ -14,7 +14,8 @@ namespace Discord.Addons.EmojiTools
         {
             text = text.Trim(':');
 
-            if (EmojiMap.Map.TryGetValue(text, out var unicode))
+            var unicode = default(string);
+            if (EmojiMap.Map.TryGetValue(text, out unicode))
                 return new Emoji(unicode);
             throw new ArgumentException("The given alias could not be matched to a Unicode Emoji.", nameof(text));
         }

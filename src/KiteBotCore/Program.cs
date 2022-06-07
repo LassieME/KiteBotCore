@@ -29,6 +29,7 @@ namespace KiteBotCore
     public static partial class Program
     {
         public static DiscordSocketClient Client;
+        public static bool CommandsEnabled => _handler.enabled;
 
         private static KiteChat _kiteChat;
         private static BotSettings _settings;
@@ -110,12 +111,25 @@ namespace KiteBotCore
                 return Task.CompletedTask;
             };
 
-            Client.GuildMembersDownloaded += async (guild) =>
+            Client.GuildMembersDownloaded += (guild) =>
             {
-                var sw = new Stopwatch();
-                sw.Start();
-                await _dbFactory.SyncGuild(guild).ConfigureAwait(false);
-                sw.Stop();
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        var sw = new Stopwatch();
+                        sw.Start();
+                        await _dbFactory.SyncGuild(guild);
+                        sw.Stop();
+                        _handler.EnableCommands();
+                        Log.Information($"GuildMembersDownloaded event finished in {sw.Elapsed.TotalSeconds} seconds. Commands ready");
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error(e, "GuildMembersDownloaded");
+                    }
+                });
+                return Task.CompletedTask;
             };
 
             Client.JoinedGuild += (server) =>
@@ -162,56 +176,61 @@ namespace KiteBotCore
         {
             try
             {
+
+                using (var db = _dbFactory.Create())
+                {
+                    var serviceProvider = db.GetInfrastructure();
+                    var loggerFactory = serviceProvider.GetService<ILoggerFactory>();
+                    loggerFactory.AddProvider(new MyLoggerProvider());
+                }
+
+                var services = new ServiceCollection();
+                _handler = new CommandHandler();
+                var gbClient = new ExtendedGiantBombRestClient(_settings.GiantBombApiKey) as IExtendedGiantBombRestClient;
+                var upcomingService = new UpcomingJsonService();
+                services.AddSingleton(Client);
+                services.AddSingleton(_settings);
+                services.AddSingleton((IRankService)new RankServiceV2(_rankConfigs, configs => File.WriteAllText(RankConfigPath, JsonConvert.SerializeObject(_rankConfigs, Formatting.Indented)), _dbFactory, Client));
+                services.AddSingleton(_kiteChat);
+                services.AddSingleton(_handler);
+                services.AddSingleton(upcomingService);
+                services.AddEntityFrameworkNpgsql()
+                    .AddDbContext<KiteBotDbContext>(options => options.UseNpgsql(_settings.DatabaseConnectionString));
+                services.AddSingleton(gbClient);
+                services.AddSingleton(new MyInteractiveService(Client, TimeSpan.FromMinutes(30)));
+                services.AddSingleton(new ShineService(_dbFactory));
+                services.AddSingleton(new VideoService(gbClient));
+                services.AddSingleton(new LivestreamCheckerV2(Client, upcomingService,
+                    _settings.GiantBombLiveStreamRefreshRate, _silentStartup));
+                services.AddSingleton(new JeffMixlrChecker(Client, _settings.GiantBombLiveStreamRefreshRate,
+                    _silentStartup));
+                services.AddSingleton(new SearchHelper(_settings.AnilistId, _settings.AnilistSecret));
+                services.AddSingleton(new ReminderService(Client));
+                services.AddSingleton(new FollowUpService());
+                services.AddSingleton(new Random());
+                services.AddSingleton(new CryptoRandom());
+                services.AddSingleton(new YouTubeService(
+                    new Google.Apis.Services.BaseClientService.Initializer { ApiKey = _settings.YoutubeApiKey }));
+
+                await _handler.InstallAsync(_commandService, services.BuildServiceProvider()).ConfigureAwait(false);
+
                 if (_isFirstTime)
                 {
-                    using (var db = _dbFactory.Create())
+                    if (_settings.MarkovChainStart)
                     {
-                        var serviceProvider = db.GetInfrastructure();
-                        var loggerFactory = serviceProvider.GetService<ILoggerFactory>();
-                        loggerFactory.AddProvider(new MyLoggerProvider());
+                        var _ = TryRun(async () =>
+                        {
+                            var sw = new Stopwatch();
+                            sw.Start();
+                            await _kiteChat.InitializeMarkovChainAsync().ConfigureAwait(false);
+                            sw.Stop();
+                            Log.Information("Initialize Markov Chain: Done,({sw} ms)", sw.ElapsedMilliseconds);
+                        });
+                        _isFirstTime = false;
                     }
-
-                    var services = new ServiceCollection();
-                    _handler = new CommandHandler();
-                    var gbClient = new ExtendedGiantBombRestClient(_settings.GiantBombApiKey) as IExtendedGiantBombRestClient;
-                    var upcomingService = new UpcomingJsonService();
-                    services.AddSingleton(Client);
-                    services.AddSingleton(_settings);
-                    services.AddSingleton((IRankService)new RankServiceV2(_rankConfigs, configs => File.WriteAllText(RankConfigPath,JsonConvert.SerializeObject(_rankConfigs,Formatting.Indented)), _dbFactory, Client));
-                    services.AddSingleton(_kiteChat);
-                    services.AddSingleton(_handler);
-                    services.AddSingleton(upcomingService);
-                    services.AddEntityFrameworkNpgsql()
-                        .AddDbContext<KiteBotDbContext>(options => options.UseNpgsql(_settings.DatabaseConnectionString));
-                    services.AddSingleton(gbClient);
-                    services.AddSingleton(new InteractiveService(Client,TimeSpan.FromMinutes(30)));
-                    services.AddSingleton(new ShineService(_dbFactory));
-                    services.AddSingleton(new VideoService(gbClient));
-                    services.AddSingleton(new LivestreamCheckerV2(Client, upcomingService,
-                        _settings.GiantBombLiveStreamRefreshRate, _silentStartup));
-                    services.AddSingleton(new JeffMixlrChecker(Client, _settings.GiantBombLiveStreamRefreshRate,
-                        _silentStartup));
-                    services.AddSingleton(new SearchHelper(_settings.AnilistId, _settings.AnilistSecret));
-                    services.AddSingleton(new ReminderService(Client));
-                    services.AddSingleton(new FollowUpService());
-                    services.AddSingleton(new Random());
-                    services.AddSingleton(new CryptoRandom());
-                    services.AddSingleton(new YouTubeService(
-                        new Google.Apis.Services.BaseClientService.Initializer {ApiKey = _settings.YoutubeApiKey}));
-
-                    await _handler.InstallAsync(_commandService, services.BuildServiceProvider()).ConfigureAwait(false);
-
-                    var _ = TryRun(async () =>
-                    {
-                        var sw = new Stopwatch();
-                        sw.Start();
-                        await _kiteChat.InitializeMarkovChainAsync().ConfigureAwait(false);
-                        sw.Stop();
-                        Log.Information("Initialize Markov Chain: Done,({sw} ms)", sw.ElapsedMilliseconds);
-                    });
-                    _isFirstTime = false;
                 }
                 Log.Information("Ready: Done");
+                Client.Ready -= OnReady;
             }
             catch (Exception ex)
             {
@@ -251,7 +270,7 @@ namespace KiteBotCore
             {
                 if (before?.Guild.Id == 85814946004238336)
                 {
-                    var channel = (ITextChannel) Client.GetChannel(85842104034541568);
+                    var channel = (ITextChannel)Client.GetChannel(85842104034541568);
                     if (channel != null && before.Nickname != after.Nickname)
                     {
                         if (before.Nickname != null && after.Nickname != null)
@@ -285,7 +304,7 @@ namespace KiteBotCore
             {
                 if (before.Username != after.Username)
                 {
-                    var channel = (SocketTextChannel) Client.GetChannel(85842104034541568);
+                    var channel = (SocketTextChannel)Client.GetChannel(85842104034541568);
                     if (channel?.Guild.Users.Any(x => x.Id == after.Id) == true)
                     {
                         await channel.SendMessageAsync($"{before.Username} changed their username to {after.Username}.")
@@ -327,6 +346,23 @@ namespace KiteBotCore
                     Log.Warning(ex, ex.Message);
                 }
             });
+        }
+
+        public static IAsyncEnumerable<TEntity> AsAsyncEnumerable<TEntity>(this Microsoft.EntityFrameworkCore.DbSet<TEntity> obj) where TEntity : class
+        {
+            return Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AsAsyncEnumerable(obj);
+        }
+        public static Task<List<TEntity>> ToListAsync<TEntity>(this Microsoft.EntityFrameworkCore.DbSet<TEntity> obj) where TEntity : class
+        {
+            return Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(obj);
+        }
+        public static Task<TEntity> FirstAsync<TEntity>(this Microsoft.EntityFrameworkCore.DbSet<TEntity> obj) where TEntity : class
+        {
+            return Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstAsync(obj);
+        }
+        public static IQueryable<TEntity> Where<TEntity>(this Microsoft.EntityFrameworkCore.DbSet<TEntity> obj, System.Linq.Expressions.Expression<Func<TEntity, bool>> predicate) where TEntity : class
+        {
+            return System.Linq.Queryable.Where(obj, predicate);
         }
     }
 }

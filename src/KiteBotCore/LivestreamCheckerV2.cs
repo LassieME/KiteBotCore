@@ -26,7 +26,7 @@ namespace KiteBotCore
         private LiveNow _liveNow;
 
         private readonly string _livestreamNotActiveName = "livestream";
-        private readonly string _livestreamActiveName = "livestream\u2005live";
+        private readonly string _livestreamActiveName = "livestream-live";
 
         public LivestreamCheckerV2(DiscordSocketClient client, UpcomingJsonService service, int streamRefresh, bool silentStartup)
         {

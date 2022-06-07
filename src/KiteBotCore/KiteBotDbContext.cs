@@ -134,7 +134,7 @@ namespace KiteBotCore
 
     public class Guild
     {
-        [Key]
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
         public long GuildId { get; set; }
 
         [NotMapped]
@@ -155,7 +155,7 @@ namespace KiteBotCore
 
     public class User
     {
-        [Key]
+        [Key,DatabaseGenerated(DatabaseGeneratedOption.None)]
         public long UserId { get; set; }
 
         [NotMapped]
@@ -222,7 +222,7 @@ namespace KiteBotCore
 
     public class Channel
     {
-        [Key]
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
         public long ChannelId { get; set; }
 
         [NotMapped]
@@ -242,7 +242,7 @@ namespace KiteBotCore
 
     public class Message
     {
-        [Key]
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
         public long MessageId { get; set; }
 
         [NotMapped]

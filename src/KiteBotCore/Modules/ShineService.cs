@@ -21,7 +21,7 @@ namespace KiteBotCore.Modules
 
         public async Task<ShineSBet> CreateBetAsync(SocketCommandContext context, int shines, TimeSpan timeSpan, string question)
         {
-            using (var db = _DbFactory.Create(new DbContextFactoryOptions()))
+            using (var db = _DbFactory.Create())
             {
                 var user = await db.FindAsync<User>((long)context.User.Id);
                 var channel = await db.FindAsync<Channel>((long)context.Channel.Id);
@@ -72,7 +72,7 @@ namespace KiteBotCore.Modules
             {
                 var userBet = b.dict.GetOrAdd(reaction.UserId, (TrueOrFalse, false));
                 if (userBet.bet == !TrueOrFalse) { return false; } //already voted other
-                using (var db = _DbFactory.Create(new DbContextFactoryOptions()))
+                using (var db = _DbFactory.Create())
                 {
                     var user = await db.FindAsync<User>((long)reaction.UserId);
                     var shineBetEvent = await db.FindAsync<ShineBetEvent>(betId);
@@ -106,7 +106,7 @@ namespace KiteBotCore.Modules
                 if (b.DateTimeOffset > DateTimeOffset.UtcNow && b.dict.TryGetValue(reaction.UserId, out (bool? bet, bool doubleDown) userBet))
                 {
                     if (userBet.doubleDown == true) return false;
-                    using (var db = _DbFactory.Create(new DbContextFactoryOptions()))
+                    using (var db = _DbFactory.Create())
                     {
                         var user = await db.FindAsync<User>((long)reaction.UserId);                        
                         var shineBetEvent = await db.FindAsync<ShineBetEvent>(betId);

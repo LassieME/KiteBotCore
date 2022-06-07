@@ -14,10 +14,11 @@ using System.Threading.Tasks;
 namespace KiteBotCore.Modules
 {
     //[RequireContext(ContextType.Guild), RequireServer(Server.GiantBomb)]
-    public class ShineModule : InteractiveBase
+    public class ShineModule : ModuleBase
     {
-        public InteractiveService InteractiveService { get; set;}
+        public MyInteractiveService MyInteractiveService { get; set;}
         public ShineService ShineService { get; set; }
+
 
         private Stopwatch _stopwatch;
         protected override void BeforeExecute(CommandInfo command)
@@ -36,11 +37,11 @@ namespace KiteBotCore.Modules
         [Summary("Creates a shine bet, in the format [Shines] [Bet question] [Time before closing] ")]
         public async Task BetRoll(int shines, string title, TimeSpan timeSpan)
         {
-            var createdBet = await ShineService.CreateBetAsync(Context, shines, timeSpan, title);
+            var createdBet = await ShineService.CreateBetAsync((SocketCommandContext)Context, shines, timeSpan, title);
             var message = await ReplyAsync("", false, (new EmbedBuilder() { Title = $"#{createdBet.Id}: {title}" }).Build());//Replace with posting message to a channel
             
-            InteractiveService.AddReactionCallback(message, new ShineCallback(createdBet, Context, "👍", timeSpan, ShineService.AddBetPositive));
-            InteractiveService.AddReactionCallback(message, new ShineCallback(createdBet, Context, "👎", timeSpan, ShineService.AddBetNegative));
+            MyInteractiveService.AddReactionCallback(message, new ShineCallback(createdBet, (SocketCommandContext)Context, "👍", timeSpan, ShineService.AddBetPositive));
+            MyInteractiveService.AddReactionCallback(message, new ShineCallback(createdBet, (SocketCommandContext)Context, "👎", timeSpan, ShineService.AddBetNegative));
             //InteractiveService.AddReactionCallback(message, new ShineCallback(createdBet, Context, "2⃣", timeSpan, ShineService.AddDoubleDown));  
             await message.AddReactionsAsync(new Emoji[] { EmojiExtensions.FromText("thumbsup"), EmojiExtensions.FromText("thumbsdown") });
             _ = Task.Run(async () => { await Task.Delay(timeSpan); await message.RemoveAllReactionsAsync(); });

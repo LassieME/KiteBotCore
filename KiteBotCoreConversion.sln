@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27004.2009
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31129.286
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{05D58AE3-1C92-4DFD-9FA0-03F3769B7115}"
 EndProject
@@ -15,6 +15,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarkovSharpCore", "src\MarkovSharpCore\MarkovSharpCore.csproj", "{31692B42-26A5-459D-A049-D8586B71A1FA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExtendedGiantBombClient", "src\ExtendedGiantBombClient\ExtendedGiantBombClient.csproj", "{9E7745E9-EC4E-45CB-B389-885BD74F3F2A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Discord.Addons.EmojiTools", "src\Discord.Addons.EmojiTools\Discord.Addons.EmojiTools.csproj", "{6D17FE57-5AD0-4762-94FC-00D82EF9633A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -62,6 +64,18 @@ Global
 		{9E7745E9-EC4E-45CB-B389-885BD74F3F2A}.Release|x64.Build.0 = Release|Any CPU
 		{9E7745E9-EC4E-45CB-B389-885BD74F3F2A}.Release|x86.ActiveCfg = Release|Any CPU
 		{9E7745E9-EC4E-45CB-B389-885BD74F3F2A}.Release|x86.Build.0 = Release|Any CPU
+		{6D17FE57-5AD0-4762-94FC-00D82EF9633A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D17FE57-5AD0-4762-94FC-00D82EF9633A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D17FE57-5AD0-4762-94FC-00D82EF9633A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6D17FE57-5AD0-4762-94FC-00D82EF9633A}.Debug|x64.Build.0 = Debug|Any CPU
+		{6D17FE57-5AD0-4762-94FC-00D82EF9633A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6D17FE57-5AD0-4762-94FC-00D82EF9633A}.Debug|x86.Build.0 = Debug|Any CPU
+		{6D17FE57-5AD0-4762-94FC-00D82EF9633A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D17FE57-5AD0-4762-94FC-00D82EF9633A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D17FE57-5AD0-4762-94FC-00D82EF9633A}.Release|x64.ActiveCfg = Release|Any CPU
+		{6D17FE57-5AD0-4762-94FC-00D82EF9633A}.Release|x64.Build.0 = Release|Any CPU
+		{6D17FE57-5AD0-4762-94FC-00D82EF9633A}.Release|x86.ActiveCfg = Release|Any CPU
+		{6D17FE57-5AD0-4762-94FC-00D82EF9633A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -70,6 +84,7 @@ Global
 		{704BD01F-7437-4329-8B28-621394768C10} = {05D58AE3-1C92-4DFD-9FA0-03F3769B7115}
 		{31692B42-26A5-459D-A049-D8586B71A1FA} = {05D58AE3-1C92-4DFD-9FA0-03F3769B7115}
 		{9E7745E9-EC4E-45CB-B389-885BD74F3F2A} = {05D58AE3-1C92-4DFD-9FA0-03F3769B7115}
+		{6D17FE57-5AD0-4762-94FC-00D82EF9633A} = {05D58AE3-1C92-4DFD-9FA0-03F3769B7115}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CBC44ECD-21DC-49A8-8245-7081549B032E}

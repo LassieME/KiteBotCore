@@ -18,7 +18,7 @@ namespace KiteBotCore.Modules
 
         static KiteDunk()
         {
-            KiteDunkTimer = new Timer(async s => await UpdateKiteDunks(), null, TimeSpan.FromHours(24), TimeSpan.FromHours(24));//a day
+            //KiteDunkTimer = new Timer(async s => await UpdateKiteDunks(), null, TimeSpan.FromHours(24), TimeSpan.FromHours(24));//a day
         }
 
         [Command("kitedunk"), Summary("Posts a hot Kite Dunk"), Alias("dunk"),RequireServer(Server.KiteCo)]
@@ -89,8 +89,7 @@ namespace KiteBotCore.Modules
             catch (Exception e)
             {
                 Console.WriteLine("Update of KiteDunks failed, retrying... " + e.Message);
-                await Task.Delay(5000);
-                await UpdateKiteDunks();
+                throw;
             }
         }
     }

@@ -48,22 +48,25 @@ namespace KiteBotCore.Modules.RankModule
             client.MessageReceived += UpdateLastActivityTask;
 
             _roleTimer = new Timer(async e => await Task.Run(async () => await RoleTimerTask().ConfigureAwait(false))
-                        .ConfigureAwait(false), null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(2));
+                        .ConfigureAwait(false), null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(2));
 
             _activityTimer = new Timer(async e => await Task.Run(async () => await ActivityTimerTask().ConfigureAwait(false))
-                        .ConfigureAwait(false), null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
+                        .ConfigureAwait(false), null, TimeSpan.FromMinutes(3), TimeSpan.FromMinutes(1));
 
             _roleProviders = new List<IRoleProvider>
             {                
                 new AssignedRoleProvider(),
-                new RankRoleProvider(rankConfigs)
+                new RankRoleProvider(rankConfigs),
+                new LinkedRoleProvider(rankConfigs)
             };
         }
 
         //TODO: Should probably not be here
         private async Task<User> AddUserTask(IGuildUser userInput)
         {
-            using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
+            if (Program.CommandsEnabled == false)
+                throw new NotImplementedException();
+            using (var db = _discordFactory.Create())
             {
                 var guild = await db.Guilds.Include(g => g.Users)
                     .SingleOrDefaultAsync(x => x.GuildId == userInput.Guild.Id.ConvertToUncheckedLong())
@@ -102,9 +105,11 @@ namespace KiteBotCore.Modules.RankModule
 
         private async Task ActivityTimerTask()
         {
+            if (Program.CommandsEnabled == false)
+                return;
             if (!_activityQueue.IsEmpty)
             {
-                using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
+                using (var db = _discordFactory.Create())
                 {
                     await db.Users.LoadAsync().ConfigureAwait(false);
                     while (!_activityQueue.IsEmpty)
@@ -128,12 +133,14 @@ namespace KiteBotCore.Modules.RankModule
 
         private async Task RoleTimerTask()
         {
+            if (Program.CommandsEnabled == false)
+                return;
             _roleTimer.Change(Timeout.Infinite, Timeout.Infinite);
             try
             {
                 foreach (var guild in _client.Guilds.Where(x => _rankConfigs.GuildConfigs.Keys.Contains(x.Id)))
                 {
-                    using (KiteBotDbContext db = _discordFactory.Create(new DbContextFactoryOptions()))
+                    using (KiteBotDbContext db = _discordFactory.Create())
                     {
                         await db.Users.Include(u => u.UserRoles).LoadAsync().ConfigureAwait(false);
                         List<IRankRole> allRanks = new List<IRankRole>();
@@ -258,7 +265,7 @@ namespace KiteBotCore.Modules.RankModule
 
         public async Task<DateTimeOffset> GetUserLastActivityAsync(IGuildUser inputUser, IGuild guild)
         {
-            using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
+            using (var db = _discordFactory.Create())
             {
                 var user = await db.FindAsync<User>(inputUser.Id.ConvertToUncheckedLong()).ConfigureAwait(false);
 
@@ -270,7 +277,7 @@ namespace KiteBotCore.Modules.RankModule
 
         public async Task<DateTimeOffset> GetUserJoinDateAsync(IUser inputUser, IGuild guild)
         {
-            using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
+            using (var db = _discordFactory.Create())
             {
                 var user = await db.FindAsync<User>(inputUser.Id.ConvertToUncheckedLong()).ConfigureAwait(false);
 
@@ -282,7 +289,7 @@ namespace KiteBotCore.Modules.RankModule
 
         public async Task<IEnumerable<IColor>> GetAvailableColorsAsync(IGuildUser user, IGuild guild)
         {
-            using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
+            using (var db = _discordFactory.Create())
             {
                 var colors = new List<IColor>();
                 var id = (long) user.Id;
@@ -307,15 +314,15 @@ namespace KiteBotCore.Modules.RankModule
 
         public void AddRank(IGuild guild, Discord.IRole role, TimeSpan timeSpan)
         {
-            if (_rankConfigs.GuildConfigs.TryGetValue(guild.Id, out var ranks))
-                ranks.Ranks.Add(role.Id, new Rank
+            if (_rankConfigs.GuildConfigs.TryGetValue((ulong)guild.Id, out var rGuild))
+                rGuild.Ranks.Add(role.Id, new Rank
                 {
                     Id = role.Id,
                     Colors = new List<Color>(),
                     RequiredTimeSpan = timeSpan
                 });
             else
-                _rankConfigs.GuildConfigs.Add(guild.Id, new GuildRanks
+                _rankConfigs.GuildConfigs.Add((ulong)guild.Id, new GuildRanks
                 {
                     GuildId = guild.Id,
                     Ranks = new Dictionary<ulong, Rank>
@@ -340,6 +347,46 @@ namespace KiteBotCore.Modules.RankModule
             if (result)
                 _saveFunc(_rankConfigs);
             return result;
+        }
+        public void LinkColor(IGuild guild, Discord.IRole role, Discord.IRole ColorToLink)
+        {
+            List<Color> colors;
+            GuildRanks outGuild;
+            if (!_rankConfigs.GuildConfigs.TryGetValue(guild.Id, out outGuild))
+            {
+                _rankConfigs.GuildConfigs.Add(guild.Id, new GuildRanks
+                {
+                    GuildId = guild.Id,
+                    Ranks = new Dictionary<ulong, Rank>()
+
+                });
+                outGuild = _rankConfigs.GuildConfigs.GetValueOrDefault(guild.Id);
+            }
+
+            if (outGuild.LinkedColors.TryGetValue(role.Id, out colors))
+            {
+                colors.Add(new Color() { Id = ColorToLink.Id });
+            }
+            else
+            {
+                var list = new List<Color>() { new Color() { Id = ColorToLink.Id } };
+                outGuild.LinkedColors.Add(role.Id, list);
+            }
+            _saveFunc(_rankConfigs);            
+        }
+
+        public bool UnlinkColor(IGuild guild, Discord.IRole role, Discord.IRole ColorToUnlink)
+        {
+            var result = _rankConfigs.GuildConfigs[guild.Id].LinkedColors[role.Id];
+            var amount = result.Count;
+            result.RemoveAll(x => x.Id == ColorToUnlink.Id);
+            if (amount > result.Count)
+            {
+                _saveFunc(_rankConfigs);
+                return true;
+            }
+            return false;
+            
         }
 
         public IEnumerable<IRankRole> GetRanksForGuild(IGuild guild)
@@ -375,7 +422,7 @@ namespace KiteBotCore.Modules.RankModule
 
         public async Task SetJoinDateAsync(IUser user, IGuild guild, DateTimeOffset newDate)
         {
-            using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
+            using (var db = _discordFactory.Create())
             {
                 var dbUser = await db.Users.FindAsync(user.Id.ConvertToUncheckedLong()).ConfigureAwait(false);
                 dbUser.JoinedAt = newDate;
@@ -385,7 +432,7 @@ namespace KiteBotCore.Modules.RankModule
 
         public async Task<bool> AssignColorToUserAsync(IGuild guild, IUser user, Discord.IRole colorRole, TimeSpan? timeToRemove)
         {
-            using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
+            using (var db = _discordFactory.Create())
             {
                 var dbUser = await db.Users
                     .Include(u => u.UserRoles)
@@ -413,7 +460,7 @@ namespace KiteBotCore.Modules.RankModule
 
         public async Task<bool> UnassignColorFromUserAsync(IUser user, Discord.IRole rankRole)
         {
-            using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
+            using (var db = _discordFactory.Create())
             {
                 var dbUser = await db.Users.Include(u => u.UserRoles)
                     .FirstOrDefaultAsync(x => x.UserId == user.Id.ConvertToUncheckedLong()).ConfigureAwait(false);
@@ -432,7 +479,7 @@ namespace KiteBotCore.Modules.RankModule
         public async Task<IList<(ulong roleId, DateTimeOffset? expiry)>> GetAssignedRolesAsync(IGuild guild, IUser user)
         {
             //TODO: This works but should re rewritten
-            using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
+            using (var db = _discordFactory.Create())
             {
                 var listOfRoles = new List<(ulong roleId, DateTimeOffset? expiry)>();
                 var dbUser = await db.Users
@@ -448,7 +495,7 @@ namespace KiteBotCore.Modules.RankModule
 
         public async Task<IList<IRole>> GetAllManagedRolesAsync(IGuild guild)
         {
-            using (var db = _discordFactory.Create(new DbContextFactoryOptions()))
+            using (var db = _discordFactory.Create())
             {
                 var roles = new List<IRole>();
 

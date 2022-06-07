@@ -5,7 +5,7 @@ using ExtendedGiantBombClient.Interfaces;
 using GiantBomb.Api;
 using KiteBotCore;
 using KiteBotCore.Utils;
-using RestSharp.Portable;
+using RestSharp;
 using Serilog;
 
 namespace ExtendedGiantBombClient
