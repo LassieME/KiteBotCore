@@ -14,6 +14,7 @@ using System.IO.Compression;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Serilog;
+using System.Net;
 
 namespace KiteBotCore.Modules
 {
@@ -39,8 +40,26 @@ namespace KiteBotCore.Modules
             {
                 var listOfMessages = await channelToArchive.GetMessagesAsync(amount).FlattenAsync().ConfigureAwait(false);
                 List<Message> list = new List<Message>(listOfMessages.Count());
+                int counter = 0;
                 foreach (var message in listOfMessages)
+                {
                     list.Add(new Message { Author = message.Author.Username, Content = message.Content, Timestamp = message.Timestamp });
+                    using (var client = new WebClient())
+                    {
+                        var attachments = message.Attachments.ToArray();
+                        foreach (var attachment in attachments)
+                        {
+                            var fileName = attachment.Filename;
+
+                            while (File.Exists(fileName))
+                            {
+                                fileName = fileName + $"{counter++}";
+                            }
+                            
+                            client.DownloadFile(attachment.Url, attachment.Filename);
+                        }
+                    }
+                }
                 var jsonSettings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
                 var json = JsonConvert.SerializeObject(list, Formatting.Indented, jsonSettings);
 
