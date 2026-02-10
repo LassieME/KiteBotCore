@@ -74,23 +74,16 @@ namespace KiteBotCore.Modules
             {
                 try
                 {
-                    var channel = await client.GetUser(user).GetOrCreateDMChannelAsync().ConfigureAwait(false);
-                    await channel.SendMessageAsync(title + ": " + deck +
+                    var channel = await client.GetUser(user).SendMessageAsync(title + ": " + deck +
                                                    " is LIVE at <http://www.giantbomb.com/chat/> NOW, check it out!" +
                                                    Environment.NewLine + (image ?? ""))
                         .ConfigureAwait(false);
                 }
-                catch (Discord.Net.HttpException httpException)
+                catch (Discord.Net.HttpException)
                 {
-                    if (httpException.DiscordCode == 50007)
-                    {
-                        Log.Information(httpException, "couldn't send {user} a DM, removing", user);
-                        RemoveFromList(user);
-                    }
-                    else
-                    {
-                        Log.Warning(httpException, "A unhandled error happened in Subscribe.PostLivestream");
-                    }
+                    Log.Information($"couldn't send {user} a DM, removing");
+                    RemoveFromList(user);
+                    
                 }
                 catch (Exception ex)
                 {
@@ -105,24 +98,15 @@ namespace KiteBotCore.Modules
             {
                 try
                 {
-                    var channel = await client.GetUser(user).GetOrCreateDMChannelAsync().ConfigureAwait(false);
-
-                    await channel.SendMessageAsync(message.Content, embed: message.Embeds.FirstOrDefault()?.ToEmbedBuilder().Build());
+                    var channel = await client.GetUser(user).SendMessageAsync(message.Content, embed: message.Embeds.FirstOrDefault()?.ToEmbedBuilder().Build());
                 }
-                catch (Discord.Net.HttpException httpException)
+                catch (Discord.Net.HttpException)
                 {
-                    if (httpException.DiscordCode == 50007)
-                    {
-                        Log.Information(httpException, "couldn't send {user} a DM, removing", user);
-                        RemoveFromList(user);
-                    }
-                    else
-                    {
-                        Log.Warning(httpException, "A unhandled error happened in Subscribe.PostLivestream");
-                    }
+                    RemoveFromList(user);
                 }
                 catch (Exception ex)
                 {
+                    Log.Information($"couldn't send {user} a DM, removing");
                     Log.Warning(ex, "A unhandled error happened in Subscribe.PostLivestream");
                 }
             }

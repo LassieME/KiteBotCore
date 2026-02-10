@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 using Serilog;
@@ -88,11 +89,7 @@ namespace KiteBotCore.Modules.Reminder
                 {
                     try
                     {
-                        var channel = await _client.GetUser(reminder.UserId)
-                            .GetOrCreateDMChannelAsync()
-                            .ConfigureAwait(false);
-
-                        await channel.SendMessageAsync($"Reminder: {reminder.Reason}").ConfigureAwait(false);
+                        await _client.GetUser(reminder.UserId).SendMessageAsync($"Reminder: {reminder.Reason}").ConfigureAwait(false);
                     }
                     catch(Exception ex)
                     {

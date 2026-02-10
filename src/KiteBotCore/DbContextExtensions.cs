@@ -32,10 +32,7 @@ namespace KiteBotCore
         {
             using (var dbContext = dbFactory.Create())
             {
-                Guild guild = (await dbContext.Guilds
-                    .Include(g => g.Channels)
-                    .Include(g => g.Users)
-                    .ToListAsync()).FirstOrDefault(x => x.Id == socketGuild.Id);
+                Guild guild = (await dbContext.Guilds.Include(g => g.Channels).Include(g => g.Users).ToListAsync()).Find(x => x.Id == socketGuild.Id);
 
                 //If guild does not exist, we create a new one and populate it with Users and Channels
                 if (guild == null)

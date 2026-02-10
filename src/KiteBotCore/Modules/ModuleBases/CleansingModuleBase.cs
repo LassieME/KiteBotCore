@@ -8,7 +8,7 @@ namespace KiteBotCore.Modules
 {
     public abstract class CleansingModuleBase : ModuleBase
     {
-        protected override async Task<IUserMessage> ReplyAsync(string message = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, AllowedMentions allowedMentions = null, MessageReference messageReference = null)
+        protected override async Task<IUserMessage> ReplyAsync(string message = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, AllowedMentions allowedMentions = null, MessageReference messageReference = null, MessageComponent components = null, ISticker[] stickers = null, Embed[] embeds = null, MessageFlags flags = MessageFlags.None)
         {
             Regex regex = new Regex("<@!?([0-9]+)>");
             string output = message.Replace("@​everyone", "@every\x200Bone").Replace("@here", "@he\x200Bre");

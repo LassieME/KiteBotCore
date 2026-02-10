@@ -19,10 +19,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using ExtendedGiantBombClient.Interfaces;
-using Google.Apis.YouTube.v3;
 using KiteBotCore.Modules.RankModule;
 using ExtendedGiantBombRestClient = ExtendedGiantBombClient.ExtendedGiantBombRestClient;
-using Discord.Addons.Interactive;
 
 namespace KiteBotCore
 {
@@ -62,7 +60,8 @@ namespace KiteBotCore
                 LogLevel = LogSeverity.Debug,
                 MessageCacheSize = 0,
                 AlwaysDownloadUsers = true,
-                HandlerTimeout = 2000
+                HandlerTimeout = 2000,
+                GatewayIntents = GatewayIntents.All
             });
 
             if (File.Exists(SettingsPath))
@@ -171,9 +170,10 @@ namespace KiteBotCore
 
             await Task.Delay(-1).ConfigureAwait(false);
         }
-
+                
         private static async Task OnReady()
         {
+            Console.WriteLine("OnReady");
             try
             {
 
@@ -197,8 +197,6 @@ namespace KiteBotCore
                 services.AddEntityFrameworkNpgsql()
                     .AddDbContext<KiteBotDbContext>(options => options.UseNpgsql(_settings.DatabaseConnectionString));
                 services.AddSingleton(gbClient);
-                services.AddSingleton(new MyInteractiveService(Client, TimeSpan.FromMinutes(30)));
-                services.AddSingleton(new ShineService(_dbFactory));
                 services.AddSingleton(new VideoService(gbClient));
                 services.AddSingleton(new LivestreamCheckerV2(Client, upcomingService,
                     _settings.GiantBombLiveStreamRefreshRate, _silentStartup));
@@ -208,9 +206,7 @@ namespace KiteBotCore
                 services.AddSingleton(new ReminderService(Client));
                 services.AddSingleton(new FollowUpService());
                 services.AddSingleton(new Random());
-                services.AddSingleton(new CryptoRandom());
-                services.AddSingleton(new YouTubeService(
-                    new Google.Apis.Services.BaseClientService.Initializer { ApiKey = _settings.YoutubeApiKey }));
+                services.AddSingleton(new CryptoRandom());                
 
                 await _handler.InstallAsync(_commandService, services.BuildServiceProvider()).ConfigureAwait(false);
 
@@ -295,6 +291,42 @@ namespace KiteBotCore
             catch (Exception ex)
             {
                 Log.Error(ex, ex.Message);
+            }
+        }
+
+        private static async Task CheckNickname(Cacheable<SocketGuildUser, ulong> before, SocketGuildUser after)
+        {
+            if (before.HasValue)
+            {
+                try
+                {
+                    if (before.Value.Guild.Id == 85814946004238336)
+                    {
+                        var channel = (ITextChannel)Client.GetChannel(85842104034541568);
+                        if (channel != null && before.Value.Nickname != after.Nickname)
+                        {
+                            if (before.Value.Nickname != null && after.Nickname != null)
+                            {
+                                await channel.SendMessageAsync($"{before.Value.Nickname} changed their nickname to {after.Nickname}.")
+                                    .ConfigureAwait(false);
+                            }
+                            else if (before.Value.Nickname == null && after.Nickname != null)
+                            {
+                                await channel.SendMessageAsync($"{before.Value.Username} set their nickname to {after.Nickname}.")
+                                    .ConfigureAwait(false);
+                            }
+                            else
+                            {
+                                await channel.SendMessageAsync($"{before.Value.Username} reset their nickname.")
+                                    .ConfigureAwait(false);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, ex.Message);
+                }
             }
         }
 

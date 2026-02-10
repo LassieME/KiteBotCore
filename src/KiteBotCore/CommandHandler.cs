@@ -48,7 +48,7 @@ namespace KiteBotCore
 
         public async Task HandleBotCommand(SocketMessage parameterMessage)
         {
-            if (enabled == false)
+            if (!enabled)
                 return;
             // Don't handle the command if it is a system message
             if (!(parameterMessage is SocketUserMessage message)) return;

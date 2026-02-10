@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Discord.Addons.Interactive;
 using Discord.Addons.EmojiTools;
 using Discord.Commands;
 using KiteBotCore.Json;
@@ -21,7 +20,6 @@ namespace KiteBotCore.Modules.GiantBombModules
     {
         public Random Rand { get; set; }
         public FollowUpService FollowUpService { get; set; }
-        public MyInteractiveService MyInteractiveService { get; set; }
         public IExtendedGiantBombRestClient GbClient { get; set; }
         public IServiceProvider ServiceProvider { get; set; }
         private Stopwatch _stopwatch;
@@ -82,8 +80,6 @@ namespace KiteBotCore.Modules.GiantBombModules
                         var followUp = new FollowUp(ServiceProvider, dict, Context.User.Id, Context.Channel.Id,
                             messageToEdit);
                         FollowUpService.AddNewFollowUp(followUp);
-                        MyInteractiveService.AddReactionCallback(messageToEdit, new GameDeleteCallback((SocketCommandContext)Context, messageToEdit, "❌", FollowUpService, followUp));
-
                     }
                     else
                     {
@@ -122,44 +118,6 @@ namespace KiteBotCore.Modules.GiantBombModules
                 }
             }
             await ReplyAsync("", embed: result.ToEmbed().Build()).ConfigureAwait(false);
-        }
-    }
-
-    public class GameDeleteCallback : IReactionCallback
-    {
-        public GameDeleteCallback(SocketCommandContext context, IUserMessage message, string emote, FollowUpService followUpService, FollowUp followUp)
-        {
-            Context = context;
-            Message = message;
-            Emote = emote;
-            FollowUpService = followUpService;
-            FollowUp = followUp;
-            Criterion = new Criteria<SocketReaction>();
-            Timeout = TimeSpan.FromSeconds(10);
-        }
-
-        public RunMode RunMode => RunMode.Async;
-
-        public ICriterion<SocketReaction> Criterion { get; }
-
-        public TimeSpan? Timeout { get; }
-
-        public SocketCommandContext Context { get; private set; }
-
-        public IUserMessage Message { get; }
-        public FollowUpService FollowUpService { get; set; }
-        public FollowUp FollowUp { get; }
-        public string Emote { get; private set; }
-
-        public async Task<bool> HandleCallbackAsync(SocketReaction reaction)
-        {
-            if (reaction.Emote.Name == Emote || reaction.Emote.Name == ":x:")
-            {
-                await Message.DeleteAsync();
-                FollowUpService.RemoveFollowUp(FollowUp);
-                return true;
-            }
-            return false;
         }
     }
 

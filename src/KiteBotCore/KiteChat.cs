@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
-using KiteBotCore.Modules.Youtube;
+using KiteBotCore.Modules;
 
 namespace KiteBotCore
 {
@@ -29,8 +29,7 @@ namespace KiteBotCore
         {
             StartMarkovChain = markovbool;
             _greetings = File.ReadAllLines(GreetingFileLocation);
-            RandomSeed = new Random();
-            YoutubeModuleService.Init(ytApi, client);
+            RandomSeed = new Random();            
 
             if (videoRefresh > 30000) GbVideoChecker = new GiantBombVideoChecker(client, gBapi, videoRefresh);
             if (StartMarkovChain && depth > 0)MultiDeepMarkovChains = new MultiTextMarkovChainHelper(client, db, depth, mChainShouldDownload);
