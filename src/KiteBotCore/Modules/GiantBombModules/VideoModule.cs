@@ -32,51 +32,38 @@ namespace KiteBotCore.Modules.GiantBombModules
             Log.Debug($"Video Command: {_stopwatch.ElapsedMilliseconds.ToString()} ms");
         }
 
-        [Command("video", RunMode = RunMode.Async), Ratelimit(2, 1, Measure.Minutes)]
-        [Summary("Searches through GB videos for the 10 closest matches to the query")]
-        public async Task VideoCommand([Remainder] string videoTitle)
-        {
-            if (!VideoService.IsReady)
-            {
-                await ReplyAsync("Bot has not finished downloading all videos yet.").ConfigureAwait(false);
-                return;
-            }
-            if (string.IsNullOrWhiteSpace(videoTitle))
-            {
-                await ReplyAsync("Empty video title given, please specify").ConfigureAwait(false);
-                return;
-            }
-            var dict = new Dictionary<string, Tuple<string, Func<EmbedBuilder>>>();
-            int i = 1;
+        //[Command("video", RunMode = RunMode.Async), Ratelimit(2, 1, Measure.Minutes)]
+        //[Summary("Searches through GB videos for the 10 closest matches to the query")]
+        //public async Task VideoCommand([Remainder] string videoTitle)
+        //{
+        //    if (!VideoService.IsReady)
+        //    {
+        //        await ReplyAsync("Bot has not finished downloading all videos yet.").ConfigureAwait(false);
+        //        return;
+        //    }
+        //    if (string.IsNullOrWhiteSpace(videoTitle))
+        //    {
+        //        await ReplyAsync("Empty video title given, please specify").ConfigureAwait(false);
+        //        return;
+        //    }
+        //    var dict = new Dictionary<string, Tuple<string, Func<EmbedBuilder>>>();
+        //    int i = 1;
 
-            string reply = "Which of these videos did you mean?" + Environment.NewLine;
+        //    string reply = "Which of these videos did you mean?" + Environment.NewLine;
 
-            string videoTitleLowered = videoTitle.ToLower();
-            foreach (Video video in VideoService.AllVideos.Values
-                .OrderByDescending(x => x.Name.ToLower().LongestCommonSubstring(videoTitleLowered).Length).Take(20)
-                .OrderBy(x => x.Name.LevenshteinDistance(videoTitle)).Take(10))
-            {
-                dict.Add(i.ToString(), Tuple.Create<string, Func<EmbedBuilder>>("", () => video.ToEmbed()));
-                reply += $"{i++}. {video.Name} {Environment.NewLine}";
-            }
-            var messageToEdit =
-                await ReplyAsync(reply +
-                                 "Just type the number you want, this command will self-destruct in 2 minutes if no action is taken.").ConfigureAwait(false);
-            FollowUpService.AddNewFollowUp(new FollowUp(Services, dict, Context.User.Id, Context.Channel.Id,
-                messageToEdit));
-        }
-
-        [Command("randomvideo", RunMode = RunMode.Async), Ratelimit(4, 1, Measure.Minutes)]
-        [Summary("Posts a truly random video from Giant Bomb")]
-        public async Task RandomVideoCommand()
-        {
-            if (!VideoService.IsReady)
-            {
-                await ReplyAsync("Bot has not finished downloading all videos yet.").ConfigureAwait(false);
-                return;
-            }
-            
-            await ReplyAsync(VideoService.AllVideos.Values.ToArray()[Random.Next(VideoService.AllVideos.Count)].SiteDetailUrl).ConfigureAwait(false);
-        }
+        //    string videoTitleLowered = videoTitle.ToLower();
+        //    foreach (Video video in VideoService.AllVideos.Values
+        //        .OrderByDescending(x => x.Name.ToLower().LongestCommonSubstring(videoTitleLowered).Length).Take(20)
+        //        .OrderBy(x => x.Name.LevenshteinDistance(videoTitle)).Take(10))
+        //    {
+        //        dict.Add(i.ToString(), Tuple.Create<string, Func<EmbedBuilder>>("", () => video.ToEmbed()));
+        //        reply += $"{i++}. {video.Name} {Environment.NewLine}";
+        //    }
+        //    var messageToEdit =
+        //        await ReplyAsync(reply +
+        //                         "Just type the number you want, this command will self-destruct in 2 minutes if no action is taken.").ConfigureAwait(false);
+        //    FollowUpService.AddNewFollowUp(new FollowUp(Services, dict, Context.User.Id, Context.Channel.Id,
+        //        messageToEdit));
+        //}
     }
 }

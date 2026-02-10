@@ -84,6 +84,15 @@ namespace KiteBotCore.Modules
             await ReplyAsync(await GetResponseUriFromRandomQlCrew(url).ConfigureAwait(false)).ConfigureAwait(false);
         }
 
+
+        [Command("randomvideo", RunMode = RunMode.Async), Ratelimit(4, 1, Measure.Minutes)]
+        [Summary("Posts a truly random video from Giant Bomb")]
+        public async Task RandomVideoCommand()
+        {
+            string url = "https://giantbomb.com/videos/random";
+            await ReplyAsync(await GetResponseUriFromRandomQlCrew(url).ConfigureAwait(false)).ConfigureAwait(false);
+        }
+
         public static async Task<string> GetResponseUriFromRandomQlCrew(string url)
         {
             var request = (HttpWebRequest)WebRequest.Create(url);
@@ -106,7 +115,7 @@ namespace KiteBotCore.Modules
                 Console.WriteLine(ex + ex.Message);
             }
 
-            return "Couldn't load QLcrew's Random Link.";
+            return "Couldn't load Random video.";
         }
 
         [Command("fixchannelnames", RunMode = RunMode.Async)]
