@@ -340,6 +340,14 @@ namespace KiteBotCore.Modules.RankModule
                 stringBuilder.Append("```");
                 await ReplyAsync(stringBuilder.ToString()).ConfigureAwait(false);
             }
+
+            [Command("queue")]
+            [RequireOwnerOrUserPermission(GuildPermission.Administrator)]
+            public async Task QueueCountCommand()
+            {
+                var rankService = (RankServiceV2)RankService;
+                await ReplyAsync($"Users in queue: {rankService.UsersInQueue()}").ConfigureAwait(false);
+            }
         }
 
         [Group("color"),Alias("colour")]

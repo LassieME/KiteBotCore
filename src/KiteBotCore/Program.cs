@@ -197,9 +197,6 @@ namespace KiteBotCore
                 services.AddEntityFrameworkNpgsql()
                     .AddDbContext<KiteBotDbContext>(options => options.UseNpgsql(_settings.DatabaseConnectionString));
                 services.AddSingleton(gbClient);
-                services.AddSingleton(new VideoService(gbClient));
-                services.AddSingleton(new LivestreamCheckerV2(Client, upcomingService,
-                    _settings.GiantBombLiveStreamRefreshRate, _silentStartup));
                 services.AddSingleton(new JeffMixlrChecker(Client, _settings.GiantBombLiveStreamRefreshRate,
                     _silentStartup));
                 services.AddSingleton(new SearchHelper(_settings.AnilistId, _settings.AnilistSecret));

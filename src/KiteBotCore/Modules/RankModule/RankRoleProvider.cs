@@ -27,11 +27,11 @@ namespace KiteBotCore.Modules.RankModule
             var timeInGuild = DateTimeOffset.UtcNow - joinDate;
             var allRanksInGuild = GetAllRanks(user.Guild);
 
-            var rolesToAssign = allRanksInGuild
-                .Where(x => x.RequiredTimeSpan < timeInGuild)
-                .Take(allRanksInGuild
-                          .Where(x => x.RequiredTimeSpan < timeInGuild).ToList()
-                          .Count - (DateTimeOffset.UtcNow - lastActivity).Days / 7).ToList();
+            var rolesToAssign = allRanksInGuild.Where(x => x.RequiredTimeSpan < timeInGuild).ToList();
+                //.Take(allRanksInGuild
+                //          .Where(x => x.RequiredTimeSpan < timeInGuild).ToList()
+                //          .Count - (DateTimeOffset.UtcNow - lastActivity).Days / 7).ToList();
+
             foreach (var role in rolesToAssign.ToList())
             {
                 if ((role as Rank).RemoveWhen != null && rolesToAssign.Any(x => x.Id == (role as Rank).RemoveWhen))

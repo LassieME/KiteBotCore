@@ -13,7 +13,6 @@ namespace KiteBotCore.Modules
 	    private static readonly Random Random = new Random();
 		private const string GoogleSpreadsheetApiUrl = "http://spreadsheets.google.com/feeds/list/11024r_0u5Mu-dLFd-R9lt8VzOYXWgKX1I5JamHJd8S4/od6/public/values?hl=en_US&&alt=json";
 		// ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
-		private static readonly Timer KiteDunkTimer;
 	    private static bool isReady = false;
 
         static KiteDunk()

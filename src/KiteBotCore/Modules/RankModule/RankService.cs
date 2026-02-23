@@ -232,11 +232,10 @@ namespace KiteBotCore.Modules.RankModule
             var timeInGuild = DateTimeOffset.UtcNow - joinDate;
             var allRanksInGuild = GetRanksForGuild(guild).ToList();
 
-            return allRanksInGuild
-                .Where(x => x.RequiredTimeSpan < timeInGuild)
-                .Take(allRanksInGuild
-                    .Where(x => x.RequiredTimeSpan < timeInGuild).ToList()
-                    .Count - (DateTimeOffset.UtcNow - lastActivity).Days / 7).ToList();
+            return allRanksInGuild.Where(x => x.RequiredTimeSpan < timeInGuild).ToList();
+                //.Take(allRanksInGuild
+                //    .Where(x => x.RequiredTimeSpan < timeInGuild).ToList()
+                //    .Count - (DateTimeOffset.UtcNow - lastActivity).Days / 7).ToList();
         }
 
         public async Task<DateTimeOffset> GetUserLastActivityAsync(IGuildUser inputUser, IGuild guild)
